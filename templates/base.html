@@ -6,8 +6,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Mi Botiquín Digital{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+  <script>document.documentElement.classList.add("js");</script>
+  <noscript>
+    <style>
+      .preloader { display: none !important; }
+      .animar, .animar-grupo { opacity: 1 !important; }
+    </style>
+  </noscript>
 </head>
 <body>
+  <!-- Preloader temático -->
+  <div class="preloader" id="preloader" role="status" aria-label="Cargando Mi Botiquín Digital">
+    <div class="preloader-caja">
+      <div class="capsula" aria-hidden="true">
+        <span class="capsula-brillo"></span>
+      </div>
+      <p class="preloader-marca">Mi Botiquín <b>Digital</b></p>
+      <p class="preloader-texto">Preparando tu botiquín…</p>
+      <span class="preloader-barra" aria-hidden="true"><i></i></span>
+    </div>
+  </div>
+
   <div class="deco" aria-hidden="true">
     <span class="deco-1"></span>
     <span class="deco-2"></span>
@@ -24,5 +43,41 @@
 
     {% block content %}{% endblock %}
   </main>
+
+  <script>
+    (function () {
+      var raiz = document.documentElement;
+      var preloader = document.getElementById("preloader");
+      if (!preloader) return;
+
+      var reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var inicio = performance.now();
+
+      function revelar() {
+        var espera = reducir ? 0 : Math.max(0, 650 - (performance.now() - inicio));
+
+        window.setTimeout(function () {
+          preloader.classList.add("oculto");
+          preloader.setAttribute("aria-hidden", "true");
+          raiz.classList.add("listo");
+
+          window.setTimeout(function () {
+            preloader.remove();
+          }, 650);
+        }, espera);
+      }
+
+      if (document.readyState === "complete") {
+        revelar();
+      } else {
+        window.addEventListener("load", revelar, { once: true });
+      }
+
+      // Red de seguridad: la página nunca queda bloqueada por el preloader
+      window.setTimeout(function () {
+        if (document.body.contains(preloader)) revelar();
+      }, 5000);
+    })();
+  </script>
 </body>
 </html>

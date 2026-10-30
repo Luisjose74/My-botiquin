@@ -5,32 +5,34 @@
 {% block content %}
 <div class="auth">
   <section class="auth-lado">
-    <a class="marca" href="{% url 'cuentas:login' %}">
+    <a class="marca animar" style="--d: 40ms" href="{% url 'cuentas:login' %}">
       <span class="marca-logo">✚</span>
       <span>Mi Botiquín <b>Digital</b></span>
     </a>
 
     <div class="auth-hero">
-      <p class="saludo">Tu salud, siempre en orden</p>
-      <h1>Organiza, cuida<br>y nunca olvides<br><span>tus medicamentos</span></h1>
-      <p class="descripcion">
+      <p class="saludo animar" style="--d: 100ms">Tu salud, siempre en orden</p>
+      <h1 class="animar" style="--d: 160ms">
+        Organiza, cuida<br>y nunca olvides<br><span>tus medicamentos</span>
+      </h1>
+      <p class="descripcion animar" style="--d: 220ms">
         Mi Botiquín Digital te ayuda a llevar un control fácil, seguro y
         confiable de tus medicamentos y los de tu familia.
       </p>
 
       <ul class="beneficios">
-        <li><span>🔔</span> Alertas de vencimiento</li>
-        <li><span>💊</span> Inventario organizado</li>
-        <li><span>👨‍👩‍👧</span> Perfil familiar</li>
-        <li><span>📱</span> Acceso desde cualquier lugar</li>
+        <li class="animar" style="--d: 280ms"><span>🔔</span> Alertas de vencimiento</li>
+        <li class="animar" style="--d: 340ms"><span>💊</span> Inventario organizado</li>
+        <li class="animar" style="--d: 400ms"><span>👨‍👩‍👧</span> Perfil familiar</li>
+        <li class="animar" style="--d: 460ms"><span>📱</span> Acceso desde cualquier lugar</li>
       </ul>
     </div>
 
-    <p class="auth-pie">Cuidar tu salud también es planear ♡</p>
+    <p class="auth-pie animar" style="--d: 620ms">Cuidar tu salud también es planear ♡</p>
   </section>
 
   <section class="auth-panel">
-    <div class="tarjeta">
+    <div class="tarjeta tarjeta-login animar" style="--d: 500ms">
       <h2>Bienvenido de nuevo</h2>
       <p class="sub">Inicia sesión en tu botiquín digital</p>
 
@@ -45,7 +47,7 @@
         <input type="hidden" name="next" value="{{ next }}">
 
         {% for field in form %}
-          <div class="grupo">
+          <div class="grupo animar-grupo" style="--i: {{ forloop.counter0 }}">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
             {% for error in field.errors %}
@@ -63,7 +65,7 @@
       </p>
     </div>
 
-    <p class="nota">🔒 Tu información está segura con nosotros.</p>
+    <p class="nota animar" style="--d: 720ms">🔒 Tu información está segura con nosotros.</p>
   </section>
 </div>
 {% endblock %}
