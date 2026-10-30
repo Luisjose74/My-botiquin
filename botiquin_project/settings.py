@@ -159,22 +159,24 @@ MEDIA_ROOT = BASE_DIR / 'media'
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 
-# Email
+
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
+# Email
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
-        'HOST': os.environ.get('EMAIL_HOST', 'smtp.gmail.com'),
-        'PORT': int(os.environ.get('EMAIL_PORT', '587')),
-        'USER': os.environ.get('EMAIL_HOST_USER', ''),
-        'PASSWORD': os.environ.get('EMAIL_HOST_PASSWORD', ''),
-        'USE_TLS': os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true',
-        'USE_SSL': os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true',
+        'OPTIONS': {
+            'host': os.environ.get('EMAIL_HOST', 'smtp.gmail.com'),
+            'port': int(os.environ.get('EMAIL_PORT', 587)),
+            'username': os.environ.get('EMAIL_HOST_USER', ''),
+            'password': os.environ.get('EMAIL_HOST_PASSWORD', ''),
+            'use_tls': os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true',
+            'use_ssl': os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true',
+        }
     },
 }
 
-# Correo (produccion/feria): SMTP real mediante variables de entorno
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Mi Botiquín Digital <no-reply@mibotiquin.local>"
 )
