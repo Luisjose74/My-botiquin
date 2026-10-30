@@ -59,6 +59,10 @@
         <button class="boton" type="submit">Iniciar sesión →</button>
       </form>
 
+      <p class="pie" style="margin-top:0.6rem;">
+        <a href="{% url 'cuentas:password_reset' %}">¿Olvidaste tu contraseña?</a>
+      </p>
+
       <p class="pie">
         ¿No tienes una cuenta?
         <a href="{% url 'cuentas:registro' %}">Crear cuenta</a>

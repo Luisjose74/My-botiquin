@@ -146,3 +146,6 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# Correo (desarrollo): se imprime en consola
+DEFAULT_FROM_EMAIL = "Mi Botiquín Digital <no-reply@mibotiquin.local>"
