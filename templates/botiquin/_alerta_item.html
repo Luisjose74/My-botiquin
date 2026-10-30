@@ -2,7 +2,7 @@
 Tarjeta de una alerta. Uso: {% include "botiquin/_alerta_item.html" with alerta=alerta %}
 {% endcomment %}
 <article class="alerta-item tipo-{{ alerta.tipo }}{% if alerta.leida %} leida{% endif %}">
-  <span class="alerta-icono" aria-hidden="true">{% if alerta.tipo == 'agotado' %}📭{% elif alerta.tipo == 'vencido' %}⛔{% else %}⏳{% endif %}</span>
+  <span class="alerta-icono" aria-hidden="true">{% if alerta.tipo == 'agotado' %}📭{% elif alerta.tipo == 'vencido' %}⛔{% elif alerta.tipo == 'stock_bajo' %}📦{% else %}⏳{% endif %}</span>
 
   <div class="alerta-texto">
     <h3>{{ alerta.titulo }}</h3>

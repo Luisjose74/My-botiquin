@@ -69,8 +69,8 @@
   <article class="tarjeta dash-card animar" style="--d: 240ms">
     <header class="dash-cabecera">
       <div>
-        <h2>Próximos vencimientos</h2>
-        <p>Medicamentos vencidos, por vencer o sin existencias.</p>
+        <h2>Medicamentos por revisar</h2>
+        <p>Vencidos, por vencer, sin existencias o con stock bajo.</p>
       </div>
       <a class="dash-ver-todas" href="{% url 'botiquin:lista' %}">Ver botiquín →</a>
     </header>
@@ -85,10 +85,16 @@
                 <strong>{{ medicamento.nombre }}</strong>
                 <small>
                   {% if medicamento.cantidad == 0 %}Sin unidades
-                  {% else %}Vence {{ medicamento.fecha_vencimiento_formateada }}{% endif %}
+                  {% elif medicamento.dias_para_vencer < 0 %}Venció el {{ medicamento.fecha_vencimiento_formateada }}
+                  {% else %}Vence el {{ medicamento.fecha_vencimiento_formateada }}{% endif %}
+                  {% if medicamento.stock_bajo %} · Quedan {{ medicamento.cantidad }}{% endif %}
                 </small>
               </span>
-              <span class="tag {{ medicamento.estado }}">{{ medicamento.estado_label }}</span>
+              {% if medicamento.estado == 'vigente' and medicamento.stock_bajo %}
+                <span class="tag stock-bajo">Stock bajo</span>
+              {% else %}
+                <span class="tag {{ medicamento.estado }}">{{ medicamento.estado_label }}</span>
+              {% endif %}
             </a>
           </li>
         {% endfor %}

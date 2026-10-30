@@ -1,0 +1,13 @@
+Hola{% if usuario.first_name %} {{ usuario.first_name }}{% endif %},
+
+Tienes {{ total }} alerta{{ total|pluralize:",s" }} nueva{{ total|pluralize:",s" }} en tu botiquín digital:
+
+{% for alerta in alertas %}- {{ alerta.titulo }}
+  {{ alerta.mensaje }}
+{% endfor %}
+{% if url_panel %}Revísalas aquí: {{ url_panel }}
+{% else %}Revísalas en la sección Alertas de Mi Botiquín Digital.
+{% endif %}
+Puedes cambiar cómo quieres recibir las alertas en tu perfil.
+
+Mi Botiquín Digital

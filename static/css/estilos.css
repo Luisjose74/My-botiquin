@@ -1616,6 +1616,7 @@ a:hover { text-decoration: underline; }
 .alerta-item.tipo-vencido { border-left-color: #d94a4a; }
 .alerta-item.tipo-por_vencer { border-left-color: #e0a11a; }
 .alerta-item.tipo-agotado { border-left-color: #7b879e; }
+.alerta-item.tipo-stock_bajo { border-left-color: var(--blue); }
 .alerta-item.leida { opacity: 0.62; background: #fff; }
 .alerta-icono {
   display: inline-grid;
@@ -1713,3 +1714,5 @@ a:hover { text-decoration: underline; }
     transition-duration: 1ms;
   }
 }
+
+.tag.stock-bajo { background: var(--soft); color: var(--blue); border-color: #bcd4f4; }

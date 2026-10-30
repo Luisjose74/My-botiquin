@@ -69,3 +69,21 @@ CSRF_TRUSTED_ORIGINS=https://tu-dominio.ngrok-free.app
 
 El enlace de recuperación se genera a partir del host de la petición, así que
 con la URL pública llegará correctamente al celular del usuario.
+
+## Alertas por correo
+
+Cada alerta aparece en el panel. Si el usuario eligió el canal **Correo
+electrónico** en su perfil, además recibe un único correo con las alertas nuevas
+(no se repiten las ya enviadas).
+
+Tipos de alerta (en orden de prioridad): agotado, vencido, próximo a vencer
+(30 días o menos) y stock bajo (2 unidades o menos).
+
+Para recalcular alertas y enviar correos sin abrir la app:
+
+```powershell
+python manage.py sincronizar_alertas
+```
+
+Para ejecutarlo automáticamente cada hora en Windows, sigue la guía
+[docs/automatizacion-windows.md](docs/automatizacion-windows.md).

@@ -181,3 +181,6 @@ MAILERS = {
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Mi Botiquín Digital <no-reply@mibotiquin.local>"
 )
+
+# URL pública de la app (p. ej. el túnel de ngrok) para enlaces en los correos
+SITE_URL = os.environ.get("SITE_URL", "")

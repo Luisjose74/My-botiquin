@@ -87,7 +87,7 @@ class MedicamentoQuerySet(models.QuerySet):
                 fecha_vencimiento__lte=hoy
                 + timedelta(days=self.model.UMBRAL_ALERTA_DIAS)
             )
-            | models.Q(cantidad=0)
+            | models.Q(cantidad__lte=self.model.UMBRAL_STOCK_BAJO)
         )
 
 
@@ -96,6 +96,7 @@ class MedicamentoQuerySet(models.QuerySet):
 # --------------------------------------------------------------------------
 class Medicamento(models.Model):
     UMBRAL_ALERTA_DIAS = 30  # días previos al vencimiento para alertar
+    UMBRAL_STOCK_BAJO = 2  # unidades o menos (y mayores que cero) = stock bajo
 
     # Quién registra y quién lo usa
     usuario = models.ForeignKey(
@@ -221,8 +222,13 @@ class Medicamento(models.Model):
         return abs(dias) if dias is not None and dias < 0 else 0
 
     @property
+    def stock_bajo(self) -> bool:
+        """Queda poco stock, pero todavía hay unidades."""
+        return 0 < self.cantidad <= self.UMBRAL_STOCK_BAJO
+
+    @property
     def esta_en_alerta(self) -> bool:
-        return self.estado in (
+        return self.stock_bajo or self.estado in (
             EstadoInventario.PROXIMO,
             EstadoInventario.VENCIDO,
             EstadoInventario.AGOTADO,
