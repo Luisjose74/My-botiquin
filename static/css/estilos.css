@@ -1533,14 +1533,18 @@ a:hover { text-decoration: underline; }
   top: 50%;
   right: 0.55rem;
   transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   border: 0;
   background: transparent;
   color: var(--sub);
-  font-size: 1rem;
-  line-height: 1;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0;
   border-radius: 8px;
   transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
 }
 .boton-ojito:hover { color: var(--blue); background: var(--soft); }
+.boton-ojito .icono-ojo { display: block; }
