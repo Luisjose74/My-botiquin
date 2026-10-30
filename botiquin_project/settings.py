@@ -16,6 +16,14 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Carga variables de entorno desde .env (si python-dotenv esta instalado)
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / ".env")
+except ImportError:
+    pass
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
@@ -26,7 +34,16 @@ SECRET_KEY = 'django-insecure-yj=hro!ooiht#j$iwsj6ruf@48zcy_n3!^wk@$e(@0d6ok11no
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if host.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 
 # Application definition
@@ -52,6 +69,9 @@ AUTH_USER_MODEL = 'cuentas.Usuario'
 LOGIN_URL = 'cuentas:login'
 LOGIN_REDIRECT_URL = 'botiquin:lista'
 LOGOUT_REDIRECT_URL = 'cuentas:login'
+
+# Tiempo de validez del enlace de restablecimiento (segundos)
+PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", "86400"))
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -154,5 +174,7 @@ MAILERS = {
     },
 }
 
-# Correo (desarrollo): se imprime en consola
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Mi Botiquín Digital <no-reply@mibotiquin.local>")
+# Correo (produccion/feria): SMTP real mediante variables de entorno
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", "Mi Botiquín Digital <no-reply@mibotiquin.local>"
+)

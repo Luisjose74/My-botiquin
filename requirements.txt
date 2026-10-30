@@ -8,3 +8,4 @@ rich==15.0.0
 sqlparse==0.6.0
 tzdata==2026.4
 Pillow==13.0.0
+python-dotenv==1.0.1
