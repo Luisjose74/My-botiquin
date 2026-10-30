@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Mi Botiquín Digital{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+</head>
+<body>
+  <div class="deco" aria-hidden="true">
+    <span class="deco-1"></span>
+    <span class="deco-2"></span>
+  </div>
+
+  <main class="contenedor">
+    {% if messages %}
+      <div class="mensajes">
+        {% for message in messages %}
+          <div class="alerta {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

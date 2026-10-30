@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión · Mi Botiquín Digital{% endblock %}
+
+{% block content %}
+<div class="auth">
+  <section class="auth-lado">
+    <a class="marca" href="{% url 'cuentas:login' %}">
+      <span class="marca-logo">✚</span>
+      <span>Mi Botiquín <b>Digital</b></span>
+    </a>
+
+    <div class="auth-hero">
+      <p class="saludo">Tu salud, siempre en orden</p>
+      <h1>Organiza, cuida<br>y nunca olvides<br><span>tus medicamentos</span></h1>
+      <p class="descripcion">
+        Mi Botiquín Digital te ayuda a llevar un control fácil, seguro y
+        confiable de tus medicamentos y los de tu familia.
+      </p>
+
+      <ul class="beneficios">
+        <li><span>🔔</span> Alertas de vencimiento</li>
+        <li><span>💊</span> Inventario organizado</li>
+        <li><span>👨‍👩‍👧</span> Perfil familiar</li>
+        <li><span>📱</span> Acceso desde cualquier lugar</li>
+      </ul>
+    </div>
+
+    <p class="auth-pie">Cuidar tu salud también es planear ♡</p>
+  </section>
+
+  <section class="auth-panel">
+    <div class="tarjeta">
+      <h2>Bienvenido de nuevo</h2>
+      <p class="sub">Inicia sesión en tu botiquín digital</p>
+
+      {% if form.non_field_errors %}
+        <div class="alerta error">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        {% for field in form %}
+          <div class="grupo">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+              <small class="error-campo">{{ error }}</small>
+            {% endfor %}
+          </div>
+        {% endfor %}
+
+        <button class="boton" type="submit">Iniciar sesión →</button>
+      </form>
+
+      <p class="pie">
+        ¿No tienes una cuenta?
+        <a href="{% url 'cuentas:registro' %}">Crear cuenta</a>
+      </p>
+    </div>
+
+    <p class="nota">🔒 Tu información está segura con nosotros.</p>
+  </section>
+</div>
+{% endblock %}

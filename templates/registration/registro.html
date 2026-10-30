@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Crear cuenta · Mi Botiquín Digital{% endblock %}
+
+{% block content %}
+<div class="auth">
+  <section class="auth-lado">
+    <a class="marca" href="{% url 'cuentas:login' %}">
+      <span class="marca-logo">✚</span>
+      <span>Mi Botiquín <b>Digital</b></span>
+    </a>
+
+    <div class="auth-hero">
+      <p class="saludo">Empieza hoy</p>
+      <h1>Crea tu botiquín<br><span>digital familiar</span></h1>
+      <p class="descripcion">
+        Registra tus medicamentos, controla las fechas de vencimiento y
+        recibe alertas antes de que sea tarde.
+      </p>
+
+      <ul class="beneficios">
+        <li><span>✅</span> Inventario siempre actualizado</li>
+        <li><span>⏳</span> Avisos antes del vencimiento</li>
+        <li><span>👨‍👩‍👧</span> Varias personas, una sola cuenta</li>
+        <li><span>📸</span> Registro por foto de la caja</li>
+      </ul>
+    </div>
+
+    <p class="auth-pie">Tu información está segura con nosotros.</p>
+  </section>
+
+  <section class="auth-panel">
+    <div class="tarjeta">
+      <h2>Crear cuenta</h2>
+      <p class="sub">Completa tus datos para comenzar</p>
+
+      {% if form.non_field_errors %}
+        <div class="alerta error">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% for field in form %}
+          <div class="grupo">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <small class="ayuda">{{ field.help_text|safe }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+              <small class="error-campo">{{ error }}</small>
+            {% endfor %}
+          </div>
+        {% endfor %}
+
+        <button class="boton" type="submit">Crear mi cuenta →</button>
+      </form>
+
+      <p class="pie">
+        ¿Ya tienes una cuenta?
+        <a href="{% url 'cuentas:login' %}">Iniciar sesión</a>
+      </p>
+    </div>
+
+    <p class="nota">Al registrarte se crea automáticamente tu hogar familiar.</p>
+  </section>
+</div>
+{% endblock %}

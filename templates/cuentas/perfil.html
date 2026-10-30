@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Mi perfil · Mi Botiquín Digital{% endblock %}
+
+{% block content %}
+<header class="barra">
+  <a class="marca marca-oscura" href="{% url 'cuentas:perfil' %}">
+    <span class="marca-logo">✚</span>
+    <span>Mi Botiquín <b>Digital</b></span>
+  </a>
+
+  <form method="post" action="{% url 'cuentas:logout' %}">
+    {% csrf_token %}
+    <button class="boton-secundario" type="submit">Cerrar sesión</button>
+  </form>
+</header>
+
+<section class="perfil">
+  <div class="tarjeta perfil-cabecera">
+    <div class="avatar">{{ request.user.iniciales }}</div>
+    <div class="perfil-datos">
+      <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
+      <p>@{{ request.user.username }} · {{ request.user.email }}</p>
+    </div>
+    <span class="chip">Cuenta personal</span>
+  </div>
+
+  <div class="perfil-grid">
+    <div class="tarjeta">
+      <h2>Datos personales</h2>
+      <p class="sub">Actualiza tu información y preferencias de alertas.</p>
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% for field in form %}
+          <div class="grupo">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+              <small class="error-campo">{{ error }}</small>
+            {% endfor %}
+          </div>
+        {% endfor %}
+
+        <button class="boton" type="submit">Guardar cambios</button>
+      </form>
+    </div>
+
+    <aside class="perfil-lateral">
+      <div class="tarjeta">
+        <h2>Mi hogar</h2>
+        {% if hogar %}
+          <p class="sub">{{ hogar.nombre }}</p>
+          <p class="codigo">Código de invitación: <b>{{ hogar.codigo_invitacion }}</b></p>
+
+          <ul class="lista-miembros">
+            {% for miembro in miembros %}
+              <li>
+                <span class="avatar mini">{{ miembro.iniciales }}</span>
+                <span class="miembro-nombre">{{ miembro.nombre }}</span>
+                <span class="chip">{{ miembro.get_relacion_display }}</span>
+              </li>
+            {% empty %}
+              <li class="vacio">Aún no hay miembros registrados.</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="sub">No tienes un hogar asignado.</p>
+        {% endif %}
+      </div>
+
+      <div class="tarjeta">
+        <h2>Próximamente</h2>
+        <p class="sub">
+          Aquí verás el resumen de tu inventario y tus alertas de
+          vencimiento.
+        </p>
+        <div class="chips">
+          <span class="chip">💊 Inventario</span>
+          <span class="chip">🔔 Alertas</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -45,6 +45,11 @@ INSTALLED_APPS = [
 # Modelo de usuario personalizado (debe definirse antes de la primera migración)
 AUTH_USER_MODEL = 'cuentas.Usuario'
 
+# Autenticación
+LOGIN_URL = 'cuentas:login'
+LOGIN_REDIRECT_URL = 'cuentas:perfil'
+LOGOUT_REDIRECT_URL = 'cuentas:login'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
