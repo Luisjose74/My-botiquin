@@ -1,0 +1,135 @@
+{% extends "base_app.html" %}
+
+{% block title %}{{ medicamento.nombre }} · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'botiquin:lista' %}">← Volver al botiquín</a>
+
+<section class="detalle-grid animar" style="--d: 80ms">
+  <div class="tarjeta detalle-foto-card">
+    {% if medicamento.foto %}
+      <img class="detalle-foto" src="{{ medicamento.foto.url }}"
+           alt="Foto de la caja de {{ medicamento.nombre }}">
+    {% else %}
+      <div class="detalle-foto-placeholder">
+        <span aria-hidden="true">
+          {% if medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}
+        </span>
+        <small>Sin foto de la caja</small>
+      </div>
+    {% endif %}
+
+    <div class="detalle-foto-pie">
+      <span class="chip">
+        {% if medicamento.categoria %}{{ medicamento.categoria.icono }} {{ medicamento.categoria.nombre }}{% else %}Sin categoría{% endif %}
+      </span>
+      <span class="tag {{ medicamento.estado }}">{{ medicamento.estado_label }}</span>
+    </div>
+  </div>
+
+  <div class="detalle-contenido">
+    <div class="tarjeta">
+      <div class="detalle-cabecera">
+        <div>
+          <p class="saludo">Ficha del medicamento</p>
+          <h1>{{ medicamento.nombre }}</h1>
+          <p class="page-sub">
+            {{ medicamento.get_presentacion_display }} ·
+            {{ medicamento.cantidad }} unidad{{ medicamento.cantidad|pluralize:"es" }}
+          </p>
+        </div>
+        <div class="detalle-acciones">
+          <a class="boton boton-inline" href="{% url 'botiquin:editar' medicamento.pk %}">Editar</a>
+          <a class="boton-secundario boton-peligro" href="{% url 'botiquin:eliminar' medicamento.pk %}">Eliminar</a>
+        </div>
+      </div>
+
+      {% if medicamento.estado == 'vencido' %}
+        <div class="aviso aviso-peligro">
+          ⚠️ Este medicamento venció hace {{ medicamento.dias_vencido }}
+          día{{ medicamento.dias_vencido|pluralize }}. No debe utilizarse;
+          consulta cómo desecharlo de forma segura.
+        </div>
+      {% elif medicamento.estado == 'proximo' %}
+        <div class="aviso aviso-warn">
+          ⏳ Vence en {{ medicamento.dias_para_vencer }}
+          día{{ medicamento.dias_para_vencer|pluralize }}. Úsalo pronto o
+          consulta a tu servicio farmacéutico.
+        </div>
+      {% elif medicamento.estado == 'agotado' %}
+        <div class="aviso aviso-info">
+          📦 No quedan unidades de este medicamento en el botiquín.
+        </div>
+      {% else %}
+        <div class="aviso aviso-ok">
+          ✅ Todo en orden: el medicamento está vigente y con existencias.
+        </div>
+      {% endif %}
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Cantidad disponible</span>
+          <span class="info-valor">{{ medicamento.cantidad }} unidades</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Presentación</span>
+          <span class="info-valor">{{ medicamento.get_presentacion_display }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Fecha de vencimiento</span>
+          <span class="info-valor">{{ medicamento.fecha_vencimiento|date:"d/m/Y" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Días restantes</span>
+          <span class="info-valor">
+            {% if medicamento.dias_para_vencer >= 0 %}
+              {{ medicamento.dias_para_vencer }} días
+            {% else %}
+              Vencido hace {{ medicamento.dias_vencido }} días
+            {% endif %}
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Ubicación</span>
+          <span class="info-valor">{{ medicamento.ubicacion|default:"Sin especificar" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Condición de almacenamiento</span>
+          <span class="info-valor">{{ medicamento.get_condicion_almacenamiento_display }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Registro sanitario</span>
+          <span class="info-valor">{{ medicamento.registro_sanitario|default:"No registrado" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Lote</span>
+          <span class="info-valor">{{ medicamento.lote|default:"Sin lote" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">¿Quién lo usa?</span>
+          <span class="info-valor">
+            {% if medicamento.miembro %}{{ medicamento.miembro.nombre }}{% else %}Sin asignar{% endif %}
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Registrado el</span>
+          <span class="info-valor">{{ medicamento.fecha_registro|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+
+      {% if medicamento.notas_conservacion or medicamento.notas %}
+        <div class="detalle-notas">
+          {% if medicamento.notas_conservacion %}
+            <h3>Conservación</h3>
+            <p>{{ medicamento.notas_conservacion|linebreaksbr }}</p>
+          {% endif %}
+          {% if medicamento.notas %}
+            <h3>Notas adicionales</h3>
+            <p>{{ medicamento.notas|linebreaksbr }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

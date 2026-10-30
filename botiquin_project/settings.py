@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Plantillas de widgets de formularios (FORM_RENDERER personalizado)
+    'django.forms',
     # Apps de Mi Botiquín Digital
     'cuentas.apps.CuentasConfig',
     'botiquin.apps.BotiquinConfig',
@@ -47,7 +49,7 @@ AUTH_USER_MODEL = 'cuentas.Usuario'
 
 # Autenticación
 LOGIN_URL = 'cuentas:login'
-LOGIN_REDIRECT_URL = 'cuentas:perfil'
+LOGIN_REDIRECT_URL = 'botiquin:lista'
 LOGOUT_REDIRECT_URL = 'cuentas:login'
 
 MIDDLEWARE = [
@@ -131,6 +133,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # Archivos subidos por el usuario (fotos de cajas, perfiles)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Permite que los widgets usen las plantillas del proyecto (templates/)
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 
 # Email

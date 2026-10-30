@@ -9,6 +9,7 @@ class MedicamentoAdmin(admin.ModelAdmin):
         "nombre",
         "usuario",
         "cantidad",
+        "ubicacion",
         "fecha_vencimiento",
         "estado",
         "activo",

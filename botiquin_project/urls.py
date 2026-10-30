@@ -13,7 +13,8 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("cuentas/", include("cuentas.urls")),
-    # Temporal: la página de inicio (dashboard) llega en la Fase 3/4
+    path("botiquin/", include("botiquin.urls")),
+    # Temporal: la página de inicio (dashboard) llega en la Fase 4
     path(
         "",
         RedirectView.as_view(pattern_name="cuentas:login", permanent=False),

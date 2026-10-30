@@ -1,0 +1,151 @@
+{% extends "base_app.html" %}
+
+{% block title %}Mi botiquín · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<section class="page-head animar" style="--d: 40ms">
+  <div>
+    <p class="saludo">Inventario familiar</p>
+    <h1>Mi botiquín</h1>
+    <p class="page-sub">
+      Controla cantidades, fechas de vencimiento y dónde guardas cada
+      medicamento.
+    </p>
+  </div>
+  <a class="boton boton-inline" href="{% url 'botiquin:crear' %}">
+    ＋ Registrar medicamento
+  </a>
+</section>
+
+<section class="stats-grid animar" style="--d: 100ms" aria-label="Resumen del botiquín">
+  <a class="stat-card stat-total {% if estado_actual == 'todos' %}activo{% endif %}"
+     href="{% url 'botiquin:lista' %}">
+    <span class="stat-icono">💊</span>
+    <b>{{ stats.total }}</b>
+    <span>Total registrados</span>
+  </a>
+  <a class="stat-card stat-ok {% if estado_actual == 'optimos' %}activo{% endif %}"
+     href="?estado=optimos">
+    <span class="stat-icono">✅</span>
+    <b>{{ stats.optimos }}</b>
+    <span>Óptimos</span>
+  </a>
+  <a class="stat-card stat-warn {% if estado_actual == 'por_vencer' %}activo{% endif %}"
+     href="?estado=por_vencer">
+    <span class="stat-icono">⏳</span>
+    <b>{{ stats.por_vencer }}</b>
+    <span>Por vencer</span>
+  </a>
+  <a class="stat-card stat-bad {% if estado_actual == 'vencidos' %}activo{% endif %}"
+     href="?estado=vencidos">
+    <span class="stat-icono">⚠️</span>
+    <b>{{ stats.vencidos }}</b>
+    <span>Vencidos</span>
+  </a>
+</section>
+
+<section class="filtros animar" style="--d: 160ms">
+  <div class="chips-filtro" role="group" aria-label="Filtrar por estado">
+    <a class="chip-filtro {% if estado_actual == 'todos' %}activo{% endif %}"
+       href="?estado=todos{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Todos</a>
+    <a class="chip-filtro {% if estado_actual == 'optimos' %}activo{% endif %}"
+       href="?estado=optimos{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Óptimos</a>
+    <a class="chip-filtro {% if estado_actual == 'por_vencer' %}activo{% endif %}"
+       href="?estado=por_vencer{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Por vencer</a>
+    <a class="chip-filtro {% if estado_actual == 'vencidos' %}activo{% endif %}"
+       href="?estado=vencidos{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Vencidos</a>
+    <a class="chip-filtro {% if estado_actual == 'agotados' %}activo{% endif %}"
+       href="?estado=agotados{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Agotados</a>
+  </div>
+
+  <form class="filtros-form" method="get">
+    <input type="hidden" name="estado" value="{{ estado_actual }}">
+
+    <div class="buscador-campo">
+      <span aria-hidden="true">🔍</span>
+      <input class="campo" type="search" name="q" value="{{ q }}"
+             placeholder="Buscar por nombre, lote o registro sanitario…"
+             aria-label="Buscar medicamentos">
+    </div>
+
+    <select class="campo campo-select" name="categoria" aria-label="Filtrar por categoría">
+      <option value="">Todas las categorías</option>
+      {% for categoria in categorias %}
+        <option value="{{ categoria.pk }}"
+          {% if categoria_actual == categoria.pk %}selected{% endif %}>
+          {{ categoria.icono }} {{ categoria.nombre }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <button class="boton boton-inline" type="submit">Filtrar</button>
+
+    {% if q or categoria_actual or estado_actual != 'todos' %}
+      <a class="limpiar-filtros" href="{% url 'botiquin:lista' %}">Limpiar</a>
+    {% endif %}
+  </form>
+</section>
+
+<div class="resultado-info">
+  {{ medicamentos|length }} medicamento{{ medicamentos|length|pluralize }}
+  {% if estado_actual != 'todos' %} · filtro: {{ estado_label }}{% endif %}
+</div>
+
+<section class="grid-meds">
+  {% for medicamento in medicamentos %}
+    <article class="med-card {{ medicamento.estado }} animar"
+             style="--d: calc(220ms + {{ forloop.counter0 }} * 35ms)">
+      <div class="med-card-top">
+        <span class="med-icono" aria-hidden="true">
+          {% if medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}
+        </span>
+        <div class="med-titulo">
+          <h3>{{ medicamento.nombre }}</h3>
+          <p>{{ medicamento.get_presentacion_display }} · {{ medicamento.cantidad }} und.</p>
+        </div>
+        <span class="tag {{ medicamento.estado }}">{{ medicamento.estado_label }}</span>
+      </div>
+
+      <ul class="med-meta">
+        <li><span aria-hidden="true">📅</span> Vence: {{ medicamento.fecha_vencimiento|date:"d/m/Y" }}</li>
+        {% if medicamento.ubicacion %}
+          <li><span aria-hidden="true">📍</span> {{ medicamento.ubicacion }}</li>
+        {% endif %}
+        {% if medicamento.miembro %}
+          <li><span aria-hidden="true">👤</span> {{ medicamento.miembro.nombre }}</li>
+        {% endif %}
+      </ul>
+
+      <div class="med-acciones">
+        <a class="accion" href="{% url 'botiquin:detalle' medicamento.pk %}">Ver ficha</a>
+        <a class="accion" href="{% url 'botiquin:editar' medicamento.pk %}">Editar</a>
+        <a class="accion accion-peligro" href="{% url 'botiquin:eliminar' medicamento.pk %}">Eliminar</a>
+      </div>
+    </article>
+  {% empty %}
+    <div class="vacio-app">
+      <span class="vacio-icono" aria-hidden="true">🧺</span>
+      <h2>
+        {% if q or categoria_actual or estado_actual != 'todos' %}
+          Sin resultados
+        {% else %}
+          Tu botiquín está vacío
+        {% endif %}
+      </h2>
+      <p>
+        {% if q or categoria_actual or estado_actual != 'todos' %}
+          No encontramos medicamentos con esos filtros.
+        {% else %}
+          Registra tu primer medicamento para empezar a controlar
+          vencimientos y cantidades.
+        {% endif %}
+      </p>
+      {% if q or categoria_actual or estado_actual != 'todos' %}
+        <a class="boton boton-inline" href="{% url 'botiquin:lista' %}">Ver todo el botiquín</a>
+      {% else %}
+        <a class="boton boton-inline" href="{% url 'botiquin:crear' %}">＋ Registrar medicamento</a>
+      {% endif %}
+    </div>
+  {% endfor %}
+</section>
+{% endblock %}

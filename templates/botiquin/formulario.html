@@ -1,0 +1,217 @@
+{% extends "base_app.html" %}
+
+{% block title %}
+  {% if modo == "editar" %}Editar {{ medicamento.nombre }}{% else %}Registrar medicamento{% endif %} · Mi Botiquín Digital
+{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms"
+   href="{% if modo == 'editar' %}{% url 'botiquin:detalle' medicamento.pk %}{% else %}{% url 'botiquin:lista' %}{% endif %}">
+  ← {% if modo == "editar" %}Volver a la ficha{% else %}Volver al botiquín{% endif %}
+</a>
+
+<section class="page-head animar" style="--d: 80ms">
+  <div>
+    <p class="saludo">{% if modo == "editar" %}Actualizar ficha{% else %}Nuevo registro{% endif %}</p>
+    <h1>{% if modo == "editar" %}Editar medicamento{% else %}Registrar medicamento{% endif %}</h1>
+    <p class="page-sub">
+      {% if modo == "editar" %}
+        Ajusta los datos de «{{ medicamento.nombre }}» y guarda los cambios.
+      {% else %}
+        Completa los datos de la caja. Los campos marcados con
+        <span class="req">*</span> son obligatorios.
+      {% endif %}
+    </p>
+  </div>
+  <span class="chip">
+    {% if modo == "editar" %}✏️ En edición{% else %}💊 Inventario familiar{% endif %}
+  </span>
+</section>
+
+<form class="form-med" method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alerta error animar" style="--d: 120ms">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="form-grid">
+    <div class="form-col">
+      <section class="tarjeta form-seccion animar" style="--d: 140ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">📋</span>
+          <div>
+            <h2>Datos del medicamento</h2>
+            <p>Lo esencial para identificarlo en tu botiquín.</p>
+          </div>
+        </div>
+
+        <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.nombre ancho=True %}
+          {% include "botiquin/_campo.html" with campo=form.categoria %}
+          {% include "botiquin/_campo.html" with campo=form.presentacion %}
+          {% include "botiquin/_campo.html" with campo=form.cantidad %}
+          {% include "botiquin/_campo.html" with campo=form.lote %}
+        </div>
+      </section>
+
+      <section class="tarjeta form-seccion animar" style="--d: 200ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">📅</span>
+          <div>
+            <h2>Vencimiento y conservación</h2>
+            <p>Así podremos avisarte antes de que caduque.</p>
+          </div>
+        </div>
+
+        <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.fecha_vencimiento %}
+          {% include "botiquin/_campo.html" with campo=form.condicion_almacenamiento %}
+          {% include "botiquin/_campo.html" with campo=form.ubicacion ancho=True %}
+        </div>
+      </section>
+
+      <section class="tarjeta form-seccion animar" style="--d: 260ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">📝</span>
+          <div>
+            <h2>Notas adicionales</h2>
+            <p>Opcional: indicaciones o cuidados especiales.</p>
+          </div>
+        </div>
+
+        <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.notas_conservacion ancho=True %}
+          {% include "botiquin/_campo.html" with campo=form.notas ancho=True %}
+        </div>
+      </section>
+    </div>
+
+    <aside class="form-lado">
+      <section class="tarjeta form-seccion animar" style="--d: 180ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">📷</span>
+          <div>
+            <h2>Foto de la caja</h2>
+            <p>Reconócela de un vistazo.</p>
+          </div>
+        </div>
+
+        <div class="foto-preview{% if medicamento.foto %} tiene-foto{% endif %}" id="fotoPreview">
+          <img id="fotoPreviewImg"
+               src="{% if medicamento.foto %}{{ medicamento.foto.url }}{% endif %}"
+               alt="Vista previa de la foto de la caja"
+               {% if not medicamento.foto %}hidden{% endif %}>
+          <div class="foto-preview-vacio" id="fotoPreviewVacio">
+            <span aria-hidden="true">📷</span>
+            <strong>Sube una foto de la caja</strong>
+            <small>Te ayudará a reconocerla rápido.</small>
+          </div>
+        </div>
+
+        {% include "botiquin/_campo.html" with campo=form.foto sin_etiqueta=True %}
+      </section>
+
+      <section class="tarjeta form-seccion animar" style="--d: 240ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">👤</span>
+          <div>
+            <h2>Asignación</h2>
+            <p>¿Quién usa este medicamento?</p>
+          </div>
+        </div>
+
+        <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.miembro ancho=True %}
+          {% include "botiquin/_campo.html" with campo=form.registro_sanitario ancho=True %}
+        </div>
+      </section>
+
+      <section class="tarjeta form-tips animar" style="--d: 300ms">
+        <h2>Antes de guardar</h2>
+        <ul>
+          <li>Revisa que la <strong>fecha de vencimiento</strong> coincida con la caja.</li>
+          <li>Anota la <strong>ubicación</strong> para encontrarlo rápido.</li>
+          <li>Si la cantidad llega a cero, aparecerá como <strong>agotado</strong>.</li>
+          <li>Una foto clara ayuda a evitar confusiones entre cajas similares.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <div class="form-barra-acciones animar" style="--d: 340ms">
+    <p class="form-barra-texto">
+      {% if modo == "editar" %}
+        Los cambios se verán reflejados de inmediato.
+      {% else %}
+        Podrás editar estos datos cuando quieras.
+      {% endif %}
+    </p>
+    <div class="form-barra-botones">
+      <a class="boton-secundario"
+         href="{% if modo == 'editar' %}{% url 'botiquin:detalle' medicamento.pk %}{% else %}{% url 'botiquin:lista' %}{% endif %}">
+        Cancelar
+      </a>
+      <button class="boton boton-inline" type="submit">
+        {% if modo == "editar" %}Guardar cambios{% else %}Guardar medicamento{% endif %}
+      </button>
+    </div>
+  </div>
+</form>
+
+<script>
+  (function () {
+    var input = document.getElementById("id_foto");
+    var preview = document.getElementById("fotoPreview");
+    var imagen = document.getElementById("fotoPreviewImg");
+    var limpiar = document.getElementById("foto-clear_id");
+    if (!input || !preview || !imagen) return;
+
+    var original = imagen.getAttribute("src") || "";
+
+    function mostrarFoto(tieneFoto) {
+      preview.classList.toggle("tiene-foto", tieneFoto);
+      imagen.hidden = !tieneFoto;
+    }
+
+    if (limpiar && limpiar.checked) {
+      mostrarFoto(false);
+    } else if (original) {
+      mostrarFoto(true);
+    }
+
+    input.addEventListener("change", function () {
+      var archivo = input.files && input.files[0];
+
+      if (!archivo) {
+        var conservar = !!original && !(limpiar && limpiar.checked);
+        if (original) imagen.src = original;
+        mostrarFoto(conservar);
+        return;
+      }
+
+      if (!archivo.type || archivo.type.indexOf("image/") !== 0) return;
+
+      var lector = new FileReader();
+      lector.addEventListener("load", function (evento) {
+        imagen.src = evento.target.result;
+        mostrarFoto(true);
+      });
+      lector.readAsDataURL(archivo);
+    });
+
+    if (limpiar) {
+      limpiar.addEventListener("change", function () {
+        if (limpiar.checked) {
+          mostrarFoto(false);
+        } else if (original) {
+          imagen.src = original;
+          mostrarFoto(true);
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

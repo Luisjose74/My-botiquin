@@ -155,6 +155,12 @@ class Medicamento(models.Model):
         choices=CondicionAlmacenamiento.choices,
         default=CondicionAlmacenamiento.SECO,
     )
+    ubicacion = models.CharField(
+        "Ubicación en el hogar",
+        max_length=80,
+        blank=True,
+        help_text="Ej.: botiquín del baño, cajón de la cocina.",
+    )
     notas_conservacion = models.TextField(
         "Notas de conservación",
         blank=True,
@@ -207,6 +213,12 @@ class Medicamento(models.Model):
     @property
     def estado_label(self) -> str:
         return EstadoInventario(self.estado).label
+
+    @property
+    def dias_vencido(self) -> int:
+        """Días transcurridos desde el vencimiento (0 si aún no vence)."""
+        dias = self.dias_para_vencer
+        return abs(dias) if dias is not None and dias < 0 else 0
 
     @property
     def esta_en_alerta(self) -> bool:

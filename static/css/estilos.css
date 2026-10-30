@@ -610,3 +610,873 @@ a:hover { text-decoration: underline; }
     transform: none;
   }
 }
+
+/* ============================================================
+   Fase 3 — Shell de la aplicación
+   ============================================================ */
+.app-barra {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px -30px rgba(11, 42, 111, 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.app-barra .marca {
+  margin-right: auto;
+  font-size: 0.98rem;
+}
+.app-barra .marca-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  font-size: 1rem;
+}
+
+.app-nav { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link {
+  padding: 0.48rem 0.7rem;
+  border-radius: 9px;
+  color: var(--sub);
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color 180ms var(--ease-out),
+    color 180ms var(--ease-out);
+}
+.nav-link:hover {
+  background: var(--soft);
+  color: var(--blue);
+  text-decoration: none;
+}
+.nav-link.activo { background: var(--soft); color: var(--blue); }
+
+.app-cuenta { display: flex; align-items: center; gap: 0.55rem; }
+.app-cuenta form { margin: 0; }
+.app-nombre {
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.app-cuenta .boton-secundario {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+/* ============================================================
+   Fase 3 — Encabezado de página
+   ============================================================ */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0 0 1.3rem;
+}
+.page-head h1 {
+  margin: 0.15rem 0 0.35rem;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.page-sub {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--sub);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.page-head .boton { flex-shrink: 0; }
+.page-head > .chip { align-self: flex-start; }
+
+/* Enlaces con apariencia de botón */
+.boton,
+.boton:hover,
+.boton-secundario,
+.boton-secundario:hover {
+  text-decoration: none;
+}
+.boton-inline {
+  width: auto;
+  margin-top: 0;
+  padding: 0.68rem 1.05rem;
+  font-size: 0.86rem;
+}
+
+/* ============================================================
+   Fase 3 — Estadísticas
+   ============================================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.1rem;
+}
+.stat-card {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.9rem 1rem;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  color: var(--ink);
+  box-shadow: 0 12px 30px -26px rgba(11, 42, 111, 0.5);
+  transition:
+    transform 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
+}
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--blue);
+  opacity: 0.55;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: #c9dcf5;
+  box-shadow: 0 20px 36px -24px rgba(11, 42, 111, 0.45);
+  text-decoration: none;
+}
+.stat-card.activo {
+  border-color: #b9d3f8;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
+  box-shadow:
+    0 0 0 3px rgba(21, 101, 232, 0.08),
+    0 18px 34px -26px rgba(11, 42, 111, 0.5);
+}
+.stat-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.35rem;
+  border-radius: 10px;
+  background: var(--soft);
+  font-size: 1rem;
+  line-height: 1;
+}
+.stat-card b {
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card > span:last-child {
+  color: var(--sub);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.stat-total::before { background: var(--blue); }
+.stat-ok::before { background: #34a853; }
+.stat-ok .stat-icono { background: var(--okb); }
+.stat-warn::before { background: #e0a11a; }
+.stat-warn .stat-icono { background: var(--wb); }
+.stat-bad::before { background: #d94a4a; }
+.stat-bad .stat-icono { background: var(--eb); }
+
+/* ============================================================
+   Fase 3 — Filtros y búsqueda
+   ============================================================ */
+.filtros {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  margin-bottom: 0.7rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  box-shadow: 0 12px 30px -30px rgba(11, 42, 111, 0.45);
+}
+.chips-filtro { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip-filtro {
+  padding: 0.42rem 0.72rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fbfdff;
+  color: var(--sub);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition:
+    background-color 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
+}
+.chip-filtro:hover {
+  border-color: #bcd4f4;
+  background: #ffffff;
+  color: var(--blue);
+  text-decoration: none;
+}
+.chip-filtro.activo {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #ffffff;
+  box-shadow: 0 8px 18px -12px rgba(21, 101, 232, 0.9);
+}
+
+.filtros-form {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.5fr) minmax(180px, 0.9fr) auto auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+.buscador-campo { position: relative; }
+.buscador-campo > span {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.buscador-campo .campo { padding-left: 2.15rem; }
+.filtros-form .boton {
+  width: auto;
+  margin: 0;
+  padding: 0.68rem 1rem;
+  font-size: 0.84rem;
+}
+.limpiar-filtros {
+  justify-self: center;
+  color: var(--sub);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.limpiar-filtros:hover { color: var(--blue); text-decoration: none; }
+.resultado-info {
+  margin: 0.15rem 0 0.6rem;
+  color: var(--sub);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   Fase 3 — Tarjetas de medicamentos
+   ============================================================ */
+.grid-meds {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 0.9rem;
+  align-items: stretch;
+}
+.med-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 14px 32px -30px rgba(11, 42, 111, 0.55);
+  transition:
+    transform 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
+}
+.med-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--blue);
+  opacity: 0.8;
+}
+.med-card.vigente::before { background: #34a853; }
+.med-card.proximo::before { background: #e0a11a; }
+.med-card.vencido::before { background: #d94a4a; }
+.med-card.agotado::before { background: #7b879e; }
+.med-card:hover {
+  transform: translateY(-2px);
+  border-color: #c9dcf5;
+  box-shadow: 0 22px 40px -26px rgba(11, 42, 111, 0.4);
+}
+.med-card-top {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: start;
+}
+.med-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--soft);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.med-titulo h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.med-titulo p {
+  margin: 0.2rem 0 0;
+  color: var(--sub);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.med-meta {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--sub);
+  font-size: 0.82rem;
+}
+.med-meta li { display: flex; align-items: center; gap: 0.45rem; }
+.med-meta li > span { width: 1.15rem; text-align: center; }
+.med-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+.accion {
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: background-color 160ms var(--ease-out);
+}
+.accion:hover { background: var(--soft); text-decoration: none; }
+.accion-peligro { color: var(--et); }
+.accion-peligro:hover { background: var(--eb); }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tag.vigente { background: var(--okb); color: var(--okt); border-color: #bfe9cc; }
+.tag.proximo { background: var(--wb); color: var(--wt); border-color: #f3ddb0; }
+.tag.vencido { background: var(--eb); color: var(--et); border-color: #f6c7c7; }
+.tag.agotado { background: #eef1f6; color: #5b6b8c; border-color: #dce3ee; }
+
+.vacio-app {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px dashed #bcd4f4;
+  border-radius: 18px;
+}
+.vacio-icono { font-size: 2.4rem; line-height: 1; }
+.vacio-app h2 { margin: 0.7rem 0 0.3rem; font-size: 1.2rem; letter-spacing: -0.02em; }
+.vacio-app p {
+  max-width: 42ch;
+  margin: 0;
+  color: var(--sub);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.vacio-app .boton { margin-top: 0.9rem; }
+
+/* ============================================================
+   Fase 3 — Ficha de detalle
+   ============================================================ */
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.9rem;
+  color: var(--sub);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.volver:hover { color: var(--blue); text-decoration: none; }
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+.detalle-foto-card {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+}
+.detalle-foto {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+.detalle-foto-placeholder {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  padding: 1rem;
+  text-align: center;
+  background: linear-gradient(160deg, #f8fbff, #eaf3ff);
+  border: 1px dashed #bcd4f4;
+  border-radius: 12px;
+  color: var(--blue);
+}
+.detalle-foto-placeholder > span { font-size: 3rem; line-height: 1; }
+.detalle-foto-placeholder small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--sub);
+  font-size: 0.75rem;
+}
+.detalle-foto-pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.detalle-contenido { display: grid; gap: 1.2rem; }
+.detalle-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.detalle-cabecera h1 {
+  margin: 0.2rem 0 0.35rem;
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+.detalle-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.detalle-acciones .boton {
+  width: auto;
+  margin: 0;
+  padding: 0.62rem 0.95rem;
+  font-size: 0.84rem;
+}
+
+.aviso {
+  margin: 1rem 0;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.aviso-ok { background: var(--okb); border-color: #bfe9cc; color: var(--okt); }
+.aviso-warn { background: var(--wb); border-color: #f3ddb0; color: var(--wt); }
+.aviso-peligro { background: var(--eb); border-color: #f6c7c7; color: var(--et); }
+.aviso-info { background: var(--soft); border-color: var(--line); color: var(--blue); }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+.info-item {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0.8rem;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.info-label {
+  color: var(--sub);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.info-valor {
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.detalle-notas {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.detalle-notas h3 { margin: 0.6rem 0 0.25rem; font-size: 0.95rem; }
+.detalle-notas h3:first-child { margin-top: 0; }
+.detalle-notas p {
+  margin: 0;
+  color: var(--sub);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* ============================================================
+   Fase 3 — Formulario de medicamento
+   ============================================================ */
+.form-med { display: grid; gap: 1rem; }
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+.form-col,
+.form-lado { display: grid; gap: 1.1rem; align-content: start; }
+.form-seccion { padding: 1.15rem 1.2rem; }
+.form-seccion .grupo { margin-bottom: 0; }
+.seccion-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+.seccion-icono {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--soft);
+  font-size: 1rem;
+  line-height: 1;
+}
+.seccion-cabecera h2 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+.seccion-cabecera p {
+  margin: 0.15rem 0 0;
+  color: var(--sub);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.campos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.grupo-ancho { grid-column: 1 / -1; }
+.req { color: var(--et); font-weight: 800; }
+.grupo-error label { color: var(--et); }
+.grupo-error .campo {
+  border-color: #e35d5d;
+  background: #fffafa;
+}
+
+.foto-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 170px;
+  margin-bottom: 0.85rem;
+  overflow: hidden;
+  background: linear-gradient(160deg, #f8fbff, #eef5ff);
+  border: 1px dashed #b9d3f8;
+  border-radius: 14px;
+}
+.foto-preview img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+}
+.foto-preview:not(.tiene-foto) img { display: none; }
+.foto-preview.tiene-foto .foto-preview-vacio { display: none; }
+.foto-preview-vacio {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 1.4rem 1rem;
+  text-align: center;
+  color: var(--sub);
+}
+.foto-preview-vacio > span {
+  margin-bottom: 0.2rem;
+  font-size: 2rem;
+  line-height: 1;
+}
+.foto-preview-vacio strong { color: var(--ink); font-size: 0.86rem; }
+.foto-preview-vacio small { font-size: 0.74rem; }
+
+.foto-actual {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.55rem;
+  color: var(--sub);
+  font-size: 0.76rem;
+}
+.foto-actual-texto { font-weight: 600; }
+.foto-quitar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--et);
+  font-weight: 600;
+  cursor: pointer;
+}
+.foto-quitar input { accent-color: var(--et); }
+
+.campo-file::file-selector-button {
+  margin-right: 0.55rem;
+  padding: 0.42rem 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--soft);
+  color: var(--blue);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.campo-file a { font-weight: 600; }
+
+.form-tips {
+  padding: 1.15rem 1.2rem;
+  background: linear-gradient(160deg, #f5faff, #eaf3ff);
+  border-color: #cfe0f8;
+}
+.form-tips h2 { margin: 0 0 0.4rem; font-size: 0.98rem; }
+.form-tips ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.05rem;
+  color: var(--sub);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+.form-tips strong { color: var(--ink); }
+
+.form-barra-acciones {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  box-shadow: 0 18px 40px -24px rgba(11, 42, 111, 0.45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.form-barra-texto {
+  margin: 0;
+  color: var(--sub);
+  font-size: 0.8rem;
+}
+.form-barra-botones {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.form-barra-botones .boton,
+.form-barra-botones .boton-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin: 0;
+  padding: 0.68rem 1.05rem;
+  font-size: 0.85rem;
+}
+
+/* ============================================================
+   Fase 3 — Eliminación
+   ============================================================ */
+.tarjeta-peligro {
+  display: grid;
+  justify-items: center;
+  max-width: 660px;
+  margin: 1rem auto;
+  padding: 2rem;
+  text-align: center;
+}
+.peligro-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--eb);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.tarjeta-peligro h1 {
+  margin: 0.7rem 0 0.25rem;
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+}
+.tarjeta-peligro .page-sub { max-width: 48ch; }
+.resumen-eliminar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  margin: 1rem 0;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.resumen-eliminar > div { flex: 1; min-width: 0; }
+.resumen-eliminar strong {
+  display: block;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.resumen-eliminar small { color: var(--sub); font-size: 0.76rem; }
+.resumen-eliminar .med-icono { flex-shrink: 0; }
+.form-acciones {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.form-acciones .boton,
+.form-acciones .boton-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin: 0;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.86rem;
+}
+.boton-peligro-solido {
+  background: linear-gradient(135deg, #e5484d, #c62828);
+  box-shadow: 0 14px 26px -14px rgba(198, 40, 40, 0.9);
+}
+.boton-peligro-solido:hover {
+  box-shadow: 0 20px 34px -16px rgba(198, 40, 40, 0.95);
+}
+.boton-peligro { color: var(--et); border-color: #f3c4c4; }
+.boton-peligro:hover { background: var(--eb); border-color: #f6c7c7; }
+
+/* ============================================================
+   Fase 3 — Responsive
+   ============================================================ */
+@media (max-width: 960px) {
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-grid,
+  .detalle-grid { grid-template-columns: 1fr; }
+  .form-lado { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-lado .form-tips { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .app-barra {
+    position: static;
+    flex-wrap: wrap;
+  }
+  .app-barra .marca { margin-right: auto; }
+  .app-nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-top: 0.15rem;
+  }
+  .app-cuenta { margin-left: auto; }
+  .app-nombre { display: none; }
+  .page-head { align-items: flex-start; }
+  .filtros-form { grid-template-columns: 1fr 1fr; }
+  .filtros-form .buscador-campo { grid-column: 1 / -1; }
+  .filtros-form .limpiar-filtros { justify-self: start; }
+  .detalle-cabecera { flex-direction: column; }
+  .detalle-acciones { width: 100%; }
+  .form-barra-acciones { position: static; }
+}
+
+@media (max-width: 640px) {
+  .form-lado { grid-template-columns: 1fr; }
+  .form-lado .form-tips { grid-column: auto; }
+  .campos-grid { grid-template-columns: 1fr; }
+  .grupo-ancho { grid-column: auto; }
+  .grid-meds { grid-template-columns: 1fr; }
+  .form-barra-acciones { flex-direction: column; align-items: stretch; }
+  .form-barra-texto { text-align: center; }
+  .form-barra-botones { width: 100%; }
+  .form-barra-botones .boton,
+  .form-barra-botones .boton-secundario { flex: 1; }
+  .page-head .boton { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .med-card-top { grid-template-columns: 38px minmax(0, 1fr); }
+  .med-card-top > .tag {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .form-acciones { flex-direction: column; }
+  .form-acciones .boton,
+  .form-acciones .boton-secundario { width: 100%; }
+  .tarjeta-peligro { padding: 1.4rem 1.1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .chip-filtro,
+  .med-card,
+  .nav-link,
+  .accion {
+    transition-duration: 1ms;
+  }
+
+  .stat-card:hover,
+  .med-card:hover {
+    transform: none;
+  }
+}

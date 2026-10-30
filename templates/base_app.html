@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="app-barra animar" style="--d: 20ms">
+  <a class="marca" href="{% url 'botiquin:lista' %}">
+    <span class="marca-logo">✚</span>
+    <span>Mi Botiquín <b>Digital</b></span>
+  </a>
+
+  <nav class="app-nav" aria-label="Navegación principal">
+    <a class="nav-link {% if request.resolver_match.app_name == 'botiquin' %}activo{% endif %}"
+       href="{% url 'botiquin:lista' %}">💊 Mi botiquín</a>
+    <a class="nav-link {% if request.resolver_match.url_name == 'perfil' %}activo{% endif %}"
+       href="{% url 'cuentas:perfil' %}">👤 Mi perfil</a>
+  </nav>
+
+  <div class="app-cuenta">
+    <span class="avatar mini">{{ request.user.iniciales }}</span>
+    <span class="app-nombre">{{ request.user.first_name|default:request.user.username }}</span>
+    <form method="post" action="{% url 'cuentas:logout' %}">
+      {% csrf_token %}
+      <button class="boton-secundario" type="submit">Salir</button>
+    </form>
+  </div>
+</header>
+
+{% block app_content %}{% endblock %}
+{% endblock %}
