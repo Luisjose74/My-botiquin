@@ -43,8 +43,7 @@ INSTALLED_APPS = [
 ]
 
 # Modelo de usuario personalizado (debe definirse antes de la primera migración)
-# TODO Fase 1: activar junto con cuentas/models.py, ANTES de makemigrations.
-# AUTH_USER_MODEL = 'cuentas.Usuario'
+AUTH_USER_MODEL = 'cuentas.Usuario'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
