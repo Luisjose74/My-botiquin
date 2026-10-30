@@ -201,6 +201,78 @@ class VerificarCodigoPasswordForm(forms.Form):
         return cleaned
 
 
+class CodigoVerificacionForm(forms.Form):
+    """Paso 1: validación del código de 6 dígitos."""
+
+    code = forms.CharField(
+        label="Código de verificación",
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(
+            attrs={
+                **CAMPOS,
+                "placeholder": "123456",
+                "autocomplete": "one-time-code",
+                "inputmode": "numeric",
+                "pattern": "[0-9]{6}",
+            }
+        ),
+    )
+
+    def __init__(self, *args, email=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email = email
+
+    def clean_code(self):
+        code = (self.cleaned_data.get("code") or "").strip()
+        if not code.isdigit() or len(code) != 6:
+            raise forms.ValidationError("Ingresa un código de 6 dígitos.")
+        if not self.email:
+            raise forms.ValidationError("No hay una solicitud de recuperación activa.")
+        stored = cache.get("password_reset_code:{}".format(self.email.lower()))
+        if not stored or stored != code:
+            raise forms.ValidationError("El código es inválido o ha expirado.")
+        return code
+
+
+class NuevaPasswordForm(forms.Form):
+    """Paso 2: nueva contraseña y confirmación."""
+
+    new_password1 = forms.CharField(
+        label="Nueva contraseña",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={**CAMPOS, "placeholder": "Mínimo 8 caracteres", "autocomplete": "new-password"}
+        ),
+    )
+    new_password2 = forms.CharField(
+        label="Confirmar contraseña",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={**CAMPOS, "placeholder": "Repite tu contraseña", "autocomplete": "new-password"}
+        ),
+    )
+
+    def __init__(self, *args, email=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email = email
+
+    def clean(self):
+        cleaned = super().clean()
+        password1 = cleaned.get("new_password1")
+        password2 = cleaned.get("new_password2")
+        if password1 and password2 and password1 != password2:
+            self.add_error("new_password2", "Las dos contraseñas no coinciden.")
+        if password1 and self.email:
+            usuario = Usuario.objects.filter(email__iexact=self.email).first()
+            if usuario:
+                try:
+                    password_validation.validate_password(password1, usuario)
+                except DjangoValidationError as error:
+                    self.add_error("new_password1", error)
+        return cleaned
+
+
 class PerfilForm(forms.ModelForm):
     """Edición de los datos personales y preferencias del usuario."""
 

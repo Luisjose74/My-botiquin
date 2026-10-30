@@ -18,8 +18,9 @@ from .forms import (
     LoginForm,
     PerfilForm,
     RegistroForm,
+    CodigoVerificacionForm,
+    NuevaPasswordForm,
     RestablecerPasswordForm,
-    VerificarCodigoPasswordForm,
 )
 from .models import MiembroHogar, Usuario
 from .models import MiembroHogar
@@ -117,15 +118,39 @@ class SolicitarCodigoPasswordView(FormView):
 
 
 class VerificarCodigoPasswordView(FormView):
-    """Valida el código y establece la nueva contraseña."""
+    """Paso 1: valida el código de 6 dígitos."""
 
     template_name = "registration/password_reset_verify.html"
-    form_class = VerificarCodigoPasswordForm
+    form_class = CodigoVerificacionForm
+    success_url = reverse_lazy("cuentas:password_reset_password")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.session.get("password_reset_email"):
+            return redirect("cuentas:password_reset")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["email"] = self.request.session.get("password_reset_email")
+        return kwargs
+
+    def form_valid(self, form):
+        self.request.session["password_reset_code_verified"] = True
+        return super().form_valid(form)
+
+
+class NuevaPasswordView(FormView):
+    """Paso 2: establece la nueva contraseña."""
+
+    template_name = "registration/password_reset_password.html"
+    form_class = NuevaPasswordForm
     success_url = reverse_lazy("cuentas:password_reset_complete")
 
     def dispatch(self, request, *args, **kwargs):
         if not request.session.get("password_reset_email"):
             return redirect("cuentas:password_reset")
+        if not request.session.get("password_reset_code_verified"):
+            return redirect("cuentas:password_reset_verify")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -144,6 +169,7 @@ class VerificarCodigoPasswordView(FormView):
         usuario.save()
         cache.delete("password_reset_code:{}".format(email.lower()))
         self.request.session.pop("password_reset_email", None)
+        self.request.session.pop("password_reset_code_verified", None)
         messages.success(
             self.request, "Tu contraseña se actualizó correctamente."
         )
