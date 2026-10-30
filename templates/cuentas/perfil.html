@@ -1,26 +1,14 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 
 {% block title %}Mi perfil · Mi Botiquín Digital{% endblock %}
 
-{% block content %}
-<header class="barra">
-  <a class="marca marca-oscura" href="{% url 'cuentas:perfil' %}">
-    <span class="marca-logo">✚</span>
-    <span>Mi Botiquín <b>Digital</b></span>
-  </a>
-
-  <form method="post" action="{% url 'cuentas:logout' %}">
-    {% csrf_token %}
-    <button class="boton-secundario" type="submit">Cerrar sesión</button>
-  </form>
-</header>
-
+{% block app_content %}
 <section class="perfil">
   <div class="tarjeta perfil-cabecera">
     <div class="avatar">{{ request.user.iniciales }}</div>
     <div class="perfil-datos">
       <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
-      <p>@{{ request.user.username }} · {{ request.user.email }}</p>
+      <p>@{{ request.user.username }}{% if request.user.email %} · {{ request.user.email }}{% endif %}</p>
     </div>
     <span class="chip">Cuenta personal</span>
   </div>
@@ -52,7 +40,6 @@
         <h2>Mi hogar</h2>
         {% if hogar %}
           <p class="sub">{{ hogar.nombre }}</p>
-          <p class="codigo">Código de invitación: <b>{{ hogar.codigo_invitacion }}</b></p>
 
           <ul class="lista-miembros">
             {% for miembro in miembros %}
@@ -65,20 +52,17 @@
               <li class="vacio">Aún no hay miembros registrados.</li>
             {% endfor %}
           </ul>
+          <a class="boton-secundario familia-enlace" href="{% url 'cuentas:familia' %}">Gestionar mi familia →</a>
         {% else %}
           <p class="sub">No tienes un hogar asignado.</p>
         {% endif %}
       </div>
 
       <div class="tarjeta">
-        <h2>Próximamente</h2>
-        <p class="sub">
-          Aquí verás el resumen de tu inventario y tus alertas de
-          vencimiento.
-        </p>
+        <h2>Accesos rápidos</h2>
         <div class="chips">
-          <span class="chip">💊 Inventario</span>
-          <span class="chip">🔔 Alertas</span>
+          <a class="chip" href="{% url 'botiquin:lista' %}">💊 Mi botiquín</a>
+          <a class="chip" href="{% url 'botiquin:alertas' %}">🔔 Alertas</a>
         </div>
       </div>
     </aside>

@@ -1,0 +1,27 @@
+{% extends "base_app.html" %}
+
+{% block title %}Quitar a {{ miembro.nombre }} · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'cuentas:familia' %}">← Volver a mi familia</a>
+
+<section class="tarjeta tarjeta-peligro animar" style="--d: 80ms">
+  <span class="peligro-icono" aria-hidden="true">👤</span>
+  <h1>¿Quitar a {{ miembro.nombre }}?</h1>
+  <p class="page-sub">
+    La persona dejará de aparecer en tu familia.
+    {% if total_medicamentos %}
+      Sus <strong>{{ total_medicamentos }} medicamento{{ total_medicamentos|pluralize }}</strong>
+      no se eliminarán: quedarán sin asignar.
+    {% else %}
+      No tiene medicamentos asignados.
+    {% endif %}
+  </p>
+
+  <form method="post" class="form-acciones">
+    {% csrf_token %}
+    <a class="boton-secundario" href="{% url 'cuentas:familia' %}">Cancelar</a>
+    <button class="boton boton-peligro-solido" type="submit">Sí, quitar integrante</button>
+  </form>
+</section>
+{% endblock %}

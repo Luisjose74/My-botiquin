@@ -9,7 +9,7 @@ from django.contrib.auth.forms import (
 from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .models import Usuario
+from .models import MiembroHogar, Usuario
 
 CAMPOS = {"class": "campo"}
 CAMPOS_SELECT = {"class": "campo campo-select"}
@@ -273,6 +273,54 @@ class NuevaPasswordForm(forms.Form):
         return cleaned
 
 
+class MiembroHogarForm(forms.ModelForm):
+    """Alta y edición de un integrante de la familia.
+
+    El perfil principal conserva su relación; no se puede crear otro principal.
+    """
+
+    class Meta:
+        model = MiembroHogar
+        fields = ("nombre", "relacion")
+        labels = {"nombre": "Nombre", "relacion": "Relación"}
+        widgets = {
+            "nombre": forms.TextInput(
+                attrs={**CAMPOS, "placeholder": "Ej. Mamá", "autocomplete": "off"}
+            ),
+            "relacion": forms.Select(attrs=CAMPOS_SELECT),
+        }
+
+    def __init__(self, *args, hogar=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hogar = hogar
+        es_principal = self.instance.pk is not None and self.instance.es_principal
+        if es_principal:
+            self.fields["relacion"].choices = list(MiembroHogar.RELACIONES)
+            self.fields["relacion"].disabled = True
+        else:
+            self.fields["relacion"].choices = [("", "Selecciona una relación")] + [
+                (valor, etiqueta)
+                for valor, etiqueta in MiembroHogar.RELACIONES
+                if valor != "principal"
+            ]
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data["nombre"].strip()
+        if not nombre:
+            raise forms.ValidationError("Escribe el nombre de la persona.")
+        if self.hogar is not None:
+            existe = (
+                MiembroHogar.objects.filter(hogar=self.hogar, nombre__iexact=nombre)
+                .exclude(pk=self.instance.pk)
+                .exists()
+            )
+            if existe:
+                raise forms.ValidationError(
+                    "Ya tienes un integrante con ese nombre."
+                )
+        return nombre
+
+
 class PerfilForm(forms.ModelForm):
     """Edición de los datos personales y preferencias del usuario."""
 
@@ -286,6 +334,14 @@ class PerfilForm(forms.ModelForm):
             "foto",
             "canal_alertas",
         )
+        widgets = {
+            "first_name": forms.TextInput(attrs=CAMPOS),
+            "last_name": forms.TextInput(attrs=CAMPOS),
+            "email": forms.EmailInput(attrs=CAMPOS),
+            "telefono": forms.TextInput(attrs=CAMPOS),
+            "foto": forms.ClearableFileInput(attrs=CAMPOS_FILE),
+            "canal_alertas": forms.Select(attrs=CAMPOS_SELECT),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -297,14 +353,6 @@ class PerfilForm(forms.ModelForm):
         ]
         if self.instance.pk and self.instance.canal_alertas == "whatsapp":
             self.initial["canal_alertas"] = "notificacion"
-        widgets = {
-            "first_name": forms.TextInput(attrs=CAMPOS),
-            "last_name": forms.TextInput(attrs=CAMPOS),
-            "email": forms.EmailInput(attrs=CAMPOS),
-            "telefono": forms.TextInput(attrs=CAMPOS),
-            "foto": forms.ClearableFileInput(attrs=CAMPOS_FILE),
-            "canal_alertas": forms.Select(attrs=CAMPOS_SELECT),
-        }
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()

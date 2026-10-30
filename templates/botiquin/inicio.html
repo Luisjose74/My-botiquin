@@ -108,4 +108,26 @@
     {% endif %}
   </article>
 </section>
+
+{% if integrantes %}
+<section class="tarjeta familia-resumen animar" style="--d: 300ms">
+  <header class="dash-cabecera">
+    <div>
+      <h2>Mi familia</h2>
+      <p>Medicamentos que requieren atención, por integrante.</p>
+    </div>
+    <a class="dash-ver-todas" href="{% url 'cuentas:familia' %}">Gestionar →</a>
+  </header>
+
+  <div class="integrantes-chips">
+    {% for item in integrantes %}
+      <a class="integrante-chip" href="{% url 'botiquin:lista' %}?miembro={{ item.miembro.pk }}">
+        <span class="avatar mini" aria-hidden="true">{{ item.miembro.iniciales }}</span>
+        <span class="integrante-nombre">{{ item.miembro.nombre }}</span>
+        <b class="integrante-total{% if item.atencion %} con-alerta{% endif %}">{{ item.atencion }}</b>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}

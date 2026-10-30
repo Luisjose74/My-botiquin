@@ -10,6 +10,9 @@ urlpatterns = [
     path("login/", views.IniciarSesionView.as_view(), name="login"),
     path("logout/", views.cerrar_sesion, name="logout"),
     path("perfil/", views.perfil, name="perfil"),
+    path("familia/", views.familia, name="familia"),
+    path("familia/<int:pk>/editar/", views.editar_miembro, name="familia_editar"),
+    path("familia/<int:pk>/eliminar/", views.eliminar_miembro, name="familia_eliminar"),
 
     # Restablecimiento de contraseña por código de 6 dígitos (2 pasos)
     path(

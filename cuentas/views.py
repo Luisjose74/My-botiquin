@@ -1,29 +1,30 @@
 """Vistas de autenticación y perfil de Mi Botiquín Digital."""
 import secrets
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
+from django.db.models import Count
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.utils.crypto import get_random_string
-from django.shortcuts import redirect, render
-from django.views.generic import FormView, TemplateView
 from django.views.decorators.http import require_POST
+from django.views.generic import FormView, TemplateView
 
 from .forms import (
+    CodigoVerificacionForm,
     LoginForm,
+    MiembroHogarForm,
+    NuevaPasswordForm,
     PerfilForm,
     RegistroForm,
-    CodigoVerificacionForm,
-    NuevaPasswordForm,
     RestablecerPasswordForm,
 )
 from .models import MiembroHogar, Usuario
-from .models import MiembroHogar
 
 
 class IniciarSesionView(LoginView):
@@ -201,4 +202,84 @@ def perfil(request):
         request,
         "cuentas/perfil.html",
         {"form": form, "hogar": hogar, "miembros": miembros},
+    )
+
+
+def _miembro_del_hogar(request, pk):
+    """Integrante del hogar del usuario; 404 si es de otro hogar."""
+    if request.user.hogar is None:
+        raise Http404
+    return get_object_or_404(MiembroHogar, pk=pk, hogar=request.user.hogar)
+
+
+@login_required
+def familia(request):
+    """Lista de integrantes y alta de nuevos miembros."""
+    hogar = request.user.hogar
+
+    if request.method == "POST" and hogar is not None:
+        form = MiembroHogarForm(request.POST, hogar=hogar)
+        if form.is_valid():
+            miembro = form.save(commit=False)
+            miembro.hogar = hogar
+            miembro.save()
+            messages.success(request, f"«{miembro.nombre}» se agregó a tu familia.")
+            return redirect("cuentas:familia")
+    else:
+        form = MiembroHogarForm(hogar=hogar)
+
+    miembros = (
+        hogar.miembros.annotate(total_medicamentos=Count("medicamentos"))
+        if hogar is not None
+        else MiembroHogar.objects.none()
+    )
+
+    return render(
+        request,
+        "cuentas/familia.html",
+        {"form": form, "miembros": miembros, "hogar": hogar},
+    )
+
+
+@login_required
+def editar_miembro(request, pk):
+    miembro = _miembro_del_hogar(request, pk)
+
+    if request.method == "POST":
+        form = MiembroHogarForm(
+            request.POST, instance=miembro, hogar=request.user.hogar
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Los datos del integrante se actualizaron.")
+            return redirect("cuentas:familia")
+    else:
+        form = MiembroHogarForm(instance=miembro, hogar=request.user.hogar)
+
+    return render(
+        request,
+        "cuentas/miembro_form.html",
+        {"form": form, "miembro": miembro},
+    )
+
+
+@login_required
+def eliminar_miembro(request, pk):
+    """Confirmación (GET) y eliminación (POST). Los medicamentos quedan sin asignar."""
+    miembro = _miembro_del_hogar(request, pk)
+
+    if miembro.es_principal:
+        messages.error(request, "El perfil principal no se puede eliminar.")
+        return redirect("cuentas:familia")
+
+    if request.method == "POST":
+        nombre = miembro.nombre
+        miembro.delete()
+        messages.success(request, f"«{nombre}» se quitó de tu familia.")
+        return redirect("cuentas:familia")
+
+    return render(
+        request,
+        "cuentas/miembro_eliminar.html",
+        {"miembro": miembro, "total_medicamentos": miembro.medicamentos.count()},
     )

@@ -1,0 +1,34 @@
+{% extends "base_app.html" %}
+
+{% block title %}Editar {{ miembro.nombre }} · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'cuentas:familia' %}">← Volver a mi familia</a>
+
+<section class="page-head animar" style="--d: 60ms">
+  <div>
+    <p class="saludo">Integrante</p>
+    <h1>Editar integrante</h1>
+    <p class="page-sub">Cambia el nombre o la relación de {{ miembro.nombre }}.</p>
+  </div>
+</section>
+
+<section class="tarjeta form-seccion animar" style="--d: 120ms">
+  {% if form.non_field_errors %}
+    <div class="alerta error">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form class="familia-form" method="post" novalidate autocomplete="off">
+    {% csrf_token %}
+    {% include "botiquin/_campo.html" with campo=form.nombre %}
+    {% include "botiquin/_campo.html" with campo=form.relacion %}
+
+    <div class="form-barra-botones familia-acciones">
+      <a class="boton-secundario" href="{% url 'cuentas:familia' %}">Cancelar</a>
+      <button class="boton" type="submit">Guardar cambios</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -2,7 +2,7 @@ Hola{% if usuario.first_name %} {{ usuario.first_name }}{% endif %},
 
 Tienes {{ total }} alerta{{ total|pluralize:",s" }} nueva{{ total|pluralize:",s" }} en tu botiquín digital:
 
-{% for alerta in alertas %}- {{ alerta.titulo }}
+{% for alerta in alertas %}- {{ alerta.titulo }}{% if alerta.medicamento.miembro %} (para {{ alerta.medicamento.miembro.nombre }}){% endif %}
   {{ alerta.mensaje }}
 {% endfor %}
 {% if url_panel %}Revísalas aquí: {{ url_panel }}

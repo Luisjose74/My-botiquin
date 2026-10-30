@@ -50,3 +50,11 @@ class CanalAlertasPerfilTests(TestCase):
 
         self.assertEqual(respuesta.status_code, 200)
         self.assertNotContains(respuesta, "WhatsApp")
+
+    def test_campos_del_perfil_conservan_su_estilo(self):
+        self.client.force_login(self.usuario)
+
+        respuesta = self.client.get(reverse("cuentas:perfil"))
+
+        self.assertContains(respuesta, 'name="first_name"')
+        self.assertContains(respuesta, 'class="campo"', count=None)

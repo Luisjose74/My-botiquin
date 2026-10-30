@@ -29,7 +29,7 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px;border:1px solid #dce7f7;border-left:4px solid {% if alerta.tipo == 'vencido' %}#d94a4a{% elif alerta.tipo == 'agotado' %}#7b879e{% elif alerta.tipo == 'stock_bajo' %}#1565e8{% else %}#e0a11a{% endif %};border-radius:12px;">
                 <tr>
                   <td style="padding:12px 14px;">
-                    <div style="font-size:14px;font-weight:700;color:#0b2a6f;">{{ alerta.titulo }}</div>
+                    <div style="font-size:14px;font-weight:700;color:#0b2a6f;">{{ alerta.titulo }}{% if alerta.medicamento.miembro %} <span style="font-weight:600;color:#5b6b8c;">· para {{ alerta.medicamento.miembro.nombre }}</span>{% endif %}</div>
                     <div style="font-size:13px;line-height:1.5;color:#5b6b8c;margin-top:3px;">{{ alerta.mensaje }}</div>
                   </td>
                 </tr>

@@ -1,10 +1,12 @@
 """Vistas del inventario de medicamentos, panel de alertas y CRUD."""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+
+from cuentas.models import MiembroHogar
 
 from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm
@@ -51,7 +53,19 @@ def inicio(request):
     base = Medicamento.objects.filter(usuario=request.user, activo=True)
     alertas_pendientes = Alerta.objects.filter(
         usuario=request.user, leida=False
-    ).select_related("medicamento")
+    ).select_related("medicamento__miembro")
+
+    atencion_por_miembro = {
+        fila["miembro"]: fila["total"]
+        for fila in base.en_alerta()
+        .filter(miembro__isnull=False)
+        .values("miembro")
+        .annotate(total=Count("pk"))
+    }
+    integrantes = [
+        {"miembro": miembro, "atencion": atencion_por_miembro.get(miembro.pk, 0)}
+        for miembro in request.user.hogar.miembros.all()
+    ] if request.user.hogar is not None else []
 
     return render(
         request,
@@ -63,6 +77,7 @@ def inicio(request):
             "atencion": base.en_alerta()
             .select_related("categoria", "miembro")
             .order_by("fecha_vencimiento", "nombre")[:6],
+            "integrantes": integrantes,
         },
     )
 
@@ -77,7 +92,7 @@ def alertas(request):
         ver = "pendientes"
 
     consulta = Alerta.objects.filter(usuario=request.user).select_related(
-        "medicamento"
+        "medicamento__miembro"
     )
     if ver == "pendientes":
         consulta = consulta.filter(leida=False)
@@ -120,6 +135,18 @@ def lista(request):
 
     medicamentos = base.select_related("categoria", "miembro")
 
+    miembros = (
+        request.user.hogar.miembros.all()
+        if request.user.hogar is not None
+        else MiembroHogar.objects.none()
+    )
+    miembro_actual = None
+    miembro_id = request.GET.get("miembro", "").strip()
+    if miembro_id.isdigit():
+        miembro_actual = miembros.filter(pk=int(miembro_id)).first()
+        if miembro_actual:
+            medicamentos = medicamentos.filter(miembro=miembro_actual)
+
     estado = request.GET.get("estado", "todos")
     if estado not in ESTADOS_VALIDOS:
         estado = "todos"
@@ -157,6 +184,8 @@ def lista(request):
         {
             "medicamentos": medicamentos,
             "categorias": categorias,
+            "miembros": miembros,
+            "miembro_actual": miembro_actual.pk if miembro_actual else "",
             "stats": stats,
             "estado_actual": estado,
             "estado_label": ESTADOS_LABELS[estado],

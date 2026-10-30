@@ -1,0 +1,70 @@
+{% extends "base_app.html" %}
+
+{% block title %}Mi familia · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<section class="page-head animar" style="--d: 40ms">
+  <div>
+    <p class="saludo">Tu hogar</p>
+    <h1>Mi familia</h1>
+    <p class="page-sub">
+      Una sola cuenta para varias personas. Asigna cada medicamento a quien lo usa.
+    </p>
+  </div>
+</section>
+
+<section class="tarjeta form-seccion animar" style="--d: 100ms">
+  <div class="seccion-cabecera">
+    <span class="seccion-icono" aria-hidden="true">➕</span>
+    <div>
+      <h2>Agregar integrante</h2>
+      <p>Por ejemplo, mamá, papá o un hijo.</p>
+    </div>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="alerta error">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form class="familia-form" method="post" novalidate autocomplete="off">
+    {% csrf_token %}
+    {% include "botiquin/_campo.html" with campo=form.nombre %}
+    {% include "botiquin/_campo.html" with campo=form.relacion %}
+    <button class="boton boton-inline" type="submit">Agregar</button>
+  </form>
+</section>
+
+<section class="familia-grid" aria-label="Integrantes">
+  {% for miembro in miembros %}
+    <article class="tarjeta miembro-card animar" style="--d: calc(160ms + {{ forloop.counter0 }} * 40ms)">
+      <div class="miembro-cabecera">
+        <span class="avatar" aria-hidden="true">{{ miembro.iniciales }}</span>
+        <div>
+          <h3>{{ miembro.nombre }}</h3>
+          <span class="chip">{{ miembro.get_relacion_display }}</span>
+        </div>
+      </div>
+
+      <p class="miembro-stat">
+        💊 {{ miembro.total_medicamentos }} medicamento{{ miembro.total_medicamentos|pluralize }} asignado{{ miembro.total_medicamentos|pluralize }}
+      </p>
+
+      <div class="med-acciones">
+        <a class="accion" href="{% url 'botiquin:lista' %}?miembro={{ miembro.pk }}">Ver botiquín</a>
+        <a class="accion" href="{% url 'cuentas:familia_editar' miembro.pk %}">Editar</a>
+        {% if not miembro.es_principal %}
+          <a class="accion accion-peligro" href="{% url 'cuentas:familia_eliminar' miembro.pk %}">Eliminar</a>
+        {% endif %}
+      </div>
+    </article>
+  {% empty %}
+    <div class="vacio-app">
+      <span class="vacio-icono" aria-hidden="true">👨‍👩‍👧</span>
+      <h2>Aún no hay integrantes</h2>
+      <p>Agrega a las personas que usan los medicamentos del hogar.</p>
+    </div>
+  {% endfor %}
+</section>
+{% endblock %}
