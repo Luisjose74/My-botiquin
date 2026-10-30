@@ -1,40 +1,6 @@
 {% extends "base.html" %}
 
 {% block title %}Crear cuenta · Mi Botiquín Digital
-<script>
-  (function () {
-    var input = document.getElementById("id_password1");
-    var lista = document.getElementById("passwordRequisitos");
-    if (!input || !lista) return;
-
-    var items = lista.querySelectorAll("li[data-regla]");
-
-    function cumple(regla, valor) {
-      if (regla === "longitud") return valor.length >= 8;
-      if (regla === "no-numerica") return valor.length > 0 && !/^\d+$/.test(valor);
-      if (regla === "caracteres") {
-        return /[A-Za-z]/.test(valor) || /[^A-Za-z0-9]/.test(valor);
-      }
-      return false;
-    }
-
-    function actualizar() {
-      var valor = input.value || "";
-      items.forEach(function (item) {
-        var regla = item.getAttribute("data-regla");
-        var ok = cumple(regla, valor);
-        item.classList.toggle("cumple", ok);
-        item.classList.toggle("no-cumple", !ok);
-        var icono = item.querySelector(".req-icono");
-        if (icono) icono.textContent = ok ? "✓" : "❌";
-      });
-    }
-
-    input.addEventListener("input", actualizar);
-    actualizar();
-  })();
-</script>
-
 {% endblock %}
 
 {% block content %}
@@ -81,7 +47,16 @@
         {% for field in form %}
           <div class="grupo">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
+            {% if field.name == "password1" or field.name == "password2" %}
+              <div class="campo-password">
+                {{ field }}
+                <button type="button" class="boton-ojito"
+                        data-objetivo="{{ field.id_for_label }}"
+                        aria-label="Mostrar contraseña" aria-pressed="false">👁️</button>
+              </div>
+            {% else %}
+              {{ field }}
+            {% endif %}
             {% if field.help_text %}
               <small class="ayuda">{{ field.help_text|safe }}</small>
             {% endif %}
@@ -123,4 +98,50 @@
     <p class="nota">Al registrarte se crea automáticamente tu hogar familiar.</p>
   </section>
 </div>
+<script>
+  (function () {
+    var input = document.getElementById("id_password1");
+    var lista = document.getElementById("passwordRequisitos");
+    if (!input || !lista) return;
+
+    var items = lista.querySelectorAll("li[data-regla]");
+
+    function cumple(regla, valor) {
+      if (regla === "longitud") return valor.length >= 8;
+      if (regla === "no-numerica") return valor.length > 0 && !/^\d+$/.test(valor);
+      if (regla === "caracteres") {
+        return /[A-Za-z]/.test(valor) || /[^A-Za-z0-9]/.test(valor);
+      }
+      return false;
+    }
+
+    function actualizar() {
+      var valor = input.value || "";
+      items.forEach(function (item) {
+        var regla = item.getAttribute("data-regla");
+        var ok = cumple(regla, valor);
+        item.classList.toggle("cumple", ok);
+        item.classList.toggle("no-cumple", !ok);
+        var icono = item.querySelector(".req-icono");
+        if (icono) icono.textContent = ok ? "✓" : "❌";
+      });
+    }
+
+    input.addEventListener("input", actualizar);
+    actualizar();
+
+    // Mostrar / ocultar contraseña
+    document.querySelectorAll(".boton-ojito").forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        var objetivo = document.getElementById(boton.getAttribute("data-objetivo"));
+        if (!objetivo) return;
+        var visible = objetivo.type === "text";
+        objetivo.type = visible ? "password" : "text";
+        boton.textContent = visible ? "👁️" : "🙈";
+        boton.setAttribute("aria-pressed", visible ? "false" : "true");
+        boton.setAttribute("aria-label", visible ? "Mostrar contraseña" : "Ocultar contraseña");
+      });
+    });
+  })();
+</script>
 {% endblock %}

@@ -1522,3 +1522,25 @@ a:hover { text-decoration: underline; }
   font-size: 0.85rem;
   line-height: 1;
 }
+
+/* ============================================================
+   Campo de contraseña con botón de mostrar/ocultar
+   ============================================================ */
+.campo-password { position: relative; }
+.campo-password .campo { padding-right: 2.6rem; }
+.boton-ojito {
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--sub);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 8px;
+  transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+.boton-ojito:hover { color: var(--blue); background: var(--soft); }
