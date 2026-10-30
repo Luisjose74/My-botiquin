@@ -9,7 +9,7 @@ from django.contrib.auth.forms import (
 from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .models import MiembroHogar, Usuario
+from .models import Hogar, MiembroHogar, Usuario
 
 CAMPOS = {"class": "campo"}
 CAMPOS_SELECT = {"class": "campo campo-select"}
@@ -319,6 +319,33 @@ class MiembroHogarForm(forms.ModelForm):
                     "Ya tienes un integrante con ese nombre."
                 )
         return nombre
+
+
+class UnirseHogarForm(forms.Form):
+    """Unirse a un hogar existente mediante su código de invitación."""
+
+    codigo = forms.CharField(
+        label="Código de invitación",
+        max_length=12,
+        widget=forms.TextInput(
+            attrs={
+                **CAMPOS,
+                "placeholder": "Ej. ab12cd34",
+                "autocomplete": "off",
+                "autocapitalize": "characters",
+            }
+        ),
+    )
+
+    def clean_codigo(self):
+        codigo = self.cleaned_data["codigo"].strip().lower()
+        if not codigo:
+            raise forms.ValidationError("Escribe el código de invitación.")
+        try:
+            hogar = Hogar.objects.get(codigo_invitacion__iexact=codigo)
+        except Hogar.DoesNotExist:
+            raise forms.ValidationError("Ese código no corresponde a ningún hogar.")
+        return hogar
 
 
 class PerfilForm(forms.ModelForm):

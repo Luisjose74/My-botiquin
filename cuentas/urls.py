@@ -11,6 +11,8 @@ urlpatterns = [
     path("logout/", views.cerrar_sesion, name="logout"),
     path("perfil/", views.perfil, name="perfil"),
     path("familia/", views.familia, name="familia"),
+    path("unirse/", views.unirse_hogar, name="unirse_hogar"),
+    path("unirse/<str:codigo>/", views.unirse_hogar, name="unirse_hogar_codigo"),
     path("familia/<int:pk>/editar/", views.editar_miembro, name="familia_editar"),
     path("familia/<int:pk>/eliminar/", views.eliminar_miembro, name="familia_eliminar"),
 

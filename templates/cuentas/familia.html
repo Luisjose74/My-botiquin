@@ -13,6 +13,21 @@
   </div>
 </section>
 
+<section class="tarjeta form-seccion animar" style="--d: 80ms">
+  <div class="seccion-cabecera">
+    <span class="seccion-icono" aria-hidden="true">🔗</span>
+    <div>
+      <h2>Código de invitación</h2>
+      <p>Compártelo para que otra persona se una a tu hogar.</p>
+    </div>
+  </div>
+
+  <div class="codigo-invitacion">
+    <code>{{ hogar.codigo_invitacion }}</code>
+    <a class="boton-secundario" href="{% url 'cuentas:unirse_hogar' %}">Unirme a otro hogar →</a>
+  </div>
+</section>
+
 <section class="tarjeta form-seccion animar" style="--d: 100ms">
   <div class="seccion-cabecera">
     <span class="seccion-icono" aria-hidden="true">➕</span>

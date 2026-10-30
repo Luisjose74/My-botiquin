@@ -1,0 +1,58 @@
+{% extends "base_app.html" %}
+
+{% block title %}Unirse a un hogar · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'cuentas:familia' %}">← Volver a mi familia</a>
+
+<section class="page-head animar" style="--d: 60ms">
+  <div>
+    <p class="saludo">Hogar compartido</p>
+    <h1>Unirse a un hogar</h1>
+    <p class="page-sub">
+      Pega el código de invitación que te compartieron para acceder al mismo
+      botiquín familiar.
+    </p>
+  </div>
+</section>
+
+{% if hogar_inicial %}
+  <div class="aviso aviso-ok animar" style="--d: 100ms">
+    Código válido. Vas a unirte a <strong>{{ hogar_inicial.nombre }}</strong>.
+  </div>
+{% endif %}
+
+<section class="tarjeta form-seccion animar" style="--d: 140ms">
+  {% if form.non_field_errors %}
+    <div class="alerta error">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form class="familia-form unirse-form" method="post" novalidate autocomplete="off">
+    {% csrf_token %}
+    {% include "botiquin/_campo.html" with campo=form.codigo ancho=True %}
+    <button class="boton boton-inline" type="submit">Unirse al hogar</button>
+  </form>
+
+  <p class="nota">
+    Al unirte, tu perfil se añadirá al hogar compartido. Los medicamentos que
+    ya registraste seguirán siendo tuyos.
+  </p>
+</section>
+
+<section class="tarjeta form-seccion animar" style="--d: 200ms">
+  <div class="seccion-cabecera">
+    <span class="seccion-icono" aria-hidden="true">📱</span>
+    <div>
+      <h2>Base para código QR</h2>
+      <p>Próximamente podrás escanear un código QR para unirte sin escribir.</p>
+    </div>
+  </div>
+  <p class="page-sub">
+    El enlace que un QR debe abrir es:
+    <code class="codigo-enlace">{% url 'cuentas:unirse_hogar_codigo' 'CODIGO' %}</code>
+    (sustituye <code>CODIGO</code> por el código real).
+  </p>
+</section>
+{% endblock %}

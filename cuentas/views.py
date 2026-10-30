@@ -19,12 +19,13 @@ from .forms import (
     CodigoVerificacionForm,
     LoginForm,
     MiembroHogarForm,
+    UnirseHogarForm,
     NuevaPasswordForm,
     PerfilForm,
     RegistroForm,
     RestablecerPasswordForm,
 )
-from .models import MiembroHogar, Usuario
+from .models import Hogar, MiembroHogar, Usuario
 
 
 class IniciarSesionView(LoginView):
@@ -181,6 +182,75 @@ class PasswordResetCompleteView(TemplateView):
     """Pantalla final tras restablecer la contraseña."""
 
     template_name = "registration/password_reset_complete.html"
+
+
+def _unir_usuario_a_hogar(usuario, hogar):
+    """Vincula al usuario con el hogar indicado y crea su perfil de miembro."""
+    if usuario.hogar_id == hogar.pk:
+        return False, "Ya perteneces a este hogar."
+
+    usuario.hogar = hogar
+    usuario.save(update_fields=["hogar"])
+
+    if not MiembroHogar.objects.filter(hogar=hogar, usuario=usuario).exists():
+        nombre_base = usuario.get_full_name() or usuario.username
+        nombre = nombre_base
+        sufijo = 2
+        while MiembroHogar.objects.filter(hogar=hogar, nombre__iexact=nombre).exists():
+            nombre = f"{nombre_base} ({sufijo})"
+            sufijo += 1
+
+        # El usuario solo puede estar vinculado a un MiembroHogar. Si ya estaba
+        # enlazado con otro hogar, se reutiliza ese registro cambiando el hogar.
+        miembro_previo = MiembroHogar.objects.filter(usuario=usuario).first()
+        if miembro_previo is not None:
+            miembro_previo.hogar = hogar
+            miembro_previo.nombre = nombre
+            miembro_previo.relacion = "otro"
+            miembro_previo.es_principal = False
+            miembro_previo.save()
+        else:
+            MiembroHogar.objects.create(
+                hogar=hogar,
+                usuario=usuario,
+                nombre=nombre,
+                relacion="otro",
+                es_principal=False,
+            )
+
+    return True, f"Te uniste a «{hogar.nombre}»."
+
+
+@login_required
+def unirse_hogar(request, codigo=None):
+    """Unirse a un hogar con su código de invitación (GET pre-rellena el código)."""
+    hogar_inicial = None
+    if codigo:
+        try:
+            hogar_inicial = Hogar.objects.get(codigo_invitacion__iexact=codigo)
+        except Hogar.DoesNotExist:
+            messages.error(request, "Ese código de invitación no es válido.")
+
+    if request.method == "POST":
+        form = UnirseHogarForm(request.POST)
+        if form.is_valid():
+            hogar = form.cleaned_data["codigo"]
+            cambio, mensaje = _unir_usuario_a_hogar(request.user, hogar)
+            if cambio:
+                messages.success(request, mensaje)
+            else:
+                messages.info(request, mensaje)
+            return redirect("cuentas:familia")
+    else:
+        form = UnirseHogarForm(
+            initial={"codigo": hogar_inicial.codigo_invitacion} if hogar_inicial else None
+        )
+
+    return render(
+        request,
+        "cuentas/unirse.html",
+        {"form": form, "hogar_inicial": hogar_inicial},
+    )
 
 
 @login_required
