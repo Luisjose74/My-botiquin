@@ -1,11 +1,14 @@
-"""Vistas del inventario de medicamentos (CRUD completo)."""
+"""Vistas del inventario de medicamentos, panel de alertas y CRUD."""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
+from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm
-from .models import Categoria, Medicamento
+from .models import Alerta, Categoria, Medicamento
 
 ESTADOS_VALIDOS = {"todos", "optimos", "por_vencer", "vencidos", "agotados"}
 
@@ -18,17 +21,102 @@ ESTADOS_LABELS = {
 }
 
 
-@login_required
-def lista(request):
-    """Listado con estadísticas, búsqueda, filtros por estado y categoría."""
-    base = Medicamento.objects.filter(usuario=request.user, activo=True)
-    stats = {
+def _estadisticas(base):
+    return {
         "total": base.count(),
         "optimos": base.vigentes().count(),
         "por_vencer": base.por_vencer().count(),
         "vencidos": base.vencidos().count(),
         "agotados": base.agotados().count(),
     }
+
+
+def _redirigir_seguro(request, por_defecto):
+    """Vuelve a la página de origen solo si es una ruta interna."""
+    destino = request.POST.get("next", "")
+    if destino and url_has_allowed_host_and_scheme(
+        destino,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(destino)
+    return redirect(por_defecto)
+
+
+@login_required
+def inicio(request):
+    """Panel principal: resumen del botiquín y alertas que requieren atención."""
+    sincronizar_alertas(request.user)
+
+    base = Medicamento.objects.filter(usuario=request.user, activo=True)
+    alertas_pendientes = Alerta.objects.filter(
+        usuario=request.user, leida=False
+    ).select_related("medicamento")
+
+    return render(
+        request,
+        "botiquin/inicio.html",
+        {
+            "stats": _estadisticas(base),
+            "alertas": alertas_pendientes[:5],
+            "total_alertas": alertas_pendientes.count(),
+            "atencion": base.en_alerta()
+            .select_related("categoria", "miembro")
+            .order_by("fecha_vencimiento", "nombre")[:6],
+        },
+    )
+
+
+@login_required
+def alertas(request):
+    """Listado de alertas con filtro de pendientes o todas."""
+    sincronizar_alertas(request.user)
+
+    ver = request.GET.get("ver", "pendientes")
+    if ver not in {"pendientes", "todas"}:
+        ver = "pendientes"
+
+    consulta = Alerta.objects.filter(usuario=request.user).select_related(
+        "medicamento"
+    )
+    if ver == "pendientes":
+        consulta = consulta.filter(leida=False)
+
+    return render(
+        request,
+        "botiquin/alertas.html",
+        {
+            "alertas": consulta,
+            "ver_actual": ver,
+            "total_pendientes": Alerta.objects.filter(
+                usuario=request.user, leida=False
+            ).count(),
+        },
+    )
+
+
+@login_required
+@require_POST
+def marcar_alerta_leida(request, pk):
+    alerta = get_object_or_404(Alerta, pk=pk, usuario=request.user)
+    alerta.leida = True
+    alerta.save(update_fields=["leida"])
+    return _redirigir_seguro(request, "botiquin:alertas")
+
+
+@login_required
+@require_POST
+def marcar_todas_leidas(request):
+    Alerta.objects.filter(usuario=request.user, leida=False).update(leida=True)
+    messages.success(request, "Todas las alertas se marcaron como leídas.")
+    return _redirigir_seguro(request, "botiquin:alertas")
+
+
+@login_required
+def lista(request):
+    """Listado con estadísticas, búsqueda, filtros por estado y categoría."""
+    base = Medicamento.objects.filter(usuario=request.user, activo=True)
+    stats = _estadisticas(base)
 
     medicamentos = base.select_related("categoria", "miembro")
 

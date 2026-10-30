@@ -1,0 +1,25 @@
+{% comment %}
+Tarjeta de una alerta. Uso: {% include "botiquin/_alerta_item.html" with alerta=alerta %}
+{% endcomment %}
+<article class="alerta-item tipo-{{ alerta.tipo }}{% if alerta.leida %} leida{% endif %}">
+  <span class="alerta-icono" aria-hidden="true">{% if alerta.tipo == 'agotado' %}📭{% elif alerta.tipo == 'vencido' %}⛔{% else %}⏳{% endif %}</span>
+
+  <div class="alerta-texto">
+    <h3>{{ alerta.titulo }}</h3>
+    <p>{{ alerta.mensaje }}</p>
+    <small>Hace {{ alerta.creada|timesince }}{% if alerta.leida %} · Leída{% endif %}</small>
+  </div>
+
+  <div class="alerta-acciones">
+    {% if alerta.medicamento_id %}
+      <a class="accion" href="{% url 'botiquin:detalle' alerta.medicamento_id %}">Ver</a>
+    {% endif %}
+    {% if not alerta.leida %}
+      <form method="post" action="{% url 'botiquin:alerta_leida' alerta.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="accion accion-boton" type="submit">Marcar como leída</button>
+      </form>
+    {% endif %}
+  </div>
+</article>

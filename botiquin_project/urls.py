@@ -8,18 +8,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView
+
+from botiquin.views import inicio
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("cuentas/", include("cuentas.urls")),
     path("botiquin/", include("botiquin.urls")),
-    # Temporal: la página de inicio (dashboard) llega en la Fase 4
-    path(
-        "",
-        RedirectView.as_view(pattern_name="cuentas:login", permanent=False),
-        name="inicio",
-    ),
+    path("", inicio, name="inicio"),
 ]
 
 if settings.DEBUG:

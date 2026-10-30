@@ -55,7 +55,7 @@ def registro(request):
                 "¡Tu botiquín digital está listo! Ya puedes empezar a "
                 "registrar tus medicamentos.",
             )
-            return redirect("botiquin:lista")
+            return redirect("inicio")
     else:
         form = RegistroForm()
 

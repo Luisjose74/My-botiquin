@@ -2,14 +2,18 @@
 
 {% block content %}
 <header class="app-barra animar" style="--d: 20ms">
-  <a class="marca" href="{% url 'botiquin:lista' %}">
+  <a class="marca" href="{% url 'inicio' %}">
     <span class="marca-logo">✚</span>
     <span>Mi Botiquín <b>Digital</b></span>
   </a>
 
   <nav class="app-nav" aria-label="Navegación principal">
-    <a class="nav-link {% if request.resolver_match.app_name == 'botiquin' %}activo{% endif %}"
+    <a class="nav-link {% if request.resolver_match.url_name == 'inicio' %}activo{% endif %}"
+       href="{% url 'inicio' %}">🏠 Inicio</a>
+    <a class="nav-link {% if request.resolver_match.app_name == 'botiquin' and request.resolver_match.url_name != 'alertas' %}activo{% endif %}"
        href="{% url 'botiquin:lista' %}">💊 Mi botiquín</a>
+    <a class="nav-link {% if request.resolver_match.url_name == 'alertas' %}activo{% endif %}"
+       href="{% url 'botiquin:alertas' %}">🔔 Alertas{% if alertas_pendientes %} <span class="nav-badge">{{ alertas_pendientes }}</span>{% endif %}</a>
     <a class="nav-link {% if request.resolver_match.url_name == 'perfil' %}activo{% endif %}"
        href="{% url 'cuentas:perfil' %}">👤 Mi perfil</a>
   </nav>

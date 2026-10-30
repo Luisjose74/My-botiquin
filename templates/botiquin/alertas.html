@@ -1,0 +1,45 @@
+{% extends "base_app.html" %}
+
+{% block title %}Alertas · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<section class="page-head animar" style="--d: 40ms">
+  <div>
+    <p class="saludo">Centro de avisos</p>
+    <h1>Alertas</h1>
+    <p class="page-sub">
+      Avisos de vencimiento, vencidos y medicamentos sin existencias.
+    </p>
+  </div>
+  {% if total_pendientes %}
+    <form method="post" action="{% url 'botiquin:alertas_leer_todas' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'botiquin:alertas' %}">
+      <button class="boton-secundario" type="submit">Marcar todas como leídas</button>
+    </form>
+  {% endif %}
+</section>
+
+<section class="filtros animar" style="--d: 120ms">
+  <div class="chips-filtro" role="group" aria-label="Filtrar alertas">
+    <a class="chip-filtro {% if ver_actual == 'pendientes' %}activo{% endif %}"
+       href="?ver=pendientes">Pendientes{% if total_pendientes %} ({{ total_pendientes }}){% endif %}</a>
+    <a class="chip-filtro {% if ver_actual == 'todas' %}activo{% endif %}"
+       href="?ver=todas">Todas</a>
+  </div>
+</section>
+
+{% if alertas %}
+  <div class="alerta-lista animar" style="--d: 180ms">
+    {% for alerta in alertas %}
+      {% include "botiquin/_alerta_item.html" with alerta=alerta %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="vacio-app animar" style="--d: 180ms">
+    <span class="vacio-icono" aria-hidden="true">🌿</span>
+    <h2>No tienes alertas {% if ver_actual == 'pendientes' %}pendientes{% endif %}</h2>
+    <p>Cuando un medicamento esté por vencer, vencido o agotado, lo verás aquí.</p>
+  </div>
+{% endif %}
+{% endblock %}

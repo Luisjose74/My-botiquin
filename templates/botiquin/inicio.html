@@ -1,0 +1,105 @@
+{% extends "base_app.html" %}
+
+{% block title %}Panel · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<section class="page-head animar" style="--d: 40ms">
+  <div>
+    <p class="saludo">Resumen de hoy</p>
+    <h1>Hola, {{ request.user.first_name|default:request.user.username }}</h1>
+    <p class="page-sub">
+      {% if total_alertas %}
+        Tienes {{ total_alertas }} alerta{{ total_alertas|pluralize }} sin revisar.
+      {% else %}
+        Todo tu botiquín está al día. Te avisaremos antes de que algo venza.
+      {% endif %}
+    </p>
+  </div>
+  <a class="boton boton-inline" href="{% url 'botiquin:crear' %}">＋ Registrar medicamento</a>
+</section>
+
+<section class="stats-grid animar" style="--d: 100ms" aria-label="Resumen del botiquín">
+  <a class="stat-card stat-total" href="{% url 'botiquin:lista' %}">
+    <span class="stat-icono">💊</span>
+    <b>{{ stats.total }}</b>
+    <span>Total registrados</span>
+  </a>
+  <a class="stat-card stat-ok" href="{% url 'botiquin:lista' %}?estado=optimos">
+    <span class="stat-icono">✅</span>
+    <b>{{ stats.optimos }}</b>
+    <span>Óptimos</span>
+  </a>
+  <a class="stat-card stat-warn" href="{% url 'botiquin:lista' %}?estado=por_vencer">
+    <span class="stat-icono">⏳</span>
+    <b>{{ stats.por_vencer }}</b>
+    <span>Por vencer</span>
+  </a>
+  <a class="stat-card stat-bad" href="{% url 'botiquin:lista' %}?estado=vencidos">
+    <span class="stat-icono">⚠️</span>
+    <b>{{ stats.vencidos }}</b>
+    <span>Vencidos</span>
+  </a>
+</section>
+
+<section class="dash-grid">
+  <article class="tarjeta dash-card animar" style="--d: 180ms">
+    <header class="dash-cabecera">
+      <div>
+        <h2>Requieren atención</h2>
+        <p>Las alertas más recientes de tu botiquín.</p>
+      </div>
+      <a class="dash-ver-todas" href="{% url 'botiquin:alertas' %}">Ver todas →</a>
+    </header>
+
+    {% if alertas %}
+      <div class="alerta-lista">
+        {% for alerta in alertas %}
+          {% include "botiquin/_alerta_item.html" with alerta=alerta %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="vacio-dash">
+        <span aria-hidden="true">🌿</span>
+        <strong>Sin alertas pendientes</strong>
+        <small>Cuando un medicamento esté por vencer o se agote, aparecerá aquí.</small>
+      </div>
+    {% endif %}
+  </article>
+
+  <article class="tarjeta dash-card animar" style="--d: 240ms">
+    <header class="dash-cabecera">
+      <div>
+        <h2>Próximos vencimientos</h2>
+        <p>Medicamentos vencidos, por vencer o sin existencias.</p>
+      </div>
+      <a class="dash-ver-todas" href="{% url 'botiquin:lista' %}">Ver botiquín →</a>
+    </header>
+
+    {% if atencion %}
+      <ul class="dash-lista">
+        {% for medicamento in atencion %}
+          <li>
+            <a class="dash-fila" href="{% url 'botiquin:detalle' medicamento.pk %}">
+              <span class="med-icono" aria-hidden="true">{% if medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}</span>
+              <span class="dash-fila-texto">
+                <strong>{{ medicamento.nombre }}</strong>
+                <small>
+                  {% if medicamento.cantidad == 0 %}Sin unidades
+                  {% else %}Vence {{ medicamento.fecha_vencimiento_formateada }}{% endif %}
+                </small>
+              </span>
+              <span class="tag {{ medicamento.estado }}">{{ medicamento.estado_label }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="vacio-dash">
+        <span aria-hidden="true">✅</span>
+        <strong>Todo en orden</strong>
+        <small>No hay medicamentos vencidos ni próximos a vencer.</small>
+      </div>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

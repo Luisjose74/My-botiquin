@@ -1548,3 +1548,168 @@ a:hover { text-decoration: underline; }
 }
 .boton-ojito:hover { color: var(--blue); background: var(--soft); }
 .boton-ojito .icono-ojo { display: block; }
+
+/* ============================================================
+   Fase 4 — Panel y sistema de alertas
+   ============================================================ */
+.nav-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  margin-left: 0.2rem;
+  border-radius: 999px;
+  background: var(--et);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+  margin-top: 1.1rem;
+}
+.dash-card { display: grid; gap: 0.9rem; padding: 1.15rem 1.2rem; }
+.dash-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.dash-cabecera h2 { margin: 0; font-size: 1.02rem; letter-spacing: -0.01em; }
+.dash-cabecera p {
+  margin: 0.15rem 0 0;
+  color: var(--sub);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.dash-ver-todas {
+  flex-shrink: 0;
+  color: var(--blue);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.alerta-lista { display: grid; gap: 0.6rem; }
+.alerta-item {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.8rem 0.9rem;
+  background: #fbfdff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--blue);
+  border-radius: 12px;
+  transition:
+    background-color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+.alerta-item.tipo-vencido { border-left-color: #d94a4a; }
+.alerta-item.tipo-por_vencer { border-left-color: #e0a11a; }
+.alerta-item.tipo-agotado { border-left-color: #7b879e; }
+.alerta-item.leida { opacity: 0.62; background: #fff; }
+.alerta-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--soft);
+  font-size: 1rem;
+  line-height: 1;
+}
+.alerta-texto { min-width: 0; }
+.alerta-texto h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.alerta-texto p {
+  margin: 0.2rem 0 0.3rem;
+  color: var(--sub);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.alerta-texto small { color: var(--sub); font-size: 0.72rem; }
+.alerta-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+.alerta-acciones form { margin: 0; }
+.accion-boton {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dash-lista { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.dash-fila {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.6rem 0.7rem;
+  border-radius: 12px;
+  color: var(--ink);
+  transition: background-color 180ms var(--ease-out);
+}
+.dash-fila:hover { background: var(--soft); text-decoration: none; }
+.dash-fila-texto { min-width: 0; }
+.dash-fila-texto strong {
+  display: block;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+.dash-fila-texto small { color: var(--sub); font-size: 0.74rem; }
+
+.vacio-dash {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  background: #f8fbff;
+  border: 1px dashed #bcd4f4;
+  border-radius: 14px;
+}
+.vacio-dash > span { font-size: 1.8rem; line-height: 1; margin-bottom: 0.25rem; }
+.vacio-dash strong { font-size: 0.92rem; }
+.vacio-dash small { color: var(--sub); font-size: 0.78rem; line-height: 1.45; }
+
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .alerta-item { grid-template-columns: 32px minmax(0, 1fr); }
+  .alerta-icono { width: 32px; height: 32px; }
+  .alerta-acciones {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alerta-item,
+  .dash-fila {
+    transition-duration: 1ms;
+  }
+}

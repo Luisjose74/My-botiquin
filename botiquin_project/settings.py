@@ -67,7 +67,7 @@ AUTH_USER_MODEL = 'cuentas.Usuario'
 
 # Autenticación
 LOGIN_URL = 'cuentas:login'
-LOGIN_REDIRECT_URL = 'botiquin:lista'
+LOGIN_REDIRECT_URL = 'inicio'
 LOGOUT_REDIRECT_URL = 'cuentas:login'
 
 # Tiempo de validez del enlace de restablecimiento (segundos)
@@ -95,6 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'botiquin.context_processors.alertas_pendientes',
             ],
         },
     },
