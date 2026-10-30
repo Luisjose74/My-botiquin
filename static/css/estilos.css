@@ -1830,3 +1830,75 @@ a:hover { text-decoration: underline; }
   word-break: break-all;
 }
 .unirse-form { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* ============================================================
+   Fase 6 — Pulido, accesibilidad táctil y móvil
+   ============================================================ */
+.boton,
+.boton-secundario,
+.chip-filtro,
+.nav-link,
+.accion {
+  touch-action: manipulation;
+}
+
+.boton,
+.boton-secundario {
+  min-height: 44px;
+}
+
+@media (max-width: 480px) {
+  .contenedor { width: min(100% - 1rem, 1180px); padding-top: 0.75rem; }
+  .tarjeta { padding: 1rem; }
+  .app-barra { padding: 0.55rem 0.7rem; gap: 0.55rem; }
+  .page-head h1 { font-size: 1.45rem; }
+  .page-sub { font-size: 0.84rem; }
+  .filtros { padding: 0.7rem; }
+  .filtros-form { grid-template-columns: 1fr; }
+  .filtros-form .buscador-campo { grid-column: auto; }
+  .filtros-form .boton { width: 100%; }
+  .med-card { padding: 0.85rem; }
+  .med-titulo h3 { font-size: 0.95rem; }
+  .detalle-foto-card { padding: 0.8rem; }
+  .detalle-foto { aspect-ratio: 16 / 10; }
+  .info-grid { gap: 0.55rem; }
+  .form-seccion { padding: 0.95rem 1rem; }
+  .form-barra-acciones { padding: 0.65rem 0.75rem; }
+  .tarjeta-peligro { padding: 1.25rem 1rem; }
+  .alerta-item { padding: 0.7rem 0.75rem; }
+  .dash-card { padding: 0.95rem 1rem; }
+  .integrante-chip { font-size: 0.8rem; }
+}
+
+@media (max-width: 360px) {
+  .app-nav { gap: 0.1rem; }
+  .nav-link { padding: 0.38rem 0.42rem; font-size: 0.76rem; }
+  .marca b { display: none; }
+  .stat-card b { font-size: 1.2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animar,
+  .animar-grupo,
+  .preloader-barra i {
+    animation: none;
+    opacity: 1;
+  }
+  .stat-card,
+  .med-card,
+  .chip-filtro,
+  .nav-link,
+  .accion,
+  .boton,
+  .boton-secundario,
+  .integrante-chip,
+  .dash-fila,
+  .alerta-item {
+    transition-duration: 1ms;
+  }
+  .stat-card:hover,
+  .med-card:hover,
+  .dash-fila:hover {
+    transform: none;
+  }
+}
