@@ -1,6 +1,10 @@
 """Formularios de autenticación y perfil de Mi Botiquín Digital."""
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordResetForm as DjangoPasswordResetForm,
+    UserCreationForm,
+)
 
 from .models import Usuario
 
@@ -16,19 +20,19 @@ class RegistroForm(UserCreationForm):
         label="Nombre",
         max_length=150,
         required=True,
-        widget=forms.TextInput(attrs={**CAMPOS, "placeholder": "Luis"}),
+        widget=forms.TextInput(attrs={**CAMPOS, "placeholder": "Ej. Juan", "autocomplete": "off"}),
     )
     last_name = forms.CharField(
         label="Apellido",
         max_length=150,
         required=True,
-        widget=forms.TextInput(attrs={**CAMPOS, "placeholder": "Silva"}),
+        widget=forms.TextInput(attrs={**CAMPOS, "placeholder": "Pérez", "autocomplete": "off"}),
     )
     email = forms.EmailField(
         label="Correo electrónico",
         required=True,
         widget=forms.EmailInput(
-            attrs={**CAMPOS, "placeholder": "tucorreo@ejemplo.com"}
+            attrs={**CAMPOS, "placeholder": "tucorreo@ejemplo.com", "autocomplete": "off"}
         ),
     )
     telefono = forms.CharField(
@@ -36,7 +40,7 @@ class RegistroForm(UserCreationForm):
         max_length=20,
         required=False,
         widget=forms.TextInput(
-            attrs={**CAMPOS, "placeholder": "300 123 4567"}
+            attrs={**CAMPOS, "placeholder": "300 123 4567", "autocomplete": "off"}
         ),
     )
 
@@ -55,13 +59,14 @@ class RegistroForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].widget.attrs.update(
-            {**CAMPOS, "placeholder": "luis_silva"}
+            {**CAMPOS, "placeholder": "juan_perez", "autocomplete": "off"}
         )
         self.fields["password1"].widget.attrs.update(
-            {**CAMPOS, "placeholder": "Mínimo 8 caracteres"}
+            {**CAMPOS, "placeholder": "Mínimo 8 caracteres", "autocomplete": "off"}
         )
+        self.fields["password1"].help_text = ""
         self.fields["password2"].widget.attrs.update(
-            {**CAMPOS, "placeholder": "Repite tu contraseña"}
+            {**CAMPOS, "placeholder": "Repite tu contraseña", "autocomplete": "off"}
         )
 
     def clean_email(self):
@@ -93,6 +98,7 @@ class LoginForm(AuthenticationForm):
                 **CAMPOS,
                 "autofocus": True,
                 "placeholder": "Tu nombre de usuario",
+                "autocomplete": "off",
             }
         ),
     )
@@ -100,9 +106,33 @@ class LoginForm(AuthenticationForm):
         label="Contraseña",
         strip=False,
         widget=forms.PasswordInput(
-            attrs={**CAMPOS, "placeholder": "Tu contraseña"}
+            attrs={**CAMPOS, "placeholder": "Tu contraseña", "autocomplete": "off"}
         ),
     )
+
+
+class RestablecerPasswordForm(DjangoPasswordResetForm):
+    """Restablecimiento con validación estricta de correo registrado."""
+
+    email = forms.EmailField(
+        label="Correo electrónico",
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                **CAMPOS,
+                "placeholder": "tucorreo@ejemplo.com",
+                "autocomplete": "off",
+            }
+        ),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if not Usuario.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError(
+                "Este correo no se encuentra registrado."
+            )
+        return email
 
 
 class PerfilForm(forms.ModelForm):

@@ -1,6 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}Crear cuenta · Mi Botiquín Digital{% endblock %}
+{% block title %}Crear cuenta · Mi Botiquín Digital
+<script>
+  (function () {
+    var input = document.getElementById("id_password1");
+    var lista = document.getElementById("passwordRequisitos");
+    if (!input || !lista) return;
+
+    var items = lista.querySelectorAll("li[data-regla]");
+
+    function cumple(regla, valor) {
+      if (regla === "longitud") return valor.length >= 8;
+      if (regla === "no-numerica") return valor.length > 0 && !/^\d+$/.test(valor);
+      if (regla === "caracteres") {
+        return /[A-Za-z]/.test(valor) || /[^A-Za-z0-9]/.test(valor);
+      }
+      return false;
+    }
+
+    function actualizar() {
+      var valor = input.value || "";
+      items.forEach(function (item) {
+        var regla = item.getAttribute("data-regla");
+        var ok = cumple(regla, valor);
+        item.classList.toggle("cumple", ok);
+        item.classList.toggle("no-cumple", !ok);
+        var icono = item.querySelector(".req-icono");
+        if (icono) icono.textContent = ok ? "✓" : "❌";
+      });
+    }
+
+    input.addEventListener("input", actualizar);
+    actualizar();
+  })();
+</script>
+
+{% endblock %}
 
 {% block content %}
 <div class="auth">
@@ -40,7 +75,7 @@
         </div>
       {% endif %}
 
-      <form method="post" novalidate>
+      <form method="post" novalidate autocomplete="off">
         {% csrf_token %}
 
         {% for field in form %}
@@ -54,6 +89,26 @@
               <small class="error-campo">{{ error }}</small>
             {% endfor %}
           </div>
+
+          {% if field.name == "password1" %}
+            <div class="password-requisitos" id="passwordRequisitos" aria-live="polite">
+              <p class="password-requisitos-titulo">Tu contraseña debe cumplir:</p>
+              <ul>
+                <li data-regla="longitud" class="no-cumple">
+                  <span class="req-icono" aria-hidden="true">❌</span>
+                  Mínimo 8 caracteres
+                </li>
+                <li data-regla="no-numerica" class="no-cumple">
+                  <span class="req-icono" aria-hidden="true">❌</span>
+                  No ser completamente numérica
+                </li>
+                <li data-regla="caracteres" class="no-cumple">
+                  <span class="req-icono" aria-hidden="true">❌</span>
+                  Incluir letras, mayúsculas o caracteres especiales
+                </li>
+              </ul>
+            </div>
+          {% endif %}
         {% endfor %}
 
         <button class="boton" type="submit">Crear mi cuenta →</button>

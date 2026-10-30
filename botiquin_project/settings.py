@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -143,9 +144,15 @@ FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'HOST': os.environ.get('EMAIL_HOST', 'smtp.gmail.com'),
+        'PORT': int(os.environ.get('EMAIL_PORT', '587')),
+        'USER': os.environ.get('EMAIL_HOST_USER', ''),
+        'PASSWORD': os.environ.get('EMAIL_HOST_PASSWORD', ''),
+        'USE_TLS': os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true',
+        'USE_SSL': os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true',
     },
 }
 
 # Correo (desarrollo): se imprime en consola
-DEFAULT_FROM_EMAIL = "Mi Botiquín Digital <no-reply@mibotiquin.local>"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Mi Botiquín Digital <no-reply@mibotiquin.local>")

@@ -1480,3 +1480,45 @@ a:hover { text-decoration: underline; }
     transform: none;
   }
 }
+
+/* ============================================================
+   Validador dinámico de contraseña (registro)
+   ============================================================ */
+.password-requisitos {
+  margin: -0.1rem 0 0.85rem;
+  padding: 0.75rem 0.85rem;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.password-requisitos-titulo {
+  margin: 0 0 0.35rem;
+  color: var(--sub);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.password-requisitos ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.password-requisitos li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: color 180ms var(--ease-out);
+}
+.password-requisitos li.no-cumple { color: var(--et); }
+.password-requisitos li.cumple { color: var(--okt); }
+.password-requisitos .req-icono {
+  width: 1.15rem;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1;
+}
