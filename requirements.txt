@@ -1,0 +1,9 @@
+asgiref==3.12.1
+Django==6.1.1
+markdown-it-py==4.2.0
+mdurl==0.1.2
+MIDIUtil==1.2.1
+Pygments==2.20.0
+rich==15.0.0
+sqlparse==0.6.0
+tzdata==2026.4
