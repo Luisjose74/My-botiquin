@@ -25,25 +25,58 @@ except ImportError:
     pass
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-yj=hro!ooiht#j$iwsj6ruf@48zcy_n3!^wk@$e(@0d6ok11no'
+# Seguridad: los valores sensibles se leen del entorno (o de .env).
+# Ver .env.example y README.md.
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
+
+# Clave de desarrollo: solo se usa con DEBUG=True. En producción es obligatorio
+# definir DJANGO_SECRET_KEY.
+_CLAVE_DESARROLLO = 'django-insecure-yj=hro!ooiht#j$iwsj6ruf@48zcy_n3!^wk@$e(@0d6ok11no'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured(
+            "Define DJANGO_SECRET_KEY cuando DJANGO_DEBUG=False."
+        )
+    SECRET_KEY = _CLAVE_DESARROLLO
 
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
     if host.strip()
 ]
+
+# Orígenes CSRF: si no se definen, se derivan de ALLOWED_HOSTS para que un
+# túnel público (ngrok, cloudflared) funcione con solo añadir su dominio.
+_LOCALES = {"localhost", "127.0.0.1", "[::1]"}
+
+
+def _origenes_csrf_desde_hosts(hosts):
+    origenes = []
+    for host in hosts:
+        if host in _LOCALES:
+            continue
+        if host.startswith("."):
+            origenes.append("https://*" + host)
+        else:
+            origenes.append("https://" + host)
+    return origenes
+
+
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
-]
+] or _origenes_csrf_desde_hosts(ALLOWED_HOSTS)
+
+# Detrás de un túnel HTTPS (ngrok), Django debe saber que la petición original
+# era segura. Solo activar si la app está detrás de un proxy de confianza.
+if os.environ.get("DJANGO_TRAS_PROXY_HTTPS", "False").lower() == "true":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition

@@ -286,6 +286,17 @@ class PerfilForm(forms.ModelForm):
             "foto",
             "canal_alertas",
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # WhatsApp se oculta hasta que exista el envío. El modelo lo conserva.
+        self.fields["canal_alertas"].choices = [
+            (valor, etiqueta)
+            for valor, etiqueta in Usuario.CANAL_ALERTAS
+            if valor != "whatsapp"
+        ]
+        if self.instance.pk and self.instance.canal_alertas == "whatsapp":
+            self.initial["canal_alertas"] = "notificacion"
         widgets = {
             "first_name": forms.TextInput(attrs=CAMPOS),
             "last_name": forms.TextInput(attrs=CAMPOS),

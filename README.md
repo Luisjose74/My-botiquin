@@ -60,15 +60,27 @@ Si no llega, revisa la carpeta de spam la primera vez.
 
 ## Feria / URL pública
 
-Para exponer la app con un túnel (ngrok, cloudflared, etc.), define:
+Para exponer la app con un túnel (ngrok, cloudflared, etc.) en `.env`:
 
 ```
+DJANGO_DEBUG=True
+DJANGO_TRAS_PROXY_HTTPS=True
 ALLOWED_HOSTS=tu-dominio.ngrok-free.app,localhost,127.0.0.1
-CSRF_TRUSTED_ORIGINS=https://tu-dominio.ngrok-free.app
+SITE_URL=https://tu-dominio.ngrok-free.app
 ```
 
-El enlace de recuperación se genera a partir del host de la petición, así que
-con la URL pública llegará correctamente al celular del usuario.
+- `CSRF_TRUSTED_ORIGINS` se deriva solo de `ALLOWED_HOSTS` (`https://tu-dominio...`).
+  Defínelo a mano solo si necesitas otros orígenes.
+- Mantén `DJANGO_DEBUG=True` para la demostración: con `False` Django no sirve
+  los archivos estáticos (CSS) y la página se ve sin estilo.
+- Los enlaces de los correos usan `SITE_URL`, así que llegan con la URL pública.
+
+## Seguridad y producción
+
+- `DJANGO_SECRET_KEY` debe definirse en `.env` (genera una nueva con
+  `python -c "import secrets; print(secrets.token_urlsafe(50))"`).
+- Con `DJANGO_DEBUG=False` la aplicación no arranca sin `DJANGO_SECRET_KEY`.
+- Nunca subas `.env` al repositorio.
 
 ## Alertas por correo
 

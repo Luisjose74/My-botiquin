@@ -1653,7 +1653,9 @@ a:hover { text-decoration: underline; }
   border: 0;
   background: transparent;
   cursor: pointer;
-  font: inherit;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
   text-align: right;
   white-space: nowrap;
 }
@@ -1716,3 +1718,16 @@ a:hover { text-decoration: underline; }
 }
 
 .tag.stock-bajo { background: var(--soft); color: var(--blue); border-color: #bcd4f4; }
+
+/* Movil: el menu pasa a dos filas en vez de cortarse */
+@media (max-width: 560px) {
+  .app-nav {
+    flex-wrap: wrap;
+    overflow: visible;
+    row-gap: 0.15rem;
+  }
+  .nav-link {
+    padding: 0.42rem 0.5rem;
+    font-size: 0.8rem;
+  }
+}
