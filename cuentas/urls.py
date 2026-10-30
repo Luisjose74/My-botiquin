@@ -12,7 +12,9 @@ urlpatterns = [
     path("perfil/", views.perfil, name="perfil"),
     path("familia/", views.familia, name="familia"),
     path("unirse/", views.unirse_hogar, name="unirse_hogar"),
+    path("unirse/escanear/", views.escanear_qr, name="escanear_qr"),
     path("unirse/<str:codigo>/", views.unirse_hogar, name="unirse_hogar_codigo"),
+    path("hogar/qr/", views.qr_invitacion, name="qr_invitacion"),
     path("familia/<int:pk>/editar/", views.editar_miembro, name="familia_editar"),
     path("familia/<int:pk>/eliminar/", views.eliminar_miembro, name="familia_eliminar"),
 

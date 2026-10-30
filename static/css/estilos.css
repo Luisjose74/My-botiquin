@@ -1902,3 +1902,29 @@ a:hover { text-decoration: underline; }
     transform: none;
   }
 }
+
+.qr-caja {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+.qr-caja img {
+  width: 150px;
+  height: 150px;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.lector-qr {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0b2a6f;
+}
+.lector-qr video { width: 100% !important; border-radius: 14px; }
+.lector-qr img { display: none; }

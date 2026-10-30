@@ -106,3 +106,42 @@ class InvitacionHogarTests(TestCase):
         self.assertRedirects(respuesta, reverse("cuentas:familia"))
         nuevo = MiembroHogar.objects.get(hogar=self.hogar_titular, usuario=self.invitado)
         self.assertNotEqual(nuevo.nombre, "Invitado")
+
+
+class CodigoQRTTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.titular = Usuario.objects.create_user(
+            username="qr_titular", password="ClaveSegura123!", first_name="Titular"
+        )
+
+    def setUp(self):
+        self.client.force_login(self.titular)
+
+    def test_qr_devuelve_imagen_png(self):
+        respuesta = self.client.get(reverse("cuentas:qr_invitacion"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta["Content-Type"], "image/png")
+        self.assertTrue(respuesta.content.startswith(b"\x89PNG\r\n\x1a\n"))
+
+    def test_qr_requiere_login(self):
+        self.client.logout()
+
+        respuesta = self.client.get(reverse("cuentas:qr_invitacion"))
+
+        self.assertEqual(respuesta.status_code, 302)
+
+    def test_escanear_qr_devuelve_pagina(self):
+        respuesta = self.client.get(reverse("cuentas:escanear_qr"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "html5-qrcode")
+        self.assertContains(respuesta, "lector-qr")
+
+    def test_escanear_qr_requiere_login(self):
+        self.client.logout()
+
+        respuesta = self.client.get(reverse("cuentas:escanear_qr"))
+
+        self.assertEqual(respuesta.status_code, 302)

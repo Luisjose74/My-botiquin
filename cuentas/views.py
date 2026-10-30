@@ -1,5 +1,11 @@
 """Vistas de autenticación y perfil de Mi Botiquín Digital."""
+import io
 import secrets
+
+try:
+    import qrcode
+except ImportError:  # pragma: no cover
+    qrcode = None
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -8,10 +14,10 @@ from django.contrib.auth.views import LoginView
 from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.db.models import Count
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView, TemplateView
 
@@ -251,6 +257,32 @@ def unirse_hogar(request, codigo=None):
         "cuentas/unirse.html",
         {"form": form, "hogar_inicial": hogar_inicial},
     )
+
+
+@login_required
+def qr_invitacion(request):
+    """Genera un código QR con el enlace para unirse al hogar del usuario."""
+    if qrcode is None:
+        return HttpResponse("qrcode no instalado", status=501, content_type="text/plain")
+    if request.user.hogar is None:
+        raise Http404
+
+    url = request.build_absolute_uri(
+        reverse("cuentas:unirse_hogar_codigo", args=[request.user.hogar.codigo_invitacion])
+    )
+    imagen = qrcode.make(url)
+    buffer = io.BytesIO()
+    imagen.save(buffer, format="PNG")
+    buffer.seek(0)
+    respuesta = HttpResponse(buffer.getvalue(), content_type="image/png")
+    respuesta["Cache-Control"] = "private, max-age=300"
+    return respuesta
+
+
+@login_required
+def escanear_qr(request):
+    """Pantalla para escanear un código QR de invitación con la cámara."""
+    return render(request, "cuentas/escanear_qr.html", {})
 
 
 @login_required

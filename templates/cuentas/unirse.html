@@ -43,16 +43,16 @@
 
 <section class="tarjeta form-seccion animar" style="--d: 200ms">
   <div class="seccion-cabecera">
-    <span class="seccion-icono" aria-hidden="true">📱</span>
+    <span class="seccion-icono" aria-hidden="true">📷</span>
     <div>
-      <h2>Base para código QR</h2>
-      <p>Próximamente podrás escanear un código QR para unirte sin escribir.</p>
+      <h2>Escanear código QR</h2>
+      <p>Usa la cámara para leer el código que te compartieron.</p>
     </div>
   </div>
-  <p class="page-sub">
+  <a class="boton boton-inline" href="{% url 'cuentas:escanear_qr' %}">Abrir escáner →</a>
+  <p class="page-sub" style="margin-top:0.75rem;">
     El enlace que un QR debe abrir es:
-    <code class="codigo-enlace">{% url 'cuentas:unirse_hogar_codigo' 'CODIGO' %}</code>
-    (sustituye <code>CODIGO</code> por el código real).
+    <code class="codigo-enlace">{% url 'cuentas:unirse_hogar_codigo' 'CODIGO' %}</code>.
   </p>
 </section>
 {% endblock %}
