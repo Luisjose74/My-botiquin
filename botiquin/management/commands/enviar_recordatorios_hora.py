@@ -1,45 +1,30 @@
-"""Envía recordatorios de toma para las pautas programadas en la hora actual.
+"""Envía recordatorios de toma para las pautas programadas en el minuto actual.
 
 Uso: python manage.py enviar_recordatorios_hora
 
-Filtra las pautas activas cuya hora coincide con la hora actual (y que
-correspondan al día de hoy) y dispara los correos/WhatsApp correspondientes.
-Pensado para ejecutarse cada hora mediante tarea programada.
+Filtra las pautas activas cuya hora/minuto coincide con el momento actual
+(y que correspondan al día de hoy) y dispara los correos/WhatsApp.
+Pensado para ejecutarse cada minuto mediante tarea programada, o por el
+programador en segundo plano que arranca con el servidor en desarrollo.
 """
 import logging
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
-from botiquin.models import PautaToma
-from botiquin.notificaciones import enviar_recordatorio_hora
+from botiquin.servicio_recordatorios import disparar_recordatorios_ahora
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Envía recordatorios de toma para las pautas de la hora actual."
+    help = "Envía recordatorios de toma para las pautas del minuto actual."
 
     def handle(self, *args, **options):
-        ahora = timezone.localtime()
-        hoy = ahora.date()
-
-        candidatas = [
-            p
-            for p in PautaToma.objects.filter(activa=True).select_related(
-                "medicamento", "miembro", "miembro__usuario"
-            )
-            if p._corresponde(hoy)
-            and p.hora is not None
-            and p.hora.hour == ahora.hour
-            and p.hora.minute == ahora.minute
-        ]
-
-        correos, whatsapps = enviar_recordatorio_hora(candidatas, ahora)
-
+        cantidad, correos, whatsapps = disparar_recordatorios_ahora()
+        ahora = __import__("django.utils.timezone", fromlist=["localtime"]).localtime()
         self.stdout.write(
             self.style.SUCCESS(
-                f"Pautas a las {ahora.strftime('%H:%M')}: {len(candidatas)}. "
+                f"Pautas a las {ahora.strftime('%H:%M')}: {cantidad}. "
                 f"Correos: {correos}. WhatsApp: {whatsapps}."
             )
         )

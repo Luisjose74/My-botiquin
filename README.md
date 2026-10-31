@@ -149,6 +149,8 @@ python manage.py enviar_recordatorios_hora
 
 IMPORTANTE: el comando compara la hora y el minuto exactos de la pauta. Para que las alertas lleguen a la hora configurada (ej. 9:10 p.m.) debes programarlo para ejecutarse **cada minuto**:
 
+Además, en desarrollo el servidor arranca automáticamente un programador en segundo plano (cada 60s) que dispara los recordatorios sin necesidad de terminal. En producción usa el Programador de tareas / cron.
+
 - Prueba rápida (dejar corriendo en una ventana aparte):
   ```powershell
   .\run_recordatorios.ps1
