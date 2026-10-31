@@ -14,13 +14,13 @@
        href="{% url 'botiquin:lista' %}">💊 Mi botiquín</a>
     <a class="nav-link {% if request.resolver_match.url_name == 'alertas' %}activo{% endif %}"
        href="{% url 'botiquin:alertas' %}">🔔 Alertas{% if alertas_pendientes %} <span class="nav-badge">{{ alertas_pendientes }}</span>{% endif %}</a>
-    <a class="nav-link {% if request.resolver_match.url_name == 'perfil' %}activo{% endif %}"
-       href="{% url 'cuentas:perfil' %}">👤 Mi perfil</a>
   </nav>
 
   <div class="app-cuenta">
-    <span class="avatar mini">{{ request.user.iniciales }}</span>
-    <span class="app-nombre">{{ request.user.first_name|default:request.user.username }}</span>
+    <a class="app-perfil" href="{% url 'cuentas:perfil' %}" aria-label="Mi perfil">
+      <span class="avatar mini">{% if request.user.foto %}<img src="{{ request.user.foto.url }}" alt="">{% else %}{{ request.user.iniciales }}{% endif %}</span>
+      <span class="app-nombre">{{ request.user.first_name|default:request.user.username }}</span>
+    </a>
     <form method="post" action="{% url 'cuentas:logout' %}">
       {% csrf_token %}
       <button class="boton-secundario" type="submit">Salir</button>

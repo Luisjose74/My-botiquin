@@ -328,6 +328,26 @@ a:hover { text-decoration: underline; }
   font-size: 1.1rem;
 }
 .avatar.mini { width: 34px; height: 34px; border-radius: 10px; font-size: 0.8rem; }
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+.app-perfil {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+  border-radius: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color 180ms var(--ease-out);
+}
+.app-perfil:hover { background: var(--soft); text-decoration: none; }
+.app-perfil .app-nombre { color: var(--ink); }
 
 .chip {
   display: inline-block;
@@ -1928,3 +1948,12 @@ a:hover { text-decoration: underline; }
 }
 .lector-qr video { width: 100% !important; border-radius: 14px; }
 .lector-qr img { display: none; }
+
+.boton-invitacion {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #1565e8, #0f4fbb);
+  box-shadow: 0 14px 26px -14px rgba(21, 101, 232, 0.9);
+}
+.boton-invitacion:hover {
+  box-shadow: 0 20px 34px -16px rgba(21, 101, 232, 0.95);
+}

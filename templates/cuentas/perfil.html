@@ -5,7 +5,7 @@
 {% block app_content %}
 <section class="perfil">
   <div class="tarjeta perfil-cabecera">
-    <div class="avatar">{{ request.user.iniciales }}</div>
+    <div class="avatar">{% if request.user.foto %}<img src="{{ request.user.foto.url }}" alt="Foto de perfil">{% else %}{{ request.user.iniciales }}{% endif %}</div>
     <div class="perfil-datos">
       <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
       <p>@{{ request.user.username }}{% if request.user.email %} · {{ request.user.email }}{% endif %}</p>

@@ -11,9 +11,12 @@
       Una sola cuenta para varias personas. Asigna cada medicamento a quien lo usa.
     </p>
   </div>
+  <a class="boton boton-invitacion" href="#invitacion">
+    ✉️ Invitar a la familia
+  </a>
 </section>
 
-<section class="tarjeta form-seccion animar" style="--d: 80ms">
+<section class="tarjeta form-seccion animar" id="invitacion" style="--d: 80ms">
   <div class="seccion-cabecera">
     <span class="seccion-icono" aria-hidden="true">🔗</span>
     <div>
@@ -23,7 +26,8 @@
   </div>
 
   <div class="codigo-invitacion">
-    <code>{{ hogar.codigo_invitacion }}</code>
+    <code id="codigo-invitacion">{{ hogar.codigo_invitacion }}</code>
+    <button class="boton boton-inline" type="button" data-copiar="{{ hogar.codigo_invitacion }}">Copiar código</button>
     <a class="boton-secundario" href="{% url 'cuentas:unirse_hogar' %}">Unirme a otro hogar →</a>
     <a class="boton-secundario" href="{% url 'cuentas:escanear_qr' %}">📷 Escanear QR</a>
   </div>
@@ -92,4 +96,29 @@
     </div>
   {% endfor %}
 </section>
+
+<script>
+  (function () {
+    document.querySelectorAll("[data-copiar]").forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        var codigo = boton.getAttribute("data-copiar") || "";
+        if (!navigator.clipboard) {
+          var campo = document.createElement("textarea");
+          campo.value = codigo;
+          document.body.appendChild(campo);
+          campo.select();
+          try { document.execCommand("copy"); } catch (e) {}
+          document.body.removeChild(campo);
+          boton.textContent = "¡Copiado!";
+          return;
+        }
+        navigator.clipboard.writeText(codigo).then(function () {
+          boton.textContent = "¡Copiado!";
+        }).catch(function () {
+          boton.textContent = "Copiar código";
+        });
+      });
+    });
+  })();
+</script>
 {% endblock %}
