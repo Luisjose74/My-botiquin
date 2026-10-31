@@ -276,6 +276,7 @@ class Alerta(models.Model):
     titulo = models.CharField("Título", max_length=120)
     mensaje = models.CharField("Mensaje", max_length=255)
     leida = models.BooleanField("Leída", default=False)
+    notificada = models.BooleanField("Notificación enviada", default=False)
     creada = models.DateTimeField("Creada el", auto_now_add=True)
 
     class Meta:

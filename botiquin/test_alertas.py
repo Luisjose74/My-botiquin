@@ -1,5 +1,6 @@
 from datetime import timedelta
 from io import StringIO
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
@@ -166,3 +167,115 @@ class AlertasYPanelTests(TestCase):
         self.assertTrue(
             Alerta.objects.filter(usuario=self.usuario, tipo="vencido").exists()
         )
+
+
+class AlertasAsignacionMiembroTests(TestCase):
+    """Alertas para medicamentos asignados a miembros del hogar."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = Usuario.objects.create_user(
+            username="alertas_admin", password="ClaveSegura123!",
+            first_name="Admin", last_name="Hogar",
+        )
+        cls.miembro_user = Usuario.objects.create_user(
+            username="alertas_miembro", password="ClaveSegura123!",
+            first_name="Miembro", last_name="Hogar",
+            email="miembro@example.com",
+            canal_alertas="correo",
+        )
+        # Vincular miembro al hogar del admin
+        cls.miembro_user.hogar = cls.admin.hogar
+        cls.miembro_user.save(update_fields=["hogar"])
+        miembro = cls.miembro_user.perfil_miembro
+        miembro.hogar = cls.admin.hogar
+        miembro.nombre = "Miembro Hogar"
+        miembro.relacion = "otro"
+        miembro.es_principal = False
+        miembro.save()
+
+        cls.categoria = Categoria.objects.create(nombre="Cat alertas")
+
+    def setUp(self):
+        self.hoy = timezone.localdate()
+
+    def test_alerta_para_medicamento_asignado_a_miembro(self):
+        """Un medicamento vencido asignado a un miembro genera alerta para ese miembro."""
+        med = Medicamento.objects.create(
+            usuario=self.admin,
+            categoria=self.categoria,
+            nombre="Medicamento asignado",
+            cantidad=5,
+            fecha_vencimiento=self.hoy - timedelta(days=2),
+            miembro=self.miembro_user.perfil_miembro,
+        )
+
+        sincronizar_alertas(self.miembro_user)
+
+        self.assertTrue(
+            Alerta.objects.filter(
+                usuario=self.miembro_user, medicamento=med, tipo="vencido"
+            ).exists()
+        )
+
+    def test_alerta_no_duplica_para_mismo_medicamento(self):
+        """Llamar sincronizar_alertas dos veces no crea alertas duplicadas."""
+        med = Medicamento.objects.create(
+            usuario=self.admin,
+            categoria=self.categoria,
+            nombre="Sin duplicar",
+            cantidad=5,
+            fecha_vencimiento=self.hoy - timedelta(days=2),
+            miembro=self.miembro_user.perfil_miembro,
+        )
+
+        r1 = sincronizar_alertas(self.miembro_user)
+        r2 = sincronizar_alertas(self.miembro_user)
+
+        self.assertEqual(r1["creadas"], 1)
+        self.assertEqual(r2["creadas"], 0)
+        self.assertEqual(
+            Alerta.objects.filter(usuario=self.miembro_user, medicamento=med).count(),
+            1,
+        )
+
+    def test_notificada_evita_reenvio_correo(self):
+        """Una alerta ya notificada no se vuelve a notificar por correo."""
+        from botiquin.alertas import sincronizar_alertas as sinc
+
+        med = Medicamento.objects.create(
+            usuario=self.admin,
+            categoria=self.categoria,
+            nombre="Notificada",
+            cantidad=5,
+            fecha_vencimiento=self.hoy - timedelta(days=2),
+            miembro=self.miembro_user.perfil_miembro,
+        )
+
+        sinc(self.miembro_user)
+        alerta = Alerta.objects.get(usuario=self.miembro_user, medicamento=med)
+        alerta.notificada = True
+        alerta.save(update_fields=["notificada"])
+
+        with patch("botiquin.alertas.enviar_alertas_por_correo") as mock_correo:
+            sinc(self.miembro_user, notificar=True)
+            mock_correo.assert_not_called()
+
+    def test_notificada_se_marca_despues_de_enviar(self):
+        """Después de enviar el correo, la alerta queda marcada como notificada."""
+        from botiquin.alertas import sincronizar_alertas as sinc
+
+        med = Medicamento.objects.create(
+            usuario=self.admin,
+            categoria=self.categoria,
+            nombre="Marca notificada",
+            cantidad=5,
+            fecha_vencimiento=self.hoy - timedelta(days=2),
+            miembro=self.miembro_user.perfil_miembro,
+        )
+
+        with patch("botiquin.alertas.enviar_alertas_por_correo", return_value=True):
+            sinc(self.miembro_user, notificar=True)
+
+        alerta = Alerta.objects.get(usuario=self.miembro_user, medicamento=med)
+        self.assertTrue(alerta.notificada)

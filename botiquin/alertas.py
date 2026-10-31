@@ -12,6 +12,7 @@ import smtplib
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
 
@@ -66,6 +67,18 @@ def _url_panel_alertas():
     return f"{base}{reverse('botiquin:alertas')}" if base else ""
 
 
+def _usuario_notificacion(medicamento):
+    """Devuelve el usuario que debe recibir la notificación de una alerta.
+
+    Si el medicamento tiene un miembro asignado con usuario, se notifica a ese
+    usuario. De lo contrario, se notifica al propietario del medicamento.
+    """
+    miembro = getattr(medicamento, "miembro", None)
+    if miembro and miembro.usuario_id:
+        return miembro.usuario
+    return medicamento.usuario
+
+
 def enviar_alertas_por_correo(usuario, alertas):
     """Envía un único correo con las alertas nuevas del usuario.
 
@@ -109,13 +122,22 @@ def enviar_alertas_por_correo(usuario, alertas):
 def sincronizar_alertas(usuario, notificar=True):
     """Crea las alertas pendientes y elimina las que ya no aplican.
 
+    Procesa medicamentos del hogar del usuario: tanto los registrados por él
+    como los asignados a él como miembro (miembro__usuario=usuario).
+
     Si `notificar` es True y el usuario prefiere el canal "correo", envía un
-    correo con las alertas recién creadas.
+    correo con las alertas recién creadas (controlando duplicados vía
+    Alerta.notificada).
 
     Devuelve un diccionario con la cantidad de alertas creadas y eliminadas.
     """
+    # Medicamentos del usuario: propios o asignados como miembro en su hogar
+    medicamentos_qs = Medicamento.objects.filter(activo=True).filter(
+        models.Q(usuario=usuario) | models.Q(miembro__usuario=usuario)
+    ).distinct()
+
     actuales = {}
-    for medicamento in Medicamento.objects.filter(usuario=usuario, activo=True):
+    for medicamento in medicamentos_qs:
         tipo = tipo_de_alerta(medicamento)
         if tipo:
             actuales[medicamento.pk] = (tipo, medicamento)
@@ -149,6 +171,13 @@ def sincronizar_alertas(usuario, notificar=True):
         )
 
     if notificar and nuevas and usuario.canal_alertas == "correo":
-        enviar_alertas_por_correo(usuario, nuevas)
+        # Filtrar solo las que aún no han sido notificadas (evitar duplicados)
+        por_notificar = [a for a in nuevas if not a.notificada]
+        if por_notificar:
+            if enviar_alertas_por_correo(usuario, por_notificar):
+                # Marcar como notificadas para evitar reenvíos
+                Alerta.objects.filter(pk__in=[a.pk for a in por_notificar]).update(
+                    notificada=True
+                )
 
     return {"creadas": len(nuevas), "eliminadas": eliminadas}
