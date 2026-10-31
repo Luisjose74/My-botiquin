@@ -19,6 +19,44 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Acceso en red local (LAN) y túneles
+
+Por defecto Django solo escucha en `127.0.0.1` (localhost). Para que otros
+dispositivos de la misma red (o un túnel público) puedan probar la app:
+
+```powershell
+python manage.py runserver 0.0.0.0:8000
+```
+
+O usa los scripts incluidos:
+
+```powershell
+# Windows
+.\run_lan.ps1
+# Linux / macOS
+./run_lan.sh
+```
+
+El script detecta la IP local, crea (si es posible) una regla de firewall para
+el puerto 8000 y arranca el servidor. Al finalizar muestra la URL de acceso, por
+ejemplo `http://192.168.1.25:8000`.
+
+Verifica la conectividad con:
+
+```powershell
+python verificar_lan.py
+```
+
+Notas:
+
+- Con `DJANGO_DEBUG=True` y `ALLOWED_HOSTS` vacío en `.env`, la app acepta
+  cualquier host (LAN + túneles) de forma segura para desarrollo.
+- En producción (`DJANGO_DEBUG=False`) define `ALLOWED_HOSTS` con los dominios
+  reales; nunca uses `*`.
+- Si un dispositivo no carga la página, revisa el firewall de Windows
+  (Windows Defender → Firewall → "Permitir una aplicación") o el antivirus.
+- Para túneles HTTPS (ngrok, cloudflared) sigue la sección "Feria / URL pública".
+
 ## Correo electrónico (recuperación de contraseña)
 
 El envío se hace por SMTP (Gmail). Las credenciales se leen de variables de

@@ -44,34 +44,66 @@ if not SECRET_KEY:
         )
     SECRET_KEY = _CLAVE_DESARROLLO
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if host.strip()
-]
+# Hosts permitidos. En desarrollo se acepta cualquier host (LAN + túneles)
+# para facilitar pruebas; en producción se leen de ALLOWED_HOSTS en .env.
+_hosts_env = os.environ.get("ALLOWED_HOSTS", "").strip()
+if _hosts_env:
+    ALLOWED_HOSTS = [h.strip() for h in _hosts_env.split(",") if h.strip()]
+elif DEBUG:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Orígenes CSRF: si no se definen, se derivan de ALLOWED_HOSTS para que un
 # túnel público (ngrok, cloudflared) funcione con solo añadir su dominio.
+# En desarrollo (DEBUG=True) también se confían los orígenes HTTP locales para
+# que los POST desde la LAN (http://192.168.x.x:8000) pasen la validación.
 _LOCALES = {"localhost", "127.0.0.1", "[::1]"}
 
 
-def _origenes_csrf_desde_hosts(hosts):
+def _es_host_local(host):
+    host = host.split(":")[0].lower()
+    if host in _LOCALES:
+        return True
+    # Rangos privados habituales (LAN).
+    if host.startswith("192.168.") or host.startswith("10."):
+        return True
+    if host.startswith("172."):
+        partes = host.split(".")
+        if len(partes) >= 2 and partes[1].isdigit():
+            segundo = int(partes[1])
+            if 16 <= segundo <= 31:
+                return True
+    return False
+
+
+def _origenes_csrf_desde_hosts(hosts, incluir_http_locales=False):
     origenes = []
     for host in hosts:
+        if host == "*":
+            continue
         if host in _LOCALES:
+            if incluir_http_locales:
+                origenes.append("http://" + host)
             continue
         if host.startswith("."):
             origenes.append("https://*" + host)
+            if incluir_http_locales:
+                origenes.append("http://*" + host)
         else:
             origenes.append("https://" + host)
+            if incluir_http_locales and _es_host_local(host):
+                origenes.append("http://" + host)
     return origenes
 
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-] or _origenes_csrf_desde_hosts(ALLOWED_HOSTS)
+_csrf_env = [o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+if _csrf_env:
+    CSRF_TRUSTED_ORIGINS = _csrf_env
+else:
+    CSRF_TRUSTED_ORIGINS = _origenes_csrf_desde_hosts(
+        ALLOWED_HOSTS, incluir_http_locales=DEBUG
+    )
 
 # Detrás de un túnel HTTPS (ngrok), Django debe saber que la petición original
 # era segura. Solo activar si la app está detrás de un proxy de confianza.
