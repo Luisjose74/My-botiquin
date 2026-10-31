@@ -147,7 +147,19 @@ Para enviar recordatorios de toma para las pautas programadas en la hora actual:
 python manage.py enviar_recordatorios_hora
 ```
 
-Programa `enviar_alertas_tomas` a primera hora del día y `enviar_recordatorios_hora` cada hora (por ejemplo con el Programador de tareas de Windows) para notificar por correo (y WhatsApp si está configurado).
+IMPORTANTE: el comando compara la hora y el minuto exactos de la pauta. Para que las alertas lleguen a la hora configurada (ej. 9:10 p.m.) debes programarlo para ejecutarse **cada minuto**:
+
+- Prueba rápida (dejar corriendo en una ventana aparte):
+  ```powershell
+  .\run_recordatorios.ps1
+  ```
+- Producción (Programador de tareas de Windows): crea una tarea que ejecute
+  `python manage.py enviar_recordatorios_hora` cada 1 minuto, todos los días,
+  con "Ejecutar tanto si el usuario inició sesión como si no".
+- Linux/macOS (cron): `* * * * * cd /ruta/app && python manage.py enviar_recordatorios_hora`
+
+Programa `enviar_alertas_tomas` a primera hora del día (una vez) y
+`enviar_recordatorios_hora` cada minuto para notificar por correo (y WhatsApp si está configurado).
 
 Para ejecutarlo automáticamente cada hora en Windows, sigue la guía
 [docs/automatizacion-windows.md](docs/automatizacion-windows.md).

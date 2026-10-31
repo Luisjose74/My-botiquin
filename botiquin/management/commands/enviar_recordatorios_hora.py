@@ -23,7 +23,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         ahora = timezone.localtime()
         hoy = ahora.date()
-        hora_actual = ahora.hour
 
         candidatas = [
             p
@@ -32,14 +31,15 @@ class Command(BaseCommand):
             )
             if p._corresponde(hoy)
             and p.hora is not None
-            and p.hora.hour == hora_actual
+            and p.hora.hour == ahora.hour
+            and p.hora.minute == ahora.minute
         ]
 
         correos, whatsapps = enviar_recordatorio_hora(candidatas, ahora)
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Pautas de la hora {hora_actual}: {len(candidatas)}. "
+                f"Pautas a las {ahora.strftime('%H:%M')}: {len(candidatas)}. "
                 f"Correos: {correos}. WhatsApp: {whatsapps}."
             )
         )
