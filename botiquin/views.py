@@ -12,7 +12,23 @@ from cuentas.models import MiembroHogar
 
 from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm, PautaTomaForm
+from cuentas.models import MiembroHogar
 from .models import Alerta, Categoria, Medicamento, PautaToma, TomaRegistrada
+
+
+def _mismo_hogar(request, medicamento):
+    """True si el medicamento pertenece al hogar del usuario."""
+    if request.user.hogar is None:
+        return medicamento.usuario_id == request.user.id
+    return medicamento.usuario is not None and medicamento.usuario.hogar_id == request.user.hogar_id
+
+
+def _es_admin_hogar(request):
+    if request.user.hogar is None:
+        return False
+    return MiembroHogar.objects.filter(
+        usuario=request.user, hogar=request.user.hogar, es_principal=True
+    ).exists()
 
 ESTADOS_VALIDOS = {"todos", "optimos", "por_vencer", "vencidos", "agotados"}
 
@@ -52,7 +68,10 @@ def inicio(request):
     """Panel principal: resumen del botiquín y alertas que requieren atención."""
     sincronizar_alertas(request.user)
 
-    base = Medicamento.objects.filter(usuario=request.user, activo=True)
+    if request.user.hogar is not None:
+        base = Medicamento.objects.filter(usuario__hogar=request.user.hogar, activo=True)
+    else:
+        base = Medicamento.objects.filter(usuario=request.user, activo=True)
     alertas_pendientes = Alerta.objects.filter(
         usuario=request.user, leida=False
     ).select_related("medicamento__miembro")
@@ -139,7 +158,10 @@ def marcar_todas_leidas(request):
 @login_required
 def lista(request):
     """Listado con estadísticas, búsqueda, filtros por estado y categoría."""
-    base = Medicamento.objects.filter(usuario=request.user, activo=True)
+    if request.user.hogar is not None:
+        base = Medicamento.objects.filter(usuario__hogar=request.user.hogar, activo=True)
+    else:
+        base = Medicamento.objects.filter(usuario=request.user, activo=True)
     stats = _estadisticas(base)
 
     medicamentos = base.select_related("categoria", "miembro")
@@ -210,7 +232,7 @@ def detalle(request, pk):
     medicamento = Medicamento.objects.select_related("categoria", "miembro").filter(pk=pk).first()
     if medicamento is None:
         raise Http404
-    if medicamento.usuario_id != request.user.id:
+    if not _mismo_hogar(request, medicamento):
         raise PermissionDenied(
             "No tienes permiso para ver este medicamento."
         )
@@ -251,7 +273,9 @@ def editar(request, pk):
     medicamento = Medicamento.objects.filter(pk=pk).first()
     if medicamento is None:
         raise Http404
-    if medicamento.usuario_id != request.user.id:
+    if not (_mismo_hogar(request, medicamento) and (
+        medicamento.usuario_id == request.user.id or _es_admin_hogar(request)
+    )):
         raise PermissionDenied(
             "No tienes permiso para editar este medicamento."
         )
@@ -285,7 +309,9 @@ def eliminar(request, pk):
     medicamento = Medicamento.objects.filter(pk=pk).first()
     if medicamento is None:
         raise Http404
-    if medicamento.usuario_id != request.user.id:
+    if not (_mismo_hogar(request, medicamento) and (
+        medicamento.usuario_id == request.user.id or _es_admin_hogar(request)
+    )):
         raise PermissionDenied(
             "No tienes permiso para eliminar este medicamento."
         )
@@ -309,11 +335,18 @@ def pautas_lista(request):
     if request.user.hogar is None:
         pautas = PautaToma.objects.none()
     else:
-        pautas = (
-            PautaToma.objects.filter(medicamento__usuario=request.user)
-            .select_related("medicamento", "miembro")
-            .order_by("-creado")
-        )
+        if request.user.hogar is not None:
+            pautas = (
+                PautaToma.objects.filter(medicamento__usuario__hogar=request.user.hogar)
+                .select_related("medicamento", "miembro")
+                .order_by("-creado")
+            )
+        else:
+            pautas = (
+                PautaToma.objects.filter(medicamento__usuario=request.user)
+                .select_related("medicamento", "miembro")
+                .order_by("-creado")
+            )
     return render(request, "botiquin/pautas_lista.html", {"pautas": pautas})
 
 
@@ -345,7 +378,9 @@ def pauta_crear(request):
 @login_required
 def pauta_editar(request, pk):
     pauta = get_object_or_404(PautaToma, pk=pk)
-    if pauta.medicamento.usuario_id != request.user.id:
+    if not (_mismo_hogar(request, pauta.medicamento) and (
+        pauta.medicamento.usuario_id == request.user.id or _es_admin_hogar(request)
+    )):
         raise PermissionDenied("No tienes permiso para editar esta pauta.")
 
     if request.method == "POST":
@@ -367,7 +402,9 @@ def pauta_editar(request, pk):
 @login_required
 def pauta_eliminar(request, pk):
     pauta = get_object_or_404(PautaToma, pk=pk)
-    if pauta.medicamento.usuario_id != request.user.id:
+    if not (_mismo_hogar(request, pauta.medicamento) and (
+        pauta.medicamento.usuario_id == request.user.id or _es_admin_hogar(request)
+    )):
         raise PermissionDenied("No tienes permiso para eliminar esta pauta.")
 
     if request.method == "POST":
@@ -391,11 +428,13 @@ def tomas_hoy(request):
     if request.user.hogar is None:
         pautas_hoy = []
     else:
+        if request.user.hogar is not None:
+            qs = PautaToma.objects.filter(medicamento__usuario__hogar=request.user.hogar, activa=True)
+        else:
+            qs = PautaToma.objects.filter(medicamento__usuario=request.user, activa=True)
         pautas_hoy = [
             p
-            for p in PautaToma.objects.filter(
-                medicamento__usuario=request.user, activa=True
-            ).select_related("medicamento", "miembro")
+            for p in qs.select_related("medicamento", "miembro")
             if p._corresponde(hoy)
         ]
 
@@ -422,7 +461,7 @@ def tomas_hoy(request):
 def marcar_tomada(request, pk):
     """Marca (o desmarca) la toma de una pauta para hoy."""
     pauta = get_object_or_404(PautaToma, pk=pk)
-    if pauta.medicamento.usuario_id != request.user.id:
+    if not _mismo_hogar(request, pauta.medicamento):
         raise PermissionDenied("No tienes permiso para esta pauta.")
 
     from django.utils import timezone as _tz

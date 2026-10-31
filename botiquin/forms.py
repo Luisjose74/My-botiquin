@@ -187,7 +187,7 @@ class PautaTomaForm(forms.ModelForm):
         self.usuario = usuario
         if usuario and usuario.hogar:
             self.fields["medicamento"].queryset = Medicamento.objects.filter(
-                usuario=usuario, activo=True
+                usuario__hogar=usuario.hogar, activo=True
             )
             self.fields["miembro"].queryset = usuario.hogar.miembros.all()
         else:

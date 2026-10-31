@@ -289,3 +289,85 @@ class TomaRegistradaTests(TestCase):
         respuesta = self.client.get(reverse("botiquin:tomas_hoy"))
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Paracetamol")
+
+
+class VisibilidadCompartidaTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = Usuario.objects.create_user(
+            username="vis_admin", password="ClaveSegura123!",
+            first_name="Admin", last_name="Hogar",
+        )
+        cls.miembro_user = Usuario.objects.create_user(
+            username="vis_miembro", password="ClaveSegura123!",
+            first_name="Miembro", last_name="Hogar",
+        )
+        # Vincular miembro al hogar del admin (no principal)
+        cls.miembro_user.hogar = cls.admin.hogar
+        cls.miembro_user.save(update_fields=["hogar"])
+        miembro = cls.miembro_user.perfil_miembro
+        miembro.hogar = cls.admin.hogar
+        miembro.nombre = "Miembro Hogar"
+        miembro.relacion = "otro"
+        miembro.es_principal = False
+        miembro.save()
+
+        cls.categoria = Categoria.objects.create(nombre="Cat compartida")
+        cls.med_admin = Medicamento.objects.create(
+            usuario=cls.admin, nombre="Medicamento del admin", cantidad=5,
+            fecha_vencimiento="2031-01-01", categoria=cls.categoria,
+        )
+
+    def test_miembro_ve_medicamentos_del_admin(self):
+        self.client.force_login(self.miembro_user)
+        respuesta = self.client.get(reverse("botiquin:lista"))
+        self.assertEqual(respuesta.status_code, 200)
+        nombres = [m.nombre for m in respuesta.context["medicamentos"]]
+        self.assertIn("Medicamento del admin", nombres)
+
+    def test_miembro_ve_detalle_de_medicamento_del_admin(self):
+        self.client.force_login(self.miembro_user)
+        respuesta = self.client.get(reverse("botiquin:detalle", args=[self.med_admin.pk]))
+        self.assertEqual(respuesta.status_code, 200)
+
+    def test_miembro_no_puede_editar_medicamento_del_admin(self):
+        self.client.force_login(self.miembro_user)
+        respuesta = self.client.post(
+            reverse("botiquin:editar", args=[self.med_admin.pk]),
+            {"nombre": "Cambiado", "categoria": self.med_admin.categoria.pk,
+             "presentacion": "tableta", "cantidad": 5,
+             "fecha_vencimiento": "2031-01-01", "condicion_almacenamiento": "seco"},
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.med_admin.refresh_from_db()
+        self.assertEqual(self.med_admin.nombre, "Medicamento del admin")
+
+    def test_miembro_no_puede_eliminar_medicamento_del_admin(self):
+        self.client.force_login(self.miembro_user)
+        respuesta = self.client.post(reverse("botiquin:eliminar", args=[self.med_admin.pk]))
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertTrue(Medicamento.objects.filter(pk=self.med_admin.pk).exists())
+
+    def test_admin_puede_editar_medicamento_propio(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(
+            reverse("botiquin:editar", args=[self.med_admin.pk]),
+            {"nombre": "Medicamento editado", "categoria": self.med_admin.categoria.pk,
+             "presentacion": "tableta", "cantidad": 5,
+             "fecha_vencimiento": "2031-01-01", "condicion_almacenamiento": "seco"},
+        )
+        self.assertRedirects(respuesta, reverse("botiquin:detalle", args=[self.med_admin.pk]))
+        self.med_admin.refresh_from_db()
+        self.assertEqual(self.med_admin.nombre, "Medicamento editado")
+
+    def test_pautas_compartidas_visibles(self):
+        from .models import PautaToma
+        pauta = PautaToma.objects.create(
+            medicamento=self.med_admin,
+            miembro=self.admin.hogar.miembros.get(es_principal=True),
+            frecuencia="diaria",
+        )
+        self.client.force_login(self.miembro_user)
+        respuesta = self.client.get(reverse("botiquin:pautas_lista"))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Medicamento del admin")
