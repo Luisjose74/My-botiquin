@@ -1983,6 +1983,7 @@ a:hover { text-decoration: underline; }
 }
 .lector-qr video { width: 100% !important; border-radius: 14px; }
 .lector-qr img { display: none; }
+.archivo-qr input[type="file"] { margin: 0 auto; }
 
 .boton-invitacion {
   flex-shrink: 0;

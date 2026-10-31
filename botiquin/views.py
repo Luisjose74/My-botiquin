@@ -1,7 +1,9 @@
 """Vistas del inventario de medicamentos, panel de alertas y CRUD."""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -198,11 +200,13 @@ def lista(request):
 @login_required
 def detalle(request, pk):
     """Ficha completa de un medicamento."""
-    medicamento = get_object_or_404(
-        Medicamento.objects.select_related("categoria", "miembro"),
-        pk=pk,
-        usuario=request.user,
-    )
+    medicamento = Medicamento.objects.select_related("categoria", "miembro").filter(pk=pk).first()
+    if medicamento is None:
+        raise Http404
+    if medicamento.usuario_id != request.user.id:
+        raise PermissionDenied(
+            "No tienes permiso para ver este medicamento."
+        )
     return render(
         request, "botiquin/detalle.html", {"medicamento": medicamento}
     )
@@ -237,9 +241,13 @@ def crear(request):
 @login_required
 def editar(request, pk):
     """Edición de un medicamento existente."""
-    medicamento = get_object_or_404(
-        Medicamento, pk=pk, usuario=request.user
-    )
+    medicamento = Medicamento.objects.filter(pk=pk).first()
+    if medicamento is None:
+        raise Http404
+    if medicamento.usuario_id != request.user.id:
+        raise PermissionDenied(
+            "No tienes permiso para editar este medicamento."
+        )
 
     if request.method == "POST":
         form = MedicamentoForm(
@@ -267,9 +275,13 @@ def editar(request, pk):
 @login_required
 def eliminar(request, pk):
     """Confirmación (GET) y eliminación definitiva (POST)."""
-    medicamento = get_object_or_404(
-        Medicamento, pk=pk, usuario=request.user
-    )
+    medicamento = Medicamento.objects.filter(pk=pk).first()
+    if medicamento is None:
+        raise Http404
+    if medicamento.usuario_id != request.user.id:
+        raise PermissionDenied(
+            "No tienes permiso para eliminar este medicamento."
+        )
 
     if request.method == "POST":
         nombre = medicamento.nombre

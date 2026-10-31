@@ -81,11 +81,11 @@ class GestionFamiliarTests(TestCase):
 
         self.assertEqual(
             self.client.get(reverse("cuentas:familia_editar", args=[ajeno.pk])).status_code,
-            404,
+            302,
         )
         self.assertEqual(
             self.client.post(reverse("cuentas:familia_eliminar", args=[ajeno.pk])).status_code,
-            404,
+            302,
         )
         self.assertTrue(MiembroHogar.objects.filter(pk=ajeno.pk).exists())
 

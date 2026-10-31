@@ -166,7 +166,8 @@ class MedicamentoCRUDTests(TestCase):
         detalle = self.client.get(
             reverse("botiquin:detalle", args=[medicamento.pk])
         )
-        self.assertEqual(detalle.status_code, 404)
+        self.assertEqual(detalle.status_code, 302)
+        self.assertTrue(Medicamento.objects.filter(pk=medicamento.pk).exists())
 
         listado = self.client.get(reverse("botiquin:lista"))
         self.assertEqual(len(listado.context["medicamentos"]), 0)

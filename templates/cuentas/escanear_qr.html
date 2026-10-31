@@ -21,6 +21,15 @@
   <p id="estado-qr" class="page-sub" style="margin-top:0.75rem;text-align:center;">
     Esperando la cámara…
   </p>
+
+  <div id="archivo-qr" class="archivo-qr" style="margin-top:1rem;text-align:center;">
+    <p class="page-sub" style="margin-bottom:0.5rem;">
+      Si la cámara no está disponible (por ejemplo, en red local sin HTTPS),
+      puedes subir una imagen con el código QR.
+    </p>
+    <input type="file" id="archivo-qr-input" accept="image/*" capture="environment" class="campo" style="max-width:320px;margin:0 auto;">
+    <p id="estado-archivo" class="page-sub" style="margin-top:0.5rem;"></p>
+  </div>
 </section>
 
 <section class="tarjeta form-seccion animar" style="--d: 180ms">
@@ -48,8 +57,61 @@
   (function () {
     var contenedor = document.getElementById("lector-qr");
     var estado = document.getElementById("estado-qr");
+    var estadoArchivo = document.getElementById("estado-archivo");
+    var inputArchivo = document.getElementById("archivo-qr-input");
+
+    function redirigirConCodigo(texto) {
+      var codigo = "";
+      try {
+        var url = new URL(texto);
+        var partes = url.pathname.split("/").filter(Boolean);
+        codigo = partes[partes.length - 1] || "";
+      } catch (e) {
+        codigo = (texto || "").trim();
+      }
+      if (codigo) {
+        window.location.href = "{% url 'cuentas:unirse_hogar' %}".replace(/\/$/, "") + "/" + encodeURIComponent(codigo) + "/";
+      } else if (estado) {
+        estado.textContent = "No se pudo extraer el código. Intenta de nuevo.";
+      }
+    }
+
+    function procesarArchivo(archivo) {
+      if (!archivo) return;
+      if (typeof Html5Qrcode === "undefined") {
+        if (estadoArchivo) estadoArchivo.textContent = "El escáner no está disponible en este navegador.";
+        return;
+      }
+      if (estadoArchivo) estadoArchivo.textContent = "Leyendo imagen…";
+      var lectorArchivo = new Html5Qrcode("lector-qr", { verbose: false });
+      lectorArchivo.scanFile(archivo, true).then(function (texto) {
+        if (estadoArchivo) estadoArchivo.textContent = "Código detectado. Redirigiendo…";
+        redirigirConCodigo(texto);
+      }).catch(function (error) {
+        if (estadoArchivo) estadoArchivo.textContent = "No se detectó un código QR en la imagen. Intenta con otra foto.";
+      });
+    }
+
+    if (inputArchivo) {
+      inputArchivo.addEventListener("change", function (evento) {
+        var archivo = evento.target.files && evento.target.files[0];
+        procesarArchivo(archivo);
+      });
+    }
+
     if (!contenedor || typeof Html5Qrcode === "undefined") {
-      if (estado) estado.textContent = "El escáner no está disponible en este navegador.";
+      if (estado) estado.textContent = "El escáner no está disponible en este navegador. Usa la carga de imagen o el ingreso manual.";
+      return;
+    }
+
+    // En contextos no seguros (HTTP en LAN) navigator.mediaDevices puede no existir.
+    var contextoSeguro = (window.isSecureContext === true) ||
+        location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+
+    if (!contextoSeguro || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (estado) estado.textContent = "La cámara requiere HTTPS. Usa la carga de imagen o el ingreso manual.";
+      var lectorDiv = document.getElementById("lector-qr");
+      if (lectorDiv) lectorDiv.style.display = "none";
       return;
     }
 
@@ -58,20 +120,7 @@
 
     function alEscanear(texto) {
       lector.stop().then(function () {
-        var codigo = "";
-        try {
-          var url = new URL(texto);
-          var partes = url.pathname.split("/").filter(Boolean);
-          codigo = partes[partes.length - 1] || "";
-        } catch (e) {
-          codigo = texto.trim();
-        }
-        if (codigo) {
-          window.location.href = "{% url 'cuentas:unirse_hogar' %}".replace(/\/$/, "") + "/" + encodeURIComponent(codigo) + "/";
-        } else {
-          if (estado) estado.textContent = "No se pudo leer el código. Intenta de nuevo.";
-          iniciar();
-        }
+        redirigirConCodigo(texto);
       }).catch(function () { iniciar(); });
     }
 
@@ -84,7 +133,7 @@
       ).then(function () {
         if (estado) estado.textContent = "Apunta la cámara al código QR.";
       }).catch(function (error) {
-        if (estado) estado.textContent = "No se pudo acceder a la cámara: " + error;
+        if (estado) estado.textContent = "No se pudo acceder a la cámara: " + error + ". Usa la carga de imagen.";
       });
     }
 

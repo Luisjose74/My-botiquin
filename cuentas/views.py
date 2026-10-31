@@ -341,10 +341,22 @@ def perfil(request):
 
 
 def _miembro_del_hogar(request, pk):
-    """Integrante del hogar del usuario; 404 si es de otro hogar."""
+    """Integrante del hogar del usuario.
+
+    Lanza Http404 si no existe; PermissionDenied si pertenece a otro hogar.
+    """
+    from django.core.exceptions import PermissionDenied
+
     if request.user.hogar is None:
         raise Http404
-    return get_object_or_404(MiembroHogar, pk=pk, hogar=request.user.hogar)
+    miembro = MiembroHogar.objects.filter(pk=pk).first()
+    if miembro is None:
+        raise Http404
+    if miembro.hogar_id != request.user.hogar_id:
+        raise PermissionDenied(
+            "No tienes permiso para acceder a ese integrante de la familia."
+        )
+    return miembro
 
 
 @login_required
