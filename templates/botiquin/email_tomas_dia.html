@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<body style="font-family: Arial, sans-serif; color: #1f2937;">
+  <h2>Tomas del día — {{ fecha|date:"d/m/Y" }}</h2>
+  <p>Hola {{ usuario.first_name|default:usuario.username }},</p>
+  <p>Estas son tus tomas programadas para hoy:</p>
+  <ul>
+    {% for pauta in pautas %}
+      <li>
+        <strong>{{ pauta.medicamento.nombre }}</strong> ({{ pauta.miembro.nombre }}) —
+        dosis {{ pauta.dosis }}{% if pauta.hora %}, hora {{ pauta.hora }}{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  <p>Confirma cada toma en la app.</p>
+  <p style="color:#6b7280;font-size:12px;">Mi Botiquín Digital</p>
+</body>
+</html>

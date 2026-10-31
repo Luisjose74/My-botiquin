@@ -442,3 +442,45 @@ class PautaToma(models.Model):
         if self.frecuencia == "dias_semana":
             return fecha.weekday() in self.dias_semana_lista()
         return False
+
+
+# --------------------------------------------------------------------------
+# Registro de toma: confirmación de que una dosis fue administrada
+# --------------------------------------------------------------------------
+class TomaRegistrada(models.Model):
+    """Confirmación de que la dosis de una pauta se tomó en una fecha."""
+
+    pauta = models.ForeignKey(
+        "PautaToma",
+        verbose_name="Pauta",
+        on_delete=models.CASCADE,
+        related_name="tomas",
+    )
+    fecha = models.DateField("Fecha de la toma")
+    tomada = models.BooleanField("Tomada", default=False)
+    fecha_registro = models.DateTimeField("Registrado el", auto_now_add=True)
+    registrado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Registrado por",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tomas_registradas",
+    )
+
+    class Meta:
+        verbose_name = "Toma registrada"
+        verbose_name_plural = "Tomas registradas"
+        ordering = ["-fecha", "-fecha_registro"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pauta", "fecha"], name="toma_unica_por_pauta_fecha"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["fecha", "tomada"]),
+        ]
+
+    def __str__(self):
+        estado = "tomada" if self.tomada else "pendiente"
+        return f"{self.pauta} — {self.fecha} ({estado})"

@@ -1,0 +1,50 @@
+{% extends "base_app.html" %}
+
+{% block title %}Tomas de hoy · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'inicio' %}">← Volver al panel</a>
+
+<section class="page-head animar" style="--d: 60ms">
+  <div>
+    <p class="saludo">Hoy, {{ hoy|date:"d" }} de {{ hoy|date:"F" }}</p>
+    <h1>Tomas del día</h1>
+    <p class="page-sub">
+      Confirma cada dosis cuando la hayas tomado.
+    </p>
+  </div>
+</section>
+
+{% if items %}
+  <section class="familia-grid">
+    {% for item in items %}
+      <article class="tarjeta miembro-card animar">
+        <div class="miembro-cabecera">
+          <span class="med-icono" aria-hidden="true">💊</span>
+          <div>
+            <h3>{{ item.pauta.medicamento.nombre }}</h3>
+            <span class="chip">{{ item.pauta.miembro.nombre }}</span>
+          </div>
+        </div>
+        <p class="miembro-stat">
+          {{ item.pauta.get_frecuencia_display }}
+          {% if item.pauta.hora %} · {{ item.pauta.hora }}{% endif %}
+          · Dosis: {{ item.pauta.dosis }}
+        </p>
+        <form method="post" action="{% url 'botiquin:marcar_tomada' item.pauta.pk %}">
+          {% csrf_token %}
+          <button class="boton {% if item.tomada %}boton-secundario{% else %}boton-inline{% endif %}" type="submit">
+            {% if item.tomada %}✓ Tomada (desmarcar){% else %}Marcar como tomada{% endif %}
+          </button>
+        </form>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <div class="vacio-app">
+    <span class="vacio-icono" aria-hidden="true">✅</span>
+    <h2>Sin tomas programadas hoy</h2>
+    <p>No hay pautas activas que correspondan a la fecha de hoy.</p>
+  </div>
+{% endif %}
+{% endblock %}

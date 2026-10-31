@@ -135,5 +135,13 @@ Para recalcular alertas y enviar correos sin abrir la app:
 python manage.py sincronizar_alertas
 ```
 
+Para enviar las alertas matutinas de tomas del día (según las pautas activas):
+
+```powershell
+python manage.py enviar_alertas_tomas
+```
+
+Programa esta tarea a primera hora del día (por ejemplo con el Programador de tareas de Windows) para notificar por correo (y WhatsApp si está configurado) las tomas correspondientes.
+
 Para ejecutarlo automáticamente cada hora en Windows, sigue la guía
 [docs/automatizacion-windows.md](docs/automatizacion-windows.md).

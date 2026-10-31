@@ -12,7 +12,7 @@ from cuentas.models import MiembroHogar
 
 from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm, PautaTomaForm
-from .models import Alerta, Categoria, Medicamento, PautaToma
+from .models import Alerta, Categoria, Medicamento, PautaToma, TomaRegistrada
 
 ESTADOS_VALIDOS = {"todos", "optimos", "por_vencer", "vencidos", "agotados"}
 
@@ -379,3 +379,62 @@ def pauta_eliminar(request, pk):
     return render(
         request, "botiquin/pauta_eliminar.html", {"pauta": pauta}
     )
+
+
+@login_required
+def tomas_hoy(request):
+    """Listado de tomas del día para el hogar del usuario, con confirmación."""
+    from django.utils import timezone as _tz
+
+    hoy = _tz.localdate()
+
+    if request.user.hogar is None:
+        pautas_hoy = []
+    else:
+        pautas_hoy = [
+            p
+            for p in PautaToma.objects.filter(
+                medicamento__usuario=request.user, activa=True
+            ).select_related("medicamento", "miembro")
+            if p._corresponde(hoy)
+        ]
+
+    # Mapa pauta_id -> TomaRegistrada (si existe)
+    tomas = {
+        t.pauta_id: t
+        for t in TomaRegistrada.objects.filter(
+            pauta__in=[p.pk for p in pautas_hoy], fecha=hoy
+        )
+    }
+
+    items = []
+    for pauta in pautas_hoy:
+        toma = tomas.get(pauta.pk)
+        items.append({"pauta": pauta, "toma": toma, "tomada": bool(toma and toma.tomada)})
+
+    return render(
+        request, "botiquin/tomas_hoy.html", {"items": items, "hoy": hoy}
+    )
+
+
+@login_required
+@require_POST
+def marcar_tomada(request, pk):
+    """Marca (o desmarca) la toma de una pauta para hoy."""
+    pauta = get_object_or_404(PautaToma, pk=pk)
+    if pauta.medicamento.usuario_id != request.user.id:
+        raise PermissionDenied("No tienes permiso para esta pauta.")
+
+    from django.utils import timezone as _tz
+
+    hoy = _tz.localdate()
+    toma, _ = TomaRegistrada.objects.get_or_create(
+        pauta=pauta, fecha=hoy, defaults={"registrado_por": request.user}
+    )
+    toma.tomada = not toma.tomada
+    toma.registrado_por = request.user
+    toma.save(update_fields=["tomada", "registrado_por"])
+
+    estado = "tomada" if toma.tomada else "pendiente"
+    messages.success(request, f"{pauta.medicamento.nombre}: marcada como {estado}.")
+    return redirect("botiquin:tomas_hoy")

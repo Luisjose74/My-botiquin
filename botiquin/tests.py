@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from cuentas.models import Usuario
 
-from .models import Categoria, Medicamento, PautaToma
+from .models import Categoria, Medicamento, PautaToma, TomaRegistrada
 
 MEDIA_TEMPORAL = tempfile.mkdtemp(prefix="botiquin_test_")
 
@@ -248,3 +248,44 @@ class PautaTomaTests(TestCase):
         )
         respuesta = self.client.get(reverse("botiquin:pauta_editar", args=[pauta.pk]))
         self.assertEqual(respuesta.status_code, 302)
+
+
+class TomaRegistradaTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.usuario = Usuario.objects.create_user(
+            username="toma_user", password="ClaveSegura123!",
+            first_name="Ana", last_name="Lopez",
+        )
+        cls.miembro = cls.usuario.hogar.miembros.get(es_principal=True)
+        cls.medicamento = Medicamento.objects.create(
+            usuario=cls.usuario, nombre="Paracetamol", cantidad=10,
+            fecha_vencimiento="2031-01-01",
+        )
+        cls.pauta = PautaToma.objects.create(
+            medicamento=cls.medicamento, miembro=cls.miembro,
+            frecuencia="diaria", fecha_inicio=__import__("datetime").date(2020, 1, 1),
+        )
+
+    def setUp(self):
+        self.client.force_login(self.usuario)
+
+    def test_marcar_tomada_crea_registro(self):
+        respuesta = self.client.post(
+            reverse("botiquin:marcar_tomada", args=[self.pauta.pk])
+        )
+        self.assertRedirects(respuesta, reverse("botiquin:tomas_hoy"))
+        self.assertTrue(
+            TomaRegistrada.objects.filter(pauta=self.pauta, tomada=True).exists()
+        )
+
+    def test_marcar_tomada_desmarca(self):
+        TomaRegistrada.objects.create(pauta=self.pauta, fecha=__import__("datetime").date.today(), tomada=True)
+        self.client.post(reverse("botiquin:marcar_tomada", args=[self.pauta.pk]))
+        toma = TomaRegistrada.objects.get(pauta=self.pauta, fecha=__import__("datetime").date.today())
+        self.assertFalse(toma.tomada)
+
+    def test_tomas_hoy_muestra_pauta(self):
+        respuesta = self.client.get(reverse("botiquin:tomas_hoy"))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Paracetamol")
