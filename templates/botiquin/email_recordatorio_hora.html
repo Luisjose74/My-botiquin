@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es">
+<body style="font-family: Arial, sans-serif; color: #1f2937;">
+  <h2>Recordatorio de toma — {{ hora|date:"H:i" }}</h2>
+  <p>Hola {{ usuario.first_name|default:usuario.username }},</p>
+  <p>Recuerda tomar:</p>
+  <ul>
+    {% for pauta in pautas %}
+      <li><strong>{{ pauta.medicamento.nombre }}</strong> ({{ pauta.miembro.nombre }}) — dosis {{ pauta.dosis }}</li>
+    {% endfor %}
+  </ul>
+  <p>Confirma cada toma en la app.</p>
+  <p style="color:#6b7280;font-size:12px;">Mi Botiquín Digital</p>
+</body>
+</html>

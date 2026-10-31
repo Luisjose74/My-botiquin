@@ -1,0 +1,12 @@
+Hola {{ usuario.first_name|default:usuario.username }},
+
+Se te asignó un nuevo medicamento en tu botiquín familiar:
+
+Medicamento: {{ medicamento.nombre }}
+Integrante: {{ miembro.nombre }}
+{% if medicamento.cantidad %}Cantidad disponible: {{ medicamento.cantidad }}{% endif %}
+{% if medicamento.fecha_vencimiento %}Vence: {{ medicamento.fecha_vencimiento }}{% endif %}
+
+Revisa los detalles en la app: {{ site_url|default:"" }}
+
+Mi Botiquín Digital

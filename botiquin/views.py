@@ -14,6 +14,7 @@ from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm, PautaTomaForm
 from cuentas.models import MiembroHogar
 from .models import Alerta, Categoria, Medicamento, PautaToma, TomaRegistrada
+from .notificaciones import notificar_asignacion, notificar_medicamento_asignado
 
 
 def _mismo_hogar(request, medicamento):
@@ -252,6 +253,11 @@ def crear(request):
             medicamento = form.save(commit=False)
             medicamento.usuario = request.user
             medicamento.save()
+            if medicamento.miembro is not None:
+                try:
+                    notificar_medicamento_asignado(medicamento, medicamento.miembro)
+                except Exception:  # noqa: BLE001
+                    pass
             messages.success(
                 request,
                 f"«{medicamento.nombre}» se registró en tu botiquín.",
@@ -281,6 +287,7 @@ def editar(request, pk):
         )
 
     if request.method == "POST":
+        miembro_anterior = medicamento.miembro
         form = MedicamentoForm(
             request.POST,
             request.FILES,
@@ -289,6 +296,15 @@ def editar(request, pk):
         )
         if form.is_valid():
             form.save()
+            medicamento.refresh_from_db()
+            if (
+                medicamento.miembro is not None
+                and medicamento.miembro_id != (miembro_anterior.pk if miembro_anterior else None)
+            ):
+                try:
+                    notificar_medicamento_asignado(medicamento, medicamento.miembro)
+                except Exception:  # noqa: BLE001
+                    pass
             messages.success(
                 request, "Los datos del medicamento se actualizaron."
             )
@@ -359,6 +375,10 @@ def pauta_crear(request):
             pauta = form.save(commit=False)
             pauta.creado_por = request.user
             pauta.save()
+            try:
+                notificar_asignacion(pauta)
+            except Exception:  # noqa: BLE001
+                pass
             messages.success(
                 request,
                 f"Pauta creada: {pauta.medicamento.nombre} para {pauta.miembro.nombre}.",
