@@ -321,13 +321,14 @@ a:hover { text-decoration: underline; }
   display: inline-grid;
   place-items: center;
   width: 56px; height: 56px;
-  border-radius: 16px;
+  border-radius: 50%;
+  overflow: hidden;
   background: var(--soft);
   color: var(--blue);
   font-weight: 800;
   font-size: 1.1rem;
 }
-.avatar.mini { width: 34px; height: 34px; border-radius: 10px; font-size: 0.8rem; }
+.avatar.mini { width: 36px; height: 36px; border-radius: 50%; font-size: 0.8rem; }
 .avatar img {
   width: 100%;
   height: 100%;
@@ -339,9 +340,10 @@ a:hover { text-decoration: underline; }
 .app-perfil {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
-  border-radius: 12px;
+  gap: 0.5rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.2rem;
+  border-radius: 999px;
+  min-height: 40px;
   color: var(--ink);
   text-decoration: none;
   transition: background-color 180ms var(--ease-out);
