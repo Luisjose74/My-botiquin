@@ -1,10 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
-<body style="font-family: Arial, sans-serif; color: #1f2937;">
-  <h2>Nuevo medicamento asignado</h2>
-  <p>Hola {{ usuario.first_name|default:usuario.username }},</p>
-  <p>Se te asignó el medicamento <strong>{{ medicamento.nombre }}</strong> ({{ miembro.nombre }}).</p>
-  <p>Revisa los detalles en la app.</p>
-  <p style="color:#6b7280;font-size:12px;">Mi Botiquín Digital</p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nuevo medicamento asignado — Mi Botiquín Digital</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#1565e8,#0f4fbb);padding:24px 28px;color:#ffffff;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:22px;font-weight:800;">✚ Mi Botiquín <span style="font-weight:400;">Digital</span></td>
+                </tr>
+                <tr>
+                  <td style="padding-top:6px;font-size:14px;opacity:0.9;">Nuevo medicamento asignado</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px 28px;">
+              <p style="margin:0 0 12px;font-size:16px;">Hola {{ usuario.first_name|default:usuario.username }},</p>
+              <p style="margin:0 0 16px;font-size:15px;color:#475569;">Se te asignó un nuevo medicamento en tu botiquín familiar:</p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:14px;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:16px;font-weight:700;color:#0f172a;">💊 {{ medicamento.nombre }}</div>
+                    <div style="font-size:13px;color:#64748b;margin-top:2px;">{{ miembro.nombre }}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Revisa los detalles en la app.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">
+              Mi Botiquín Digital · Gestión familiar de medicamentos
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
