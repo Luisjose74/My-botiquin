@@ -109,6 +109,24 @@
   </article>
 </section>
 
+{% if administrador %}
+<section class="tarjeta familia-resumen animar" style="--d: 280ms">
+  <div class="seccion-cabecera" style="margin:0;">
+    <span class="avatar mini" aria-hidden="true">
+      {% if administrador.usuario and administrador.usuario.foto %}
+        <img src="{{ administrador.usuario.foto.url }}" alt="">
+      {% else %}
+        {{ administrador.iniciales }}
+      {% endif %}
+    </span>
+    <div>
+      <strong>{{ request.user.hogar.nombre }}</strong>
+      <p class="page-sub" style="margin:0;">Administrador: {{ administrador.nombre }}</p>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% if integrantes %}
 <section class="tarjeta familia-resumen animar" style="--d: 300ms">
   <header class="dash-cabecera">

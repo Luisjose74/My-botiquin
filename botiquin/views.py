@@ -69,6 +69,12 @@ def inicio(request):
         for miembro in request.user.hogar.miembros.all()
     ] if request.user.hogar is not None else []
 
+    administrador = (
+        request.user.hogar.miembros.filter(es_principal=True).first()
+        if request.user.hogar is not None
+        else None
+    )
+
     return render(
         request,
         "botiquin/inicio.html",
@@ -80,6 +86,7 @@ def inicio(request):
             .select_related("categoria", "miembro")
             .order_by("fecha_vencimiento", "nombre")[:6],
             "integrantes": integrantes,
+            "administrador": administrador,
         },
     )
 

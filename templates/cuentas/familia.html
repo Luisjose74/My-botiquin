@@ -16,6 +16,40 @@
   </a>
 </section>
 
+{% if hogar %}
+<section class="tarjeta form-seccion animar" style="--d: 60ms">
+  <div class="seccion-cabecera">
+    <span class="avatar" aria-hidden="true">
+      {% if administrador and administrador.usuario and administrador.usuario.foto %}
+        <img src="{{ administrador.usuario.foto.url }}" alt="Foto del administrador">
+      {% elif administrador %}
+        {{ administrador.iniciales }}
+      {% else %}
+        🏠
+      {% endif %}
+    </span>
+    <div>
+      <h2>{{ hogar.nombre }}</h2>
+      <p>
+        Administrador:
+        <strong>{{ administrador.nombre|default:"Sin asignar" }}</strong>
+        {% if es_principal %}<span class="chip">Tú</span>{% endif %}
+      </p>
+    </div>
+  </div>
+
+  {% if not es_principal %}
+  <form method="post" action="{% url 'cuentas:salir_hogar' %}" style="margin-top:0.75rem;">
+    {% csrf_token %}
+    <button class="boton-secundario" type="submit"
+            onclick="return confirm('¿Seguro que deseas salir de este hogar? Podrás volver a unirte con un código.');">
+      🚪 Salir del grupo
+    </button>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
+
 <section class="tarjeta form-seccion animar" id="invitacion" style="--d: 80ms">
   <div class="seccion-cabecera">
     <span class="seccion-icono" aria-hidden="true">🔗</span>

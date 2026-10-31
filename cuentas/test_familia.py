@@ -214,3 +214,55 @@ class GestionFamiliarPermisosTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Solo lectura")
         self.assertNotContains(respuesta, "Agregar integrante")
+
+
+class SalirHogarTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.titular = Usuario.objects.create_user(
+            username="salir_titular", password="ClaveSegura123!",
+            first_name="Ana", last_name="Lopez",
+        )
+        cls.invitado = Usuario.objects.create_user(
+            username="salir_invitado", password="ClaveSegura123!",
+            first_name="Invitado", last_name="Test",
+        )
+        cls.invitado.hogar = cls.titular.hogar
+        cls.invitado.save(update_fields=["hogar"])
+        miembro = cls.invitado.perfil_miembro
+        miembro.hogar = cls.titular.hogar
+        miembro.nombre = "Invitado Test"
+        miembro.relacion = "otro"
+        miembro.es_principal = False
+        miembro.save()
+
+    def test_miembro_puede_salir_del_hogar(self):
+        self.client.force_login(self.invitado)
+        hogar_anterior = self.invitado.hogar_id
+
+        respuesta = self.client.post(reverse("cuentas:salir_hogar"))
+
+        self.assertRedirects(respuesta, reverse("cuentas:familia"))
+        self.invitado.refresh_from_db()
+        self.assertNotEqual(self.invitado.hogar_id, hogar_anterior)
+        self.assertIsNotNone(self.invitado.hogar_id)
+        self.assertTrue(
+            MiembroHogar.objects.filter(
+                hogar=self.invitado.hogar, usuario=self.invitado, es_principal=True
+            ).exists()
+        )
+        self.assertFalse(
+            MiembroHogar.objects.filter(
+                hogar_id=hogar_anterior, usuario=self.invitado
+            ).exists()
+        )
+
+    def test_administrador_no_puede_salir_del_hogar(self):
+        self.client.force_login(self.titular)
+        hogar_id = self.titular.hogar_id
+
+        respuesta = self.client.post(reverse("cuentas:salir_hogar"))
+
+        self.assertRedirects(respuesta, reverse("cuentas:familia"))
+        self.titular.refresh_from_db()
+        self.assertEqual(self.titular.hogar_id, hogar_id)

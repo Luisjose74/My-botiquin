@@ -293,6 +293,49 @@ def regenerar_codigo(request):
 
 
 @login_required
+@require_POST
+def salir_hogar(request):
+    """Permite a un miembro no principal abandonar voluntariamente el hogar."""
+    hogar_actual = request.user.hogar
+    if hogar_actual is None:
+        messages.info(request, "No perteneces a ningún hogar.")
+        return redirect("cuentas:familia")
+
+    if _es_admin_principal(request):
+        messages.error(
+            request,
+            "Eres el administrador de este hogar y no puedes abandonarlo. "
+            "Puedes eliminar integrantes o regenerar el código, pero la cuenta "
+            "principal debe permanecer.",
+        )
+        return redirect("cuentas:familia")
+
+    # Eliminar el MiembroHogar vinculado al usuario en este hogar.
+    MiembroHogar.objects.filter(
+        hogar=hogar_actual, usuario=request.user
+    ).delete()
+
+    # Crear un hogar personal nuevo para el usuario (como al registrarse).
+    nombre_completo = request.user.get_full_name() or request.user.username
+    nuevo_hogar = Hogar.objects.create(nombre=f"Hogar de {nombre_completo}")
+    request.user.hogar = nuevo_hogar
+    request.user.save(update_fields=["hogar"])
+    MiembroHogar.objects.create(
+        hogar=nuevo_hogar,
+        usuario=request.user,
+        nombre=nombre_completo,
+        relacion="principal",
+        es_principal=True,
+    )
+
+    messages.success(
+        request,
+        "Saliste del hogar compartido. Tu botiquín personal se mantuvo intacto.",
+    )
+    return redirect("cuentas:familia")
+
+
+@login_required
 def qr_invitacion(request):
     """Genera un código QR con el enlace para unirse al hogar del usuario."""
     if qrcode is None:
@@ -392,6 +435,12 @@ def familia(request):
         else MiembroHogar.objects.none()
     )
 
+    administrador = (
+        hogar.miembros.filter(es_principal=True).first()
+        if hogar is not None
+        else None
+    )
+
     return render(
         request,
         "cuentas/familia.html",
@@ -400,6 +449,7 @@ def familia(request):
             "miembros": miembros,
             "hogar": hogar,
             "es_principal": es_principal,
+            "administrador": administrador,
         },
     )
 
