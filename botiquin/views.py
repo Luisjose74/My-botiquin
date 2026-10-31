@@ -6,7 +6,7 @@ from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from cuentas.models import MiembroHogar
 
@@ -507,17 +507,29 @@ from datetime import date as _date
 from django.core import signing as _signing
 
 
+@require_GET
 def confirmar_toma(request, token):
-    """Confirma la toma de una pauta a partir de un token seguro (email/WhatsApp)."""
+    """Confirma la toma de una pauta a partir de un token seguro (email/WhatsApp).
+
+    Accesible sin iniciar sesión: el token contiene la pauta y la fecha,
+    y es firmado criptográficamente para evitar suplantación.
+    """
     try:
         pauta_id, fecha_str = verificar_token_confirmacion(token)
         fecha = _date.fromisoformat(fecha_str)
     except Exception:  # noqa: BLE001
-        messages.error(request, "El enlace de confirmación no es válido o ha expirado.")
-        return redirect("cuentas:login")
+        return render(
+            request,
+            "botiquin/token_invalido.html",
+            status=400,
+        )
 
     pauta = get_object_or_404(PautaToma, pk=pauta_id)
-    toma, _ = TomaRegistrada.objects.get_or_create(pauta=pauta, fecha=fecha)
+    toma, _ = TomaRegistrada.objects.get_or_create(
+        pauta=pauta,
+        fecha=fecha,
+        defaults={"tomada": False, "notificada": False, "registrado_por": None},
+    )
     toma.tomada = True
     toma.save(update_fields=["tomada"])
 

@@ -1,0 +1,18 @@
+{% extends "base_app.html" %}
+
+{% block title %}{% endblock %}
+
+{% block app_content %}
+<section class="tarjeta tarjeta-peligro animar" style="--d: 80ms; border-color: #f87171; background: #fef2f2;">
+  <span class="peligro-icono" aria-hidden="true">⚠️</span>
+  <h1>Enlace no válido</h1>
+  <p class="peligro-texto">
+    El enlace de confirmación de toma no es válido o ha expirado.
+    Los enlaces expiran a las 24 horas.
+  </p>
+  <div class="peligro-acciones">
+    <a class="boton boton-inline" href="{% url 'botiquin:tomas_hoy' %}">Ver tomas de hoy</a>
+    <a class="boton-secundario" href="{% url 'inicio' %}">Ir al panel</a>
+  </div>
+</section>
+{% endblock %}

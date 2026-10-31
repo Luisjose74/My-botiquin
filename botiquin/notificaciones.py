@@ -139,18 +139,35 @@ def notificar_asignacion(pauta):
 
 
 def enviar_recordatorio_hora(pautas, ahora):
-    """Envía recordatorios para pautas cuya hora coincide con la hora actual."""
+    """Envía recordatorios para pautas cuya hora coincide con la hora actual.
+
+    Cada pauta se notifica máximo una vez por fecha (control via
+    TomaRegistrada.notificada), evitando duplicados cuando el scheduler
+    se dispara varias veces dentro del mismo minuto.
+    """
     from collections import defaultdict
     from django.urls import reverse
+    from .models import TomaRegistrada
+
+    hoy = ahora.date()
 
     grupos = defaultdict(list)
     for pauta in pautas:
         usuario = getattr(pauta.miembro, "usuario", None)
         if usuario is None:
             continue
-        token = generar_token_confirmacion(pauta.pk, ahora.date())
+
+        # Control de duplicidad: si ya se notificó esta pauta para hoy, saltar.
+        toma, _ = TomaRegistrada.objects.get_or_create(
+            pauta=pauta, fecha=hoy,
+            defaults={"notificada": False, "tomada": False},
+        )
+        if toma.notificada:
+            continue
+
+        token = generar_token_confirmacion(pauta.pk, hoy)
         confirm_url = f"{url_base_sitio()}{reverse('botiquin:confirmar_toma', args=[token])}"
-        grupos[usuario].append({"pauta": pauta, "confirm_url": confirm_url})
+        grupos[usuario].append({"pauta": pauta, "confirm_url": confirm_url, "toma_id": toma.pk})
 
     correos = 0
     whatsapps = 0
@@ -163,6 +180,7 @@ def enviar_recordatorio_hora(pautas, ahora):
             "hora": ahora,
             "site_url": url_base_sitio(),
         }
+        enviado_correo = False
         if getattr(usuario, "canal_alertas", "") in ("correo", "notificacion"):
             if _enviar_correo(
                 usuario,
@@ -172,6 +190,7 @@ def enviar_recordatorio_hora(pautas, ahora):
                 contexto,
             ):
                 correos += 1
+                enviado_correo = True
         if getattr(usuario, "canal_alertas", "") == "whatsapp":
             texto = "Recordatorio de toma ({}):\n".format(ahora.strftime("%H:%M"))
             for it in items:
@@ -181,7 +200,8 @@ def enviar_recordatorio_hora(pautas, ahora):
                 texto += f"✅ Confirmar: {it['confirm_url']}\n"
             if _enviar_whatsapp(usuario, texto):
                 whatsapps += 1
-            else:
+                enviado_correo = True
+            elif enviado_correo is False:
                 if _enviar_correo(
                     usuario,
                     f"Recordatorio de toma — {ahora.strftime('%H:%M')}",
@@ -190,4 +210,11 @@ def enviar_recordatorio_hora(pautas, ahora):
                     contexto,
                 ):
                     correos += 1
+                    enviado_correo = True
+
+        # Marcar como notificada para evitar reenvíos en el siguiente ciclo del mismo minuto.
+        if enviado_correo or whatsapps > 0:
+            for it in items:
+                TomaRegistrada.objects.filter(pk=it["toma_id"]).update(notificada=True)
+
     return correos, whatsapps

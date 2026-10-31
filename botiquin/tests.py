@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -290,6 +291,46 @@ class TomaRegistradaTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Paracetamol")
 
+    def test_notificada_evita_reenvio(self):
+        """Una pauta ya notificada no se vuelve a notificar en el mismo día."""
+        from botiquin.notificaciones import enviar_recordatorio_hora
+        from django.utils import timezone as _tz
+        from unittest.mock import patch
+
+        hoy = _tz.localdate()
+        # Crear TomaRegistrada ya notificada
+        TomaRegistrada.objects.create(
+            pauta=self.pauta, fecha=hoy, tomada=False, notificada=True,
+        )
+
+        with patch("botiquin.notificaciones._enviar_correo") as mock_correo, \
+             patch("botiquin.notificaciones._enviar_whatsapp") as mock_whatsapp:
+            correos, whatsapps = enviar_recordatorio_hora([self.pauta], _tz.localtime())
+
+        self.assertEqual(correos, 0)
+        self.assertEqual(whatsapps, 0)
+        mock_correo.assert_not_called()
+        mock_whatsapp.assert_not_called()
+
+    def test_notificada_se_marca_despues_de_enviar(self):
+        """Después de enviar, la toma queda marcada como notificada."""
+        from botiquin.notificaciones import enviar_recordatorio_hora
+        from django.utils import timezone as _tz
+        from unittest.mock import patch
+
+        hoy = _tz.localdate()
+        TomaRegistrada.objects.create(
+            pauta=self.pauta, fecha=hoy, tomada=False, notificada=False,
+        )
+
+        with patch("botiquin.notificaciones._enviar_correo", return_value=True), \
+             patch("botiquin.notificaciones._enviar_whatsapp"):
+            correos, _ = enviar_recordatorio_hora([self.pauta], _tz.localtime())
+
+        self.assertEqual(correos, 1)
+        self.pauta.tomas.get(fecha=hoy).refresh_from_db()
+        self.assertTrue(self.pauta.tomas.get(fecha=hoy).notificada)
+
 
 class VisibilidadCompartidaTests(TestCase):
     @classmethod
@@ -402,6 +443,7 @@ class ConfirmacionTomaTokenTests(TestCase):
             TomaRegistrada.objects.filter(pauta=self.pauta, fecha=hoy, tomada=True).exists()
         )
 
-    def test_token_invalido_redirige(self):
+    def test_token_invalido_retorna_error(self):
         respuesta = self.client.get(reverse("botiquin:confirmar_toma", args=["token-invalido"]))
-        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertIn("Enlace", respuesta.content.decode("utf-8", errors="replace"))

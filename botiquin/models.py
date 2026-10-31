@@ -458,6 +458,7 @@ class TomaRegistrada(models.Model):
     )
     fecha = models.DateField("Fecha de la toma")
     tomada = models.BooleanField("Tomada", default=False)
+    notificada = models.BooleanField("Notificación enviada", default=False)
     fecha_registro = models.DateTimeField("Registrado el", auto_now_add=True)
     registrado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -483,4 +484,5 @@ class TomaRegistrada(models.Model):
 
     def __str__(self):
         estado = "tomada" if self.tomada else "pendiente"
-        return f"{self.pauta} — {self.fecha} ({estado})"
+        notificada = " (notificada)" if self.notificada else ""
+        return f"{self.pauta} — {self.fecha} ({estado}{notificada})"
