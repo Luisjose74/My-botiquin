@@ -1993,3 +1993,222 @@ a:hover { text-decoration: underline; }
 .boton-invitacion:hover {
   box-shadow: 0 20px 34px -16px rgba(21, 101, 232, 0.95);
 }
+
+/* ============================================================
+   Widget de accesibilidad (opcional, no altera estilos por defecto)
+   ============================================================ */
+
+/* Botón flotante del widget — discreto, no interfiere con el diseño */
+.accesibilidad-widget {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.2rem;
+  z-index: 2000;
+  font-family: inherit;
+}
+
+.btn-accesibilidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  background: var(--blue);
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -8px rgba(21, 101, 232, 0.5);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-accesibilidad:hover {
+  background: var(--blue-dark);
+  transform: translateY(-2px);
+}
+
+.btn-accesibilidad:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+  border-radius: 34px;
+}
+
+.icono-accesibilidad {
+  font-size: 1.1rem;
+}
+
+.texto-accesibilidad {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .texto-accesibilidad {
+    display: inline;
+  }
+}
+
+/* Panel del widget (oculto por defecto) */
+.panel-accesibilidad {
+  position: absolute;
+  bottom: 5.5rem;
+  right: 0;
+  width: 260px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 2001;
+  animation: panel-entrar 0.2s ease-out;
+}
+
+@keyframes panel-entrar {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.panel-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.btn-cerrar-panel {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  color: var(--sub);
+}
+
+.btn-cerrar-panel:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  background: var(--soft);
+}
+
+.panel-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.opcion-accesibilidad {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.opcion-accesibilidad input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.opcion-texto {
+  font-size: 0.9rem;
+}
+
+.opcion-accesibilidad:focus-within {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+  border-radius: 6px;
+  background: var(--soft);
+}
+
+.panel-pie {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-restablecer {
+  background: transparent;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--sub);
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+}
+
+.btn-restablecer:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Estados de accesibilidad aplicados solo cuando el usuario activa el widget */
+
+/* Alto contraste */
+body.alto-contraste-activo .boton,
+body.alto-contraste-activo .boton-secundario,
+body.alto-contraste-activo .boton-inline,
+body.alto-contraste-activo .boton-peligro {
+  border: 2px solid #000000 !important;
+}
+
+body.alto-contraste-activo .tarjeta,
+body.alto-contraste-activo .dash-card,
+body.alto-contraste-activo .med-card,
+body.alto-contraste-activo .stat-card {
+  border: 2px solid #000000 !important;
+}
+
+body.alto-contraste-activo .campo,
+body.alto-contraste-activo input,
+body.alto-contraste-activo select,
+body.alto-contraste-activo textarea {
+  border: 2px solid #000000 !important;
+}
+
+/* Texto grande */
+body.texto-grande-activo {
+  font-size: 1.15rem !important;
+}
+
+body.texto-grande-activo h1 { font-size: 1.75rem !important; }
+body.texto-grande-activo h2 { font-size: 1.5rem !important; }
+body.texto-grande-activo h3 { font-size: 1.25rem !important; }
+body.texto-grande-activo .campo,
+body.texto-grande-activo input,
+body.texto-grande-activo select,
+body.texto-grande-activo textarea {
+  font-size: 1rem !important;
+  padding: 0.75rem 0.9rem !important;
+}
+
+body.texto-grande-activo .boton,
+body.texto-grande-activo .boton-secundario,
+body.texto-grande-activo .boton-inline,
+body.texto-grande-activo button {
+  font-size: 1rem !important;
+  padding: 0.75rem 1.2rem !important;
+}
+
+/* Enfoque de teclado claro */
+body.enfoque-claro-activo :focus-visible {
+  outline: 4px solid #ffd700 !important;
+  outline-offset: 3px !important;
+  border-radius: 4px !important;
+  background: rgba(255, 215, 0, 0.2) !important;
+}

@@ -29,4 +29,147 @@
 </header>
 
 {% block app_content %}{% endblock %}
+
+<!-- Widget de accesibilidad flotante (opcional, no altera estilos por defecto) -->
+<div class="accesibilidad-widget" id="widget-accesibilidad" aria-label="Opciones de accesibilidad">
+  <button class="btn-accesibilidad" id="btn-accesibilidad" type="button" aria-expanded="false" aria-controls="panel-accesibilidad">
+    <span class="icono-accesibilidad" aria-hidden="true">♿</span>
+    <span class="texto-accesibilidad">Accesibilidad</span>
+  </button>
+  <div class="panel-accesibilidad" id="panel-accesibilidad" aria-labelledby="btn-accesibilidad" hidden>
+    <div class="panel-header">
+      <h3 class="panel-titulo">Accesibilidad</h3>
+      <button class="btn-cerrar-panel" type="button" aria-label="Cerrar opciones de accesibilidad">✕</button>
+    </div>
+    <div class="panel-opciones">
+      <label class="opcion-accesibilidad">
+        <input type="checkbox" id="alto-contraste">
+        <span class="opcion-texto">Alto contraste</span>
+      </label>
+      <label class="opcion-accesibilidad">
+        <input type="checkbox" id="texto-grande">
+        <span class="opcion-texto">Texto grande</span>
+      </label>
+      <label class="opcion-accesibilidad">
+        <input type="checkbox" id="enfoque-claro">
+        <span class="opcion-texto">Enfoque de teclado claro</span>
+      </label>
+    </div>
+    <div class="panel-pie">
+      <button class="btn-restablecer" type="button">Restablecer predeterminado</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById("btn-accesibilidad");
+    var panel = document.getElementById("panel-accesibilidad");
+    var cerrar = document.querySelector(".btn-cerrar-panel");
+    var restablecer = document.querySelector(".btn-restablecer");
+    var chkContraste = document.getElementById("alto-contraste");
+    var chkTexto = document.getElementById("texto-grande");
+    var chkEnfoque = document.getElementById("enfoque-claro");
+    var body = document.body;
+
+    if (!btn || !panel) return;
+
+    // Cargar preferencias guardadas
+    function cargarPreferencias() {
+      try {
+        var guardado = JSON.parse(localStorage.getItem("accesibilidad_mibotiquin") || "{}");
+        if (guardado.contraste) {
+          chkContraste.checked = true;
+          body.classList.add("alto-contraste-activo");
+        }
+        if (guardado.textoGrande) {
+          chkTexto.checked = true;
+          body.classList.add("texto-grande-activo");
+        }
+        if (guardado.enfoque) {
+          chkEnfoque.checked = true;
+          body.classList.add("enfoque-claro-activo");
+        }
+      } catch (e) { /* ignorar errores de storage */ }
+    }
+
+    function guardarPreferencias() {
+      var data = {
+        contraste: chkContraste.checked,
+        textoGrande: chkTexto.checked,
+        enfoque: chkEnfoque.checked,
+      };
+      try {
+        localStorage.setItem("accesibilidad_mibotiquin", JSON.stringify(data));
+      } catch (e) { /* ignorar errores de storage */ }
+    }
+
+    function aplicarClase(chk, clase) {
+      if (chk.checked) {
+        body.classList.add(clase);
+      } else {
+        body.classList.remove(clase);
+      }
+    }
+
+    btn.addEventListener("click", function () {
+      var estaAbierto = panel.hasAttribute("hidden");
+      if (estaAbierto) {
+        panel.removeAttribute("hidden");
+        btn.setAttribute("aria-expanded", "true");
+      } else {
+        panel.setAttribute("hidden", "");
+        btn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    cerrar.addEventListener("click", function () {
+      panel.setAttribute("hidden", "");
+      btn.setAttribute("aria-expanded", "false");
+      btn.focus();
+    });
+
+    chkContraste.addEventListener("change", function () {
+      aplicarClase(chkContraste, "alto-contraste-activo");
+      guardarPreferencias();
+    });
+
+    chkTexto.addEventListener("change", function () {
+      aplicarClase(chkTexto, "texto-grande-activo");
+      guardarPreferencias();
+    });
+
+    chkEnfoque.addEventListener("change", function () {
+      aplicarClase(chkEnfoque, "enfoque-claro-activo");
+      guardarPreferencias();
+    });
+
+    restablecer.addEventListener("click", function () {
+      chkContraste.checked = false;
+      chkTexto.checked = false;
+      chkEnfoque.checked = false;
+      body.classList.remove("alto-contraste-activo", "texto-grande-activo", "enfoque-claro-activo");
+      guardarPreferencias();
+    });
+
+    // Cerrar panel al hacer clic fuera
+    document.addEventListener("click", function (e) {
+      if (!panel.hasAttribute("hidden") && !btn.contains(e.target) && !panel.contains(e.target)) {
+        panel.setAttribute("hidden", "");
+        btn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Cerrar panel con tecla Escape
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !panel.hasAttribute("hidden")) {
+        panel.setAttribute("hidden", "");
+        btn.setAttribute("aria-expanded", "false");
+        btn.focus();
+      }
+    });
+
+    cargarPreferencias();
+  })();
+</script>
 {% endblock %}
