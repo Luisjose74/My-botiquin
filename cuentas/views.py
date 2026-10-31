@@ -1,6 +1,8 @@
 """Vistas de autenticación y perfil de Mi Botiquín Digital."""
 import io
 import secrets
+import logging
+import smtplib
 
 try:
     import qrcode
@@ -32,6 +34,8 @@ from .forms import (
     RestablecerPasswordForm,
 )
 from .models import Hogar, MiembroHogar, Usuario
+
+logger = logging.getLogger(__name__)
 
 
 class IniciarSesionView(LoginView):
@@ -100,7 +104,12 @@ def _enviar_codigo_password(email, codigo):
         to=[email],
     )
     mensaje.attach_alternative(html, "text/html")
-    mensaje.send()
+    try:
+        mensaje.send()
+    except (smtplib.SMTPException, OSError):
+        logger.exception("No se pudo enviar el código de recuperación a %s.", email)
+        return False
+    return True
 
 
 class SolicitarCodigoPasswordView(FormView):
@@ -117,7 +126,13 @@ class SolicitarCodigoPasswordView(FormView):
             "password_reset_code:{}".format(email.lower()), codigo, timeout=600
         )
         self.request.session["password_reset_email"] = email
-        _enviar_codigo_password(email, codigo)
+        if not _enviar_codigo_password(email, codigo):
+            form.add_error(
+                None,
+                "No pudimos enviar el correo en este momento. "
+                "Revisa la configuración del correo e inténtalo de nuevo.",
+            )
+            return self.form_invalid(form)
         messages.success(
             self.request,
             "Te enviamos un código de verificación de 6 dígitos a tu correo.",
