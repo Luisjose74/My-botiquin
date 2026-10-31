@@ -2,7 +2,7 @@
 from django import forms
 from django.core.files.uploadedfile import UploadedFile
 
-from .models import Medicamento
+from .models import Medicamento, PautaToma
 from .widgets import FotoCajaInput
 
 
@@ -127,3 +127,86 @@ class MedicamentoForm(forms.ModelForm):
                 "Sube una imagen en formato JPG, PNG o WEBP."
             )
         return foto
+
+
+class PautaTomaForm(forms.ModelForm):
+    """Programación de tomas de un medicamento para un integrante."""
+
+    class Meta:
+        model = PautaToma
+        fields = (
+            "medicamento",
+            "miembro",
+            "dosis",
+            "frecuencia",
+            "intervalo_dias",
+            "dias_mes",
+            "dias_semana",
+            "hora",
+            "fecha_inicio",
+            "fecha_fin",
+            "activa",
+        )
+        widgets = {
+            "medicamento": forms.Select(attrs={"class": "campo campo-select"}),
+            "miembro": forms.Select(attrs={"class": "campo campo-select"}),
+            "dosis": forms.NumberInput(attrs={"class": "campo", "min": 1}),
+            "frecuencia": forms.Select(attrs={"class": "campo campo-select"}),
+            "intervalo_dias": forms.NumberInput(attrs={"class": "campo", "min": 1}),
+            "dias_mes": forms.TextInput(
+                attrs={"class": "campo", "placeholder": "Ej.: 14, 20"}
+            ),
+            "dias_semana": forms.TextInput(
+                attrs={"class": "campo", "placeholder": "Ej.: 0,2,4 (Lun,Mié,Vie)"}
+            ),
+            "hora": forms.TimeInput(attrs={"class": "campo", "type": "time"}),
+            "fecha_inicio": forms.DateInput(
+                attrs={"class": "campo", "type": "date"}, format="%Y-%m-%d"
+            ),
+            "fecha_fin": forms.DateInput(
+                attrs={"class": "campo", "type": "date"}, format="%Y-%m-%d"
+            ),
+            "activa": forms.CheckboxInput(attrs={"class": "campo-checkbox"}),
+        }
+        labels = {
+            "medicamento": "Medicamento",
+            "miembro": "Integrante",
+            "dosis": "Dosis por toma",
+            "frecuencia": "Frecuencia",
+            "intervalo_dias": "Cada N días",
+            "dias_mes": "Días del mes",
+            "dias_semana": "Días de la semana",
+            "hora": "Hora",
+            "fecha_inicio": "Fecha de inicio",
+            "fecha_fin": "Fecha de fin (opcional)",
+            "activa": "Pauta activa",
+        }
+
+    def __init__(self, *args, usuario=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.usuario = usuario
+        if usuario and usuario.hogar:
+            self.fields["medicamento"].queryset = Medicamento.objects.filter(
+                usuario=usuario, activo=True
+            )
+            self.fields["miembro"].queryset = usuario.hogar.miembros.all()
+        else:
+            self.fields["medicamento"].queryset = Medicamento.objects.none()
+            self.fields["miembro"].queryset = (
+                self.fields["miembro"].queryset.none()
+            )
+        self.fields["medicamento"].empty_label = "Selecciona un medicamento"
+        self.fields["miembro"].empty_label = "Selecciona un integrante"
+        self.fields["fecha_fin"].required = False
+        self.fields["hora"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        frecuencia = cleaned.get("frecuencia")
+        if frecuencia == "cada_n_dias" and not cleaned.get("intervalo_dias"):
+            self.add_error("intervalo_dias", "Indica cada cuántos días.")
+        if frecuencia == "dias_mes" and not cleaned.get("dias_mes"):
+            self.add_error("dias_mes", "Indica los días del mes.")
+        if frecuencia == "dias_semana" and not cleaned.get("dias_semana"):
+            self.add_error("dias_semana", "Indica los días de la semana.")
+        return cleaned

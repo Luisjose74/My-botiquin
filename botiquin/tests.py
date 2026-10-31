@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from cuentas.models import Usuario
 
-from .models import Categoria, Medicamento
+from .models import Categoria, Medicamento, PautaToma
 
 MEDIA_TEMPORAL = tempfile.mkdtemp(prefix="botiquin_test_")
 
@@ -183,3 +183,68 @@ class MedicamentoCRUDTests(TestCase):
         respuesta = self.client.post(url)
         self.assertRedirects(respuesta, reverse("botiquin:lista"))
         self.assertFalse(Medicamento.objects.filter(pk=medicamento.pk).exists())
+
+
+class PautaTomaTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.usuario = Usuario.objects.create_user(
+            username="pauta_user", password="ClaveSegura123!",
+            first_name="Ana", last_name="Lopez",
+        )
+        cls.miembro = cls.usuario.hogar.miembros.get(es_principal=True)
+        cls.medicamento = Medicamento.objects.create(
+            usuario=cls.usuario, nombre="Paracetamol", cantidad=10,
+            fecha_vencimiento="2031-01-01",
+        )
+
+    def setUp(self):
+        self.client.force_login(self.usuario)
+
+    def test_crear_pauta_diaria(self):
+        respuesta = self.client.post(
+            reverse("botiquin:pauta_crear"),
+            {
+                "medicamento": self.medicamento.pk,
+                "miembro": self.miembro.pk,
+                "dosis": 1,
+                "frecuencia": "diaria",
+                "intervalo_dias": 1,
+                "hora": "08:00",
+                "fecha_inicio": "2026-01-01",
+                "activa": "on",
+            },
+        )
+        self.assertRedirects(respuesta, reverse("botiquin:pautas_lista"))
+        self.assertTrue(PautaToma.objects.filter(medicamento=self.medicamento).exists())
+
+    def test_pauta_dias_mes(self):
+        from datetime import date
+        pauta = PautaToma.objects.create(
+            medicamento=self.medicamento, miembro=self.miembro,
+            frecuencia="dias_mes", dias_mes="14, 20", fecha_inicio=date(2026, 1, 1),
+        )
+        self.assertEqual(pauta.dias_mes_lista(), [14, 20])
+        self.assertIn(date(2026, 1, 14), pauta.proximas_tomas(date(2026, 1, 1), 10))
+        self.assertNotIn(date(2026, 1, 15), pauta.proximas_tomas(date(2026, 1, 1), 10))
+
+    def test_pauta_cada_n_dias(self):
+        from datetime import date
+        pauta = PautaToma.objects.create(
+            medicamento=self.medicamento, miembro=self.miembro,
+            frecuencia="cada_n_dias", intervalo_dias=3,
+            fecha_inicio=date(2026, 1, 1),
+        )
+        proximas = pauta.proximas_tomas(date(2026, 1, 1), 4)
+        self.assertEqual(proximas, [date(2026, 1, 1), date(2026, 1, 4), date(2026, 1, 7), date(2026, 1, 10)])
+
+    def test_no_puede_editar_pauta_ajena(self):
+        otro = Usuario.objects.create_user(username="pauta_otro", password="ClaveSegura123!")
+        otro_med = Medicamento.objects.create(
+            usuario=otro, nombre="Ibuprofeno", cantidad=5, fecha_vencimiento="2031-01-01"
+        )
+        pauta = PautaToma.objects.create(
+            medicamento=otro_med, miembro=otro.hogar.miembros.get(es_principal=True),
+        )
+        respuesta = self.client.get(reverse("botiquin:pauta_editar", args=[pauta.pk]))
+        self.assertEqual(respuesta.status_code, 302)

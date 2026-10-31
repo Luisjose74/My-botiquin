@@ -286,3 +286,159 @@ class Alerta(models.Model):
 
     def __str__(self):
         return f"[{self.get_tipo_display()}] {self.titulo}"
+
+
+# --------------------------------------------------------------------------
+# Pauta de toma: programación de administración de un medicamento a un miembro
+# --------------------------------------------------------------------------
+class PautaToma(models.Model):
+    """Programación de tomas de un medicamento asignado a un integrante."""
+
+    FRECUENCIAS = [
+        ("diaria", "Diariamente"),
+        ("cada_n_dias", "Cada N días"),
+        ("semanal", "Una vez por semana"),
+        ("dias_mes", "Días específicos del mes"),
+        ("dias_semana", "Días de la semana seleccionados"),
+    ]
+
+    DIAS_SEMANA = [
+        (0, "Lunes"),
+        (1, "Martes"),
+        (2, "Miércoles"),
+        (3, "Jueves"),
+        (4, "Viernes"),
+        (5, "Sábado"),
+        (6, "Domingo"),
+    ]
+
+    medicamento = models.ForeignKey(
+        "Medicamento",
+        verbose_name="Medicamento",
+        on_delete=models.CASCADE,
+        related_name="pautas",
+    )
+    miembro = models.ForeignKey(
+        "cuentas.MiembroHogar",
+        verbose_name="Integrante",
+        on_delete=models.CASCADE,
+        related_name="pautas",
+    )
+    dosis = models.PositiveIntegerField(
+        "Dosis por toma",
+        default=1,
+        validators=[MinValueValidator(1)],
+        help_text="Unidades a tomar en cada toma.",
+    )
+    frecuencia = models.CharField(
+        "Frecuencia",
+        max_length=20,
+        choices=FRECUENCIAS,
+        default="diaria",
+    )
+    intervalo_dias = models.PositiveIntegerField(
+        "Cada N días",
+        default=1,
+        validators=[MinValueValidator(1)],
+        help_text="Solo para 'Cada N días'.",
+    )
+    dias_mes = models.CharField(
+        "Días del mes",
+        max_length=120,
+        blank=True,
+        help_text="Días del mes separados por coma (ej.: 14, 20).",
+    )
+    dias_semana = models.CharField(
+        "Días de la semana",
+        max_length=20,
+        blank=True,
+        help_text="Números 0-6 (Lun-Dom) separados por coma (ej.: 0,2,4).",
+    )
+    hora = models.TimeField("Hora de la toma", null=True, blank=True)
+    fecha_inicio = models.DateField("Fecha de inicio", default=timezone.localdate)
+    fecha_fin = models.DateField("Fecha de fin", null=True, blank=True)
+    activa = models.BooleanField("Pauta activa", default=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Asignado por",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pautas_creadas",
+    )
+    creado = models.DateTimeField("Creado el", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Pauta de toma"
+        verbose_name_plural = "Pautas de toma"
+        ordering = ["-creado"]
+        indexes = [
+            models.Index(fields=["medicamento", "miembro"]),
+            models.Index(fields=["activa"]),
+        ]
+
+    def __str__(self):
+        return f"{self.medicamento.nombre} → {self.miembro.nombre} ({self.get_frecuencia_display()})"
+
+    def dias_mes_lista(self):
+        resultado = []
+        for parte in (self.dias_mes or "").split(","):
+            parte = parte.strip()
+            if parte.isdigit():
+                dia = int(parte)
+                if 1 <= dia <= 31:
+                    resultado.append(dia)
+        return resultado
+
+    def dias_semana_lista(self):
+        resultado = []
+        for parte in (self.dias_semana or "").split(","):
+            parte = parte.strip()
+            if parte.isdigit():
+                dia = int(parte)
+                if 0 <= dia <= 6:
+                    resultado.append(dia)
+        return resultado
+
+    def proximas_tomas(self, desde=None, cantidad=5):
+        """Devuelve una lista de fechas (date) de las próximas tomas."""
+        from datetime import date, timedelta
+
+        if desde is None:
+            desde = timezone.localdate()
+        if self.fecha_fin and desde > self.fecha_fin:
+            return []
+
+        resultado = []
+        cursor = max(desde, self.fecha_inicio)
+        tope = self.fecha_fin or (desde + timedelta(days=60))
+
+        while cursor <= tope and len(resultado) < cantidad:
+            if self._corresponde(cursor):
+                resultado.append(cursor)
+            cursor = cursor + timedelta(days=1)
+            if cursor > tope:
+                break
+            # optimización: no iterar más de 90 días
+            if (cursor - desde).days > 90:
+                break
+        return resultado
+
+    def _corresponde(self, fecha):
+        if fecha < self.fecha_inicio:
+            return False
+        if self.fecha_fin and fecha > self.fecha_fin:
+            return False
+
+        if self.frecuencia == "diaria":
+            return True
+        if self.frecuencia == "cada_n_dias":
+            delta = (fecha - self.fecha_inicio).days
+            return delta % max(1, self.intervalo_dias) == 0
+        if self.frecuencia == "semanal":
+            return fecha.weekday() == self.fecha_inicio.weekday()
+        if self.frecuencia == "dias_mes":
+            return fecha.day in self.dias_mes_lista()
+        if self.frecuencia == "dias_semana":
+            return fecha.weekday() in self.dias_semana_lista()
+        return False

@@ -1,0 +1,46 @@
+{% extends "base_app.html" %}
+
+{% block title %}{% if modo == "editar" %}Editar pauta{% else %}Nueva pauta{% endif %} · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'botiquin:pautas_lista' %}">← Volver a pautas</a>
+
+<section class="page-head animar" style="--d: 60ms">
+  <div>
+    <p class="saludo">Programación</p>
+    <h1>{% if modo == "editar" %}Editar pauta de toma{% else %}Nueva pauta de toma{% endif %}</h1>
+    <p class="page-sub">
+      Define el medicamento, el integrante y la frecuencia de la toma.
+    </p>
+  </div>
+</section>
+
+<section class="tarjeta form-seccion animar" style="--d: 120ms">
+  {% if form.non_field_errors %}
+    <div class="alerta error">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate autocomplete="off">
+    {% csrf_token %}
+    {% include "botiquin/_campo.html" with campo=form.medicamento %}
+    {% include "botiquin/_campo.html" with campo=form.miembro %}
+    {% include "botiquin/_campo.html" with campo=form.dosis %}
+    {% include "botiquin/_campo.html" with campo=form.frecuencia %}
+    {% include "botiquin/_campo.html" with campo=form.intervalo_dias %}
+    {% include "botiquin/_campo.html" with campo=form.dias_mes %}
+    {% include "botiquin/_campo.html" with campo=form.dias_semana %}
+    {% include "botiquin/_campo.html" with campo=form.hora %}
+    {% include "botiquin/_campo.html" with campo=form.fecha_inicio %}
+    {% include "botiquin/_campo.html" with campo=form.fecha_fin %}
+    <div class="grupo">
+      <label>{{ form.activa.label }}</label>
+      {{ form.activa }}
+    </div>
+    <button class="boton boton-inline" type="submit">
+      {% if modo == "editar" %}Guardar cambios{% else %}Crear pauta{% endif %}
+    </button>
+  </form>
+</section>
+{% endblock %}

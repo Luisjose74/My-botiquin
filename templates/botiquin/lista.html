@@ -154,6 +154,7 @@
         <a class="boton boton-inline" href="{% url 'botiquin:lista' %}">Ver todo el botiquín</a>
       {% else %}
         <a class="boton boton-inline" href="{% url 'botiquin:crear' %}">＋ Registrar medicamento</a>
+        <a class="boton-secundario" href="{% url 'botiquin:pautas_lista' %}">📅 Pautas de toma</a>
       {% endif %}
     </div>
   {% endfor %}

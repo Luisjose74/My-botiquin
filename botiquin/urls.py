@@ -14,4 +14,8 @@ urlpatterns = [
     path("alertas/", views.alertas, name="alertas"),
     path("alertas/<int:pk>/leida/", views.marcar_alerta_leida, name="alerta_leida"),
     path("alertas/leer-todas/", views.marcar_todas_leidas, name="alertas_leer_todas"),
+    path("pautas/", views.pautas_lista, name="pautas_lista"),
+    path("pautas/nueva/", views.pauta_crear, name="pauta_crear"),
+    path("pautas/<int:pk>/editar/", views.pauta_editar, name="pauta_editar"),
+    path("pautas/<int:pk>/eliminar/", views.pauta_eliminar, name="pauta_eliminar"),
 ]

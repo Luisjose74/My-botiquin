@@ -1,0 +1,20 @@
+{% extends "base_app.html" %}
+
+{% block title %}Eliminar pauta · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'botiquin:pautas_lista' %}">← Volver a pautas</a>
+
+<section class="tarjeta tarjeta-peligro animar" style="--d: 80ms">
+  <span class="peligro-icono" aria-hidden="true">🗑️</span>
+  <h1>Eliminar pauta</h1>
+  <p class="peligro-texto">
+    ¿Eliminar la pauta <strong>{{ pauta }}</strong>?
+  </p>
+  <form method="post" class="peligro-acciones">
+    {% csrf_token %}
+    <a class="boton-secundario" href="{% url 'botiquin:pautas_lista' %}">Cancelar</a>
+    <button class="boton boton-peligro" type="submit">Eliminar</button>
+  </form>
+</section>
+{% endblock %}

@@ -11,8 +11,8 @@ from django.views.decorators.http import require_POST
 from cuentas.models import MiembroHogar
 
 from .alertas import sincronizar_alertas
-from .forms import MedicamentoForm
-from .models import Alerta, Categoria, Medicamento
+from .forms import MedicamentoForm, PautaTomaForm
+from .models import Alerta, Categoria, Medicamento, PautaToma
 
 ESTADOS_VALIDOS = {"todos", "optimos", "por_vencer", "vencidos", "agotados"}
 
@@ -300,4 +300,82 @@ def eliminar(request, pk):
         request,
         "botiquin/eliminar.html",
         {"medicamento": medicamento},
+    )
+
+
+@login_required
+def pautas_lista(request):
+    """Listado de pautas de toma del hogar del usuario."""
+    if request.user.hogar is None:
+        pautas = PautaToma.objects.none()
+    else:
+        pautas = (
+            PautaToma.objects.filter(medicamento__usuario=request.user)
+            .select_related("medicamento", "miembro")
+            .order_by("-creado")
+        )
+    return render(request, "botiquin/pautas_lista.html", {"pautas": pautas})
+
+
+@login_required
+def pauta_crear(request):
+    """Crear una nueva pauta de toma."""
+    if request.method == "POST":
+        form = PautaTomaForm(request.POST, usuario=request.user)
+        if form.is_valid():
+            pauta = form.save(commit=False)
+            pauta.creado_por = request.user
+            pauta.save()
+            messages.success(
+                request,
+                f"Pauta creada: {pauta.medicamento.nombre} para {pauta.miembro.nombre}.",
+            )
+            return redirect("botiquin:pautas_lista")
+    else:
+        form = PautaTomaForm(usuario=request.user)
+        med_id = request.GET.get("medicamento")
+        if med_id and med_id.isdigit():
+            form.initial["medicamento"] = int(med_id)
+
+    return render(
+        request, "botiquin/pauta_form.html", {"form": form, "modo": "crear"}
+    )
+
+
+@login_required
+def pauta_editar(request, pk):
+    pauta = get_object_or_404(PautaToma, pk=pk)
+    if pauta.medicamento.usuario_id != request.user.id:
+        raise PermissionDenied("No tienes permiso para editar esta pauta.")
+
+    if request.method == "POST":
+        form = PautaTomaForm(request.POST, instance=pauta, usuario=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "La pauta se actualizó.")
+            return redirect("botiquin:pautas_lista")
+    else:
+        form = PautaTomaForm(instance=pauta, usuario=request.user)
+
+    return render(
+        request,
+        "botiquin/pauta_form.html",
+        {"form": form, "modo": "editar", "pauta": pauta},
+    )
+
+
+@login_required
+def pauta_eliminar(request, pk):
+    pauta = get_object_or_404(PautaToma, pk=pk)
+    if pauta.medicamento.usuario_id != request.user.id:
+        raise PermissionDenied("No tienes permiso para eliminar esta pauta.")
+
+    if request.method == "POST":
+        nombre = str(pauta)
+        pauta.delete()
+        messages.success(request, f"«{nombre}» se eliminó.")
+        return redirect("botiquin:pautas_lista")
+
+    return render(
+        request, "botiquin/pauta_eliminar.html", {"pauta": pauta}
     )

@@ -40,6 +40,7 @@
         </div>
         <div class="detalle-acciones">
           <a class="boton boton-inline" href="{% url 'botiquin:editar' medicamento.pk %}">Editar</a>
+          <a class="boton-secundario" href="{% url 'botiquin:pauta_crear' %}?medicamento={{ medicamento.pk }}">📅 Programar toma</a>
           <a class="boton-secundario boton-peligro" href="{% url 'botiquin:eliminar' medicamento.pk %}">Eliminar</a>
         </div>
       </div>

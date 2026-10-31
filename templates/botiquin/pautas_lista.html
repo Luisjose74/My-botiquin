@@ -1,0 +1,56 @@
+{% extends "base_app.html" %}
+
+{% block title %}Pautas de toma · Mi Botiquín Digital{% endblock %}
+
+{% block app_content %}
+<a class="volver animar" style="--d: 20ms" href="{% url 'inicio' %}">← Volver al panel</a>
+
+<section class="page-head animar" style="--d: 60ms">
+  <div>
+    <p class="saludo">Programación</p>
+    <h1>Pautas de toma</h1>
+    <p class="page-sub">
+      Asigna medicamentos a los integrantes con su frecuencia y horario.
+    </p>
+  </div>
+  <a class="boton boton-inline" href="{% url 'botiquin:pauta_crear' %}">＋ Nueva pauta</a>
+</section>
+
+{% if pautas %}
+  <section class="familia-grid">
+    {% for pauta in pautas %}
+      <article class="tarjeta miembro-card animar">
+        <div class="miembro-cabecera">
+          <span class="med-icono" aria-hidden="true">💊</span>
+          <div>
+            <h3>{{ pauta.medicamento.nombre }}</h3>
+            <span class="chip">{{ pauta.miembro.nombre }}</span>
+          </div>
+        </div>
+        <p class="miembro-stat">
+          {{ pauta.get_frecuencia_display }}
+          {% if pauta.frecuencia == "cada_n_dias" %} (cada {{ pauta.intervalo_dias }} días){% endif %}
+          {% if pauta.hora %} · {{ pauta.hora }}{% endif %}
+          · Dosis: {{ pauta.dosis }}
+        </p>
+        {% if pauta.proximas_tomas %}
+          <p class="page-sub" style="margin:0.25rem 0;">
+            Próximas: {% for f in pauta.proximas_tomas %}{{ f|date:"d/m" }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </p>
+        {% endif %}
+        <div class="med-acciones">
+          <a class="accion" href="{% url 'botiquin:pauta_editar' pauta.pk %}">Editar</a>
+          <a class="accion accion-peligro" href="{% url 'botiquin:pauta_eliminar' pauta.pk %}">Eliminar</a>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <div class="vacio-app">
+    <span class="vacio-icono" aria-hidden="true">📅</span>
+    <h2>Sin pautas de toma</h2>
+    <p>Crea una pauta para programar la administración de medicamentos.</p>
+    <a class="boton" href="{% url 'botiquin:pauta_crear' %}">Crear pauta</a>
+  </div>
+{% endif %}
+{% endblock %}
