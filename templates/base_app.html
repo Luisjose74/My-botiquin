@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<a href="#contenido-principal" class="skip-link">Saltar al contenido principal</a>
-
 <header class="app-barra animar" style="--d: 20ms">
-  <a class="marca" href="{% url 'inicio' %}" aria-label="Ir a la página de inicio">
-    <span class="marca-logo" aria-hidden="true">✚</span>
+  <a class="marca" href="{% url 'inicio' %}">
+    <span class="marca-logo">✚</span>
     <span>Mi Botiquín <b>Digital</b></span>
   </a>
 
@@ -20,7 +18,7 @@
 
   <div class="app-cuenta">
     <a class="app-perfil" href="{% url 'cuentas:perfil' %}" aria-label="Mi perfil">
-      <span class="avatar mini">{% if request.user.foto %}<img src="{{ request.user.foto.url }}" alt="Foto de perfil de {{ request.user.first_name|default:request.user.username }}">{% else %}{{ request.user.iniciales }}{% endif %}</span>
+      <span class="avatar mini">{% if request.user.foto %}<img src="{{ request.user.foto.url }}" alt="">{% else %}{{ request.user.iniciales }}{% endif %}</span>
       <span class="app-nombre">{{ request.user.first_name|default:request.user.username }}</span>
     </a>
     <form method="post" action="{% url 'cuentas:logout' %}">
@@ -30,7 +28,5 @@
   </div>
 </header>
 
-<main id="contenido-principal" tabindex="-1">
-  {% block app_content %}{% endblock %}
-</main>
+{% block app_content %}{% endblock %}
 {% endblock %}
