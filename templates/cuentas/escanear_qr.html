@@ -35,6 +35,10 @@
   <form class="familia-form unirse-form" method="post" action="{% url 'cuentas:unirse_hogar' %}" novalidate autocomplete="off">
     {% csrf_token %}
     <input class="campo" type="text" name="codigo" placeholder="Ej. ab12cd34" aria-label="Código de invitación" required>
+    <label class="confirmacion-inline">
+      <input type="checkbox" name="confirmar" value="on" required>
+      Confirmo que deseo unirme a este hogar
+    </label>
     <button class="boton boton-inline" type="submit">Unirse</button>
   </form>
 </section>

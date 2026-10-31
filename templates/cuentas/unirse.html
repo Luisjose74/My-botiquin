@@ -32,6 +32,13 @@
   <form class="familia-form unirse-form" method="post" novalidate autocomplete="off">
     {% csrf_token %}
     {% include "botiquin/_campo.html" with campo=form.codigo ancho=True %}
+    <div class="grupo-confirmacion">
+      {{ form.confirmar }}
+      <label for="{{ form.confirmar.id_for_label }}">{{ form.confirmar.label }}</label>
+      {% for error in form.confirmar.errors %}
+        <small class="error-campo">{{ error }}</small>
+      {% endfor %}
+    </div>
     <button class="boton boton-inline" type="submit">Unirse al hogar</button>
   </form>
 

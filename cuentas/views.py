@@ -190,6 +190,15 @@ class PasswordResetCompleteView(TemplateView):
     template_name = "registration/password_reset_complete.html"
 
 
+def _es_admin_principal(request):
+    """Verifica si el usuario actual es el administrador principal de su hogar."""
+    if request.user.hogar is None:
+        return False
+    return MiembroHogar.objects.filter(
+        usuario=request.user, hogar=request.user.hogar, es_principal=True
+    ).exists()
+
+
 def _unir_usuario_a_hogar(usuario, hogar):
     """Vincula al usuario con el hogar indicado y crea su perfil de miembro."""
     if usuario.hogar_id == hogar.pk:
@@ -260,6 +269,30 @@ def unirse_hogar(request, codigo=None):
 
 
 @login_required
+@require_POST
+def regenerar_codigo(request):
+    """Regenera el código de invitación del hogar. Solo el administrador principal."""
+    if not _es_admin_principal(request):
+        messages.error(
+            request,
+            "Solo el administrador principal puede regenerar el código de invitación.",
+        )
+        return redirect("cuentas:familia")
+
+    hogar = request.user.hogar
+    if hogar is None:
+        raise Http404
+
+    hogar.codigo_invitacion = ""
+    hogar.save()  # save() regenera el código si está vacío
+    messages.success(
+        request,
+        f"Se generó un nuevo código de invitación: {hogar.codigo_invitacion}",
+    )
+    return redirect("cuentas:familia")
+
+
+@login_required
 def qr_invitacion(request):
     """Genera un código QR con el enlace para unirse al hogar del usuario."""
     if qrcode is None:
@@ -316,10 +349,21 @@ def _miembro_del_hogar(request, pk):
 
 @login_required
 def familia(request):
-    """Lista de integrantes y alta de nuevos miembros."""
+    """Lista de integrantes y alta de nuevos miembros.
+
+    Solo el administrador principal puede agregar nuevos integrantes.
+    """
     hogar = request.user.hogar
+    es_principal = _es_admin_principal(request)
 
     if request.method == "POST" and hogar is not None:
+        if not es_principal:
+            messages.error(
+                request,
+                "Solo el administrador principal puede agregar integrantes a la familia.",
+            )
+            return redirect("cuentas:familia")
+
         form = MiembroHogarForm(request.POST, hogar=hogar)
         if form.is_valid():
             miembro = form.save(commit=False)
@@ -339,6 +383,23 @@ def familia(request):
     return render(
         request,
         "cuentas/familia.html",
+        {
+            "form": form,
+            "miembros": miembros,
+            "hogar": hogar,
+            "es_principal": es_principal,
+        },
+    )
+
+    miembros = (
+        hogar.miembros.annotate(total_medicamentos=Count("medicamentos"))
+        if hogar is not None
+        else MiembroHogar.objects.none()
+    )
+
+    return render(
+        request,
+        "cuentas/familia.html",
         {"form": form, "miembros": miembros, "hogar": hogar},
     )
 
@@ -346,6 +407,13 @@ def familia(request):
 @login_required
 def editar_miembro(request, pk):
     miembro = _miembro_del_hogar(request, pk)
+
+    if not _es_admin_principal(request):
+        messages.error(
+            request,
+            "Solo el administrador principal puede editar integrantes de la familia.",
+        )
+        return redirect("cuentas:familia")
 
     if request.method == "POST":
         form = MiembroHogarForm(
@@ -361,14 +429,24 @@ def editar_miembro(request, pk):
     return render(
         request,
         "cuentas/miembro_form.html",
-        {"form": form, "miembro": miembro},
+        {"form": form, "miembro": miembro, "es_principal": True},
     )
 
 
 @login_required
 def eliminar_miembro(request, pk):
-    """Confirmación (GET) y eliminación (POST). Los medicamentos quedan sin asignar."""
+    """Confirmación (GET) y eliminación (POST). Los medicamentos quedan sin asignar.
+
+    Solo el administrador principal puede eliminar integrantes.
+    """
     miembro = _miembro_del_hogar(request, pk)
+
+    if not _es_admin_principal(request):
+        messages.error(
+            request,
+            "Solo el administrador principal puede eliminar integrantes de la familia.",
+        )
+        return redirect("cuentas:familia")
 
     if miembro.es_principal:
         messages.error(request, "El perfil principal no se puede eliminar.")

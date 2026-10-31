@@ -135,3 +135,82 @@ class GestionFamiliarTests(TestCase):
 
         self.assertEqual(respuesta.status_code, 200)
         self.assertFalse(MiembroHogar.objects.filter(nombre="Sin relacion").exists())
+
+
+class GestionFamiliarPermisosTests(TestCase):
+    """Verifica que solo el administrador principal gestione la familia."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.titular = Usuario.objects.create_user(
+            username="perm_titular", password="ClaveSegura123!",
+            first_name="Ana", last_name="Lopez",
+        )
+        cls.invitado = Usuario.objects.create_user(
+            username="perm_invitado", password="ClaveSegura123!",
+            first_name="Invitado", last_name="Test",
+        )
+        # Vincular al invitado al hogar del titular como no-principal
+        cls.invitado.hogar = cls.titular.hogar
+        cls.invitado.save(update_fields=["hogar"])
+        # Reutilizar el MiembroHogar creado por la señal
+        miembro = cls.invitado.perfil_miembro
+        miembro.hogar = cls.titular.hogar
+        miembro.nombre = "Invitado Test"
+        miembro.relacion = "otro"
+        miembro.es_principal = False
+        miembro.save()
+
+    def setUp(self):
+        self.client.force_login(self.invitado)
+
+    def test_no_principal_no_puede_agregar_miembro(self):
+        respuesta = self.client.post(
+            reverse("cuentas:familia"), {"nombre": "Nuevo", "relacion": "hijo"}
+        )
+
+        self.assertRedirects(respuesta, reverse("cuentas:familia"))
+        self.assertFalse(
+            MiembroHogar.objects.filter(
+                hogar=self.titular.hogar, nombre="Nuevo"
+            ).exists()
+        )
+
+    def test_no_principal_no_puede_editar_miembro(self):
+        miembro = MiembroHogar.objects.create(
+            hogar=self.titular.hogar, nombre="Editable", relacion="hijo"
+        )
+        respuesta = self.client.post(
+            reverse("cuentas:familia_editar", args=[miembro.pk]),
+            {"nombre": "Cambiado", "relacion": "hijo"},
+        )
+
+        self.assertRedirects(respuesta, reverse("cuentas:familia"))
+        miembro.refresh_from_db()
+        self.assertEqual(miembro.nombre, "Editable")
+
+    def test_no_principal_no_puede_eliminar_miembro(self):
+        miembro = MiembroHogar.objects.create(
+            hogar=self.titular.hogar, nombre="Eliminable", relacion="hijo"
+        )
+        respuesta = self.client.post(
+            reverse("cuentas:familia_eliminar", args=[miembro.pk])
+        )
+
+        self.assertRedirects(respuesta, reverse("cuentas:familia"))
+        self.assertTrue(MiembroHogar.objects.filter(pk=miembro.pk).exists())
+
+    def test_no_principal_no_puede_regenerar_codigo(self):
+        codigo_anterior = self.titular.hogar.codigo_invitacion
+        respuesta = self.client.post(reverse("cuentas:regenerar_codigo"))
+
+        self.assertRedirects(respuesta, reverse("cuentas:familia"))
+        self.titular.hogar.refresh_from_db()
+        self.assertEqual(self.titular.hogar.codigo_invitacion, codigo_anterior)
+
+    def test_no_principal_ve_solo_lectura_en_familia(self):
+        respuesta = self.client.get(reverse("cuentas:familia"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Solo lectura")
+        self.assertNotContains(respuesta, "Agregar integrante")

@@ -1853,6 +1853,39 @@ a:hover { text-decoration: underline; }
 }
 .unirse-form { grid-template-columns: minmax(0, 1fr) auto; }
 
+.grupo-confirmacion {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+.grupo-confirmacion input[type="checkbox"] {
+  margin-top: 0.2rem;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--blue);
+}
+.grupo-confirmacion label {
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.confirmacion-inline {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+.confirmacion-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+}
+
 /* ============================================================
    Fase 6 — Pulido, accesibilidad táctil y móvil
    ============================================================ */

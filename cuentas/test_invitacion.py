@@ -21,7 +21,7 @@ class InvitacionHogarTests(TestCase):
 
     def test_codigo_invalido_no_permite_unirse(self):
         respuesta = self.client.post(
-            reverse("cuentas:unirse_hogar"), {"codigo": "no-existe"}
+            reverse("cuentas:unirse_hogar"), {"codigo": "no-existe", "confirmar": "on"}
         )
 
         self.assertEqual(respuesta.status_code, 200)
@@ -29,9 +29,19 @@ class InvitacionHogarTests(TestCase):
         self.invitado.refresh_from_db()
         self.assertNotEqual(self.invitado.hogar_id, self.hogar_titular.pk)
 
-    def test_unirse_por_codigo_cambia_el_hogar_y_crea_miembro(self):
+    def test_sin_confirmacion_no_permite_unirse(self):
         respuesta = self.client.post(
             reverse("cuentas:unirse_hogar"), {"codigo": self.codigo}
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Debes confirmar que deseas unirte al hogar.")
+        self.invitado.refresh_from_db()
+        self.assertNotEqual(self.invitado.hogar_id, self.hogar_titular.pk)
+
+    def test_unirse_por_codigo_cambia_el_hogar_y_crea_miembro(self):
+        respuesta = self.client.post(
+            reverse("cuentas:unirse_hogar"), {"codigo": self.codigo, "confirmar": "on"}
         )
 
         self.assertRedirects(respuesta, reverse("cuentas:familia"))
@@ -52,7 +62,7 @@ class InvitacionHogarTests(TestCase):
         self.invitado.save(update_fields=["hogar"])
 
         respuesta = self.client.post(
-            reverse("cuentas:unirse_hogar"), {"codigo": self.codigo}
+            reverse("cuentas:unirse_hogar"), {"codigo": self.codigo, "confirmar": "on"}
         )
 
         self.assertRedirects(respuesta, reverse("cuentas:familia"))
@@ -100,7 +110,7 @@ class InvitacionHogarTests(TestCase):
         )
 
         respuesta = self.client.post(
-            reverse("cuentas:unirse_hogar"), {"codigo": self.codigo}
+            reverse("cuentas:unirse_hogar"), {"codigo": self.codigo, "confirmar": "on"}
         )
 
         self.assertRedirects(respuesta, reverse("cuentas:familia"))

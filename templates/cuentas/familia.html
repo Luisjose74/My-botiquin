@@ -30,6 +30,14 @@
     <button class="boton boton-inline" type="button" data-copiar="{{ hogar.codigo_invitacion }}">Copiar código</button>
     <a class="boton-secundario" href="{% url 'cuentas:unirse_hogar' %}">Unirme a otro hogar →</a>
     <a class="boton-secundario" href="{% url 'cuentas:escanear_qr' %}">📷 Escanear QR</a>
+    {% if es_principal %}
+      <form method="post" action="{% url 'cuentas:regenerar_codigo' %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="boton-secundario" type="submit" onclick="return confirm('¿Generar un nuevo código de invitación? El anterior dejará de funcionar.');">
+          🔄 Regenerar código
+        </button>
+      </form>
+    {% endif %}
   </div>
 
   <div class="qr-caja">
@@ -42,6 +50,7 @@
   </div>
 </section>
 
+{% if es_principal %}
 <section class="tarjeta form-seccion animar" style="--d: 100ms">
   <div class="seccion-cabecera">
     <span class="seccion-icono" aria-hidden="true">➕</span>
@@ -64,6 +73,17 @@
     <button class="boton boton-inline" type="submit">Agregar</button>
   </form>
 </section>
+{% else %}
+<section class="tarjeta form-seccion animar" style="--d: 100ms">
+  <div class="seccion-cabecera">
+    <span class="seccion-icono" aria-hidden="true">ℹ️</span>
+    <div>
+      <h2>Solo lectura</h2>
+      <p>Solo el administrador principal puede agregar o gestionar integrantes.</p>
+    </div>
+  </div>
+</section>
+{% endif %}
 
 <section class="familia-grid" aria-label="Integrantes">
   {% for miembro in miembros %}
@@ -82,9 +102,11 @@
 
       <div class="med-acciones">
         <a class="accion" href="{% url 'botiquin:lista' %}?miembro={{ miembro.pk }}">Ver botiquín</a>
-        <a class="accion" href="{% url 'cuentas:familia_editar' miembro.pk %}">Editar</a>
-        {% if not miembro.es_principal %}
-          <a class="accion accion-peligro" href="{% url 'cuentas:familia_eliminar' miembro.pk %}">Eliminar</a>
+        {% if es_principal %}
+          <a class="accion" href="{% url 'cuentas:familia_editar' miembro.pk %}">Editar</a>
+          {% if not miembro.es_principal %}
+            <a class="accion accion-peligro" href="{% url 'cuentas:familia_eliminar' miembro.pk %}">Eliminar</a>
+          {% endif %}
         {% endif %}
       </div>
     </article>

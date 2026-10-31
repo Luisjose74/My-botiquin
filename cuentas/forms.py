@@ -322,7 +322,10 @@ class MiembroHogarForm(forms.ModelForm):
 
 
 class UnirseHogarForm(forms.Form):
-    """Unirse a un hogar existente mediante su código de invitación."""
+    """Unirse a un hogar existente mediante su código de invitación.
+
+    Requiere confirmación explícita antes de vincular al usuario al hogar.
+    """
 
     codigo = forms.CharField(
         label="Código de invitación",
@@ -335,6 +338,14 @@ class UnirseHogarForm(forms.Form):
                 "autocapitalize": "characters",
             }
         ),
+    )
+    confirmar = forms.BooleanField(
+        label="Confirmo que deseo unirme a este hogar y compartir el botiquín.",
+        required=True,
+        widget=forms.CheckboxInput(attrs={"class": "campo-checkbox"}),
+        error_messages={
+            "required": "Debes confirmar que deseas unirte al hogar."
+        },
     )
 
     def clean_codigo(self):
