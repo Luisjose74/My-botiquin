@@ -2,8 +2,11 @@ Hola {{ usuario.first_name|default:usuario.username }},
 
 Recordatorio de toma ({{ hora|date:"H:i" }}):
 
-{% for pauta in pautas %}
+{% for item in items %}
+{% with pauta=item.pauta %}
 - {{ pauta.medicamento.nombre }} ({{ pauta.miembro.nombre }}) — dosis {{ pauta.dosis }}
+  Confirmar: {{ item.confirm_url }}
+{% endwith %}
 {% endfor %}
 
 Confirma cada toma en la app: {{ site_url|default:"" }}

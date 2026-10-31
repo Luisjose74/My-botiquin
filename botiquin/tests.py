@@ -371,3 +371,37 @@ class VisibilidadCompartidaTests(TestCase):
         respuesta = self.client.get(reverse("botiquin:pautas_lista"))
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Medicamento del admin")
+
+
+class ConfirmacionTomaTokenTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.usuario = Usuario.objects.create_user(
+            username="tok_user", password="ClaveSegura123!",
+            first_name="Ana", last_name="Lopez",
+        )
+        cls.miembro = cls.usuario.hogar.miembros.get(es_principal=True)
+        cls.medicamento = Medicamento.objects.create(
+            usuario=cls.usuario, nombre="Paracetamol", cantidad=10,
+            fecha_vencimiento="2031-01-01",
+        )
+        cls.pauta = PautaToma.objects.create(
+            medicamento=cls.medicamento, miembro=cls.miembro,
+            frecuencia="diaria", fecha_inicio=__import__("datetime").date(2020, 1, 1),
+        )
+
+    def test_token_confirma_toma(self):
+        from datetime import date
+        from botiquin.notificaciones import generar_token_confirmacion
+        hoy = date.today()
+        token = generar_token_confirmacion(self.pauta.pk, hoy)
+        respuesta = self.client.get(reverse("botiquin:confirmar_toma", args=[token]))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Toma registrada")
+        self.assertTrue(
+            TomaRegistrada.objects.filter(pauta=self.pauta, fecha=hoy, tomada=True).exists()
+        )
+
+    def test_token_invalido_redirige(self):
+        respuesta = self.client.get(reverse("botiquin:confirmar_toma", args=["token-invalido"]))
+        self.assertEqual(respuesta.status_code, 302)

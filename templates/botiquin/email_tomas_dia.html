@@ -1,18 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
-<body style="font-family: Arial, sans-serif; color: #1f2937;">
-  <h2>Tomas del día — {{ fecha|date:"d/m/Y" }}</h2>
-  <p>Hola {{ usuario.first_name|default:usuario.username }},</p>
-  <p>Estas son tus tomas programadas para hoy:</p>
-  <ul>
-    {% for pauta in pautas %}
-      <li>
-        <strong>{{ pauta.medicamento.nombre }}</strong> ({{ pauta.miembro.nombre }}) —
-        dosis {{ pauta.dosis }}{% if pauta.hora %}, hora {{ pauta.hora }}{% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-  <p>Confirma cada toma en la app.</p>
-  <p style="color:#6b7280;font-size:12px;">Mi Botiquín Digital</p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tomas del día — Mi Botiquín Digital</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#1565e8,#0f4fbb);padding:24px 28px;color:#ffffff;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:22px;font-weight:800;">✚ Mi Botiquín <span style="font-weight:400;">Digital</span></td>
+                </tr>
+                <tr>
+                  <td style="padding-top:6px;font-size:14px;opacity:0.9;">Tomas del día — {{ fecha|date:"d/m/Y" }}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px 28px;">
+              <p style="margin:0 0 12px;font-size:16px;">Hola {{ usuario.first_name|default:usuario.username }},</p>
+              <p style="margin:0 0 16px;font-size:15px;color:#475569;">Estas son tus tomas programadas para hoy:</p>
+
+              {% for item in items %}
+                {% with pauta=item.pauta %}
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:14px;">
+                  <tr>
+                    <td style="padding:14px 16px;">
+                      <div style="font-size:16px;font-weight:700;color:#0f172a;">💊 {{ pauta.medicamento.nombre }}</div>
+                      <div style="font-size:13px;color:#64748b;margin-top:2px;">{{ pauta.miembro.nombre }} · Dosis: {{ pauta.dosis }}{% if pauta.hora %} · ⏰ {{ pauta.hora }}{% endif %}</div>
+                      <div style="margin-top:12px;">
+                        <a href="{{ item.confirm_url }}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:10px 18px;border-radius:10px;">✅ Ya me la tomé</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+                {% endwith %}
+              {% endfor %}
+
+              <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Si ya tomaste la dosis, ignora este mensaje. También puedes confirmar desde la app.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">
+              Mi Botiquín Digital · Gestión familiar de medicamentos
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

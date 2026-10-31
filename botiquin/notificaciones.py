@@ -4,11 +4,35 @@ import logging
 import os
 
 from django.conf import settings
+from django.core import signing
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+TOKEN_SALT = "toma-confirmacion"
+TOKEN_MAX_AGE = 60 * 60 * 24  # 24 horas
+
+
+def generar_token_confirmacion(pauta_id, fecha):
+    return signing.dumps({"p": int(pauta_id), "f": str(fecha)}, salt=TOKEN_SALT)
+
+
+def verificar_token_confirmacion(token, max_age=TOKEN_MAX_AGE):
+    data = signing.loads(token, salt=TOKEN_SALT, max_age=max_age)
+    return int(data["p"]), data["f"]
+
+
+def url_base_sitio():
+    base = getattr(settings, "SITE_URL", "").strip().rstrip("/")
+    if base:
+        return base
+    for host in getattr(settings, "ALLOWED_HOSTS", []):
+        if host and host != "*":
+            scheme = "https" if ("." in host and not host.startswith("192.")) else "http"
+            return f"{scheme}://{host}"
+    return "http://localhost:8000"
 
 
 def _enviar_correo(usuario, asunto, plantilla_txt, plantilla_html, contexto):
@@ -117,22 +141,27 @@ def notificar_asignacion(pauta):
 def enviar_recordatorio_hora(pautas, ahora):
     """Envía recordatorios para pautas cuya hora coincide con la hora actual."""
     from collections import defaultdict
+    from django.urls import reverse
 
     grupos = defaultdict(list)
     for pauta in pautas:
         usuario = getattr(pauta.miembro, "usuario", None)
         if usuario is None:
             continue
-        grupos[usuario].append(pauta)
+        token = generar_token_confirmacion(pauta.pk, ahora.date())
+        confirm_url = f"{url_base_sitio()}{reverse('botiquin:confirmar_toma', args=[token])}"
+        grupos[usuario].append({"pauta": pauta, "confirm_url": confirm_url})
 
     correos = 0
     whatsapps = 0
-    for usuario, lista in grupos.items():
+    for usuario, items in grupos.items():
+        pautas_lista = [it["pauta"] for it in items]
         contexto = {
             "usuario": usuario,
-            "pautas": lista,
+            "items": items,
+            "pautas": pautas_lista,
             "hora": ahora,
-            "site_url": getattr(settings, "SITE_URL", ""),
+            "site_url": url_base_sitio(),
         }
         if getattr(usuario, "canal_alertas", "") in ("correo", "notificacion"):
             if _enviar_correo(
@@ -145,8 +174,11 @@ def enviar_recordatorio_hora(pautas, ahora):
                 correos += 1
         if getattr(usuario, "canal_alertas", "") == "whatsapp":
             texto = "Recordatorio de toma ({}):\n".format(ahora.strftime("%H:%M"))
-            for p in lista:
-                texto += f"- {p.medicamento.nombre} ({p.miembro.nombre}) dosis {p.dosis}\n"
+            for it in items:
+                p = it["pauta"]
+                texto += f"💊 *{p.medicamento.nombre}* ({p.miembro.nombre}) — dosis {p.dosis}\n"
+                texto += f"⏰ {p.hora.strftime('%H:%M') if p.hora else ''}\n"
+                texto += f"✅ Confirmar: {it['confirm_url']}\n"
             if _enviar_whatsapp(usuario, texto):
                 whatsapps += 1
             else:

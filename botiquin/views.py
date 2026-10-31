@@ -14,7 +14,11 @@ from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm, PautaTomaForm
 from cuentas.models import MiembroHogar
 from .models import Alerta, Categoria, Medicamento, PautaToma, TomaRegistrada
-from .notificaciones import notificar_asignacion, notificar_medicamento_asignado
+from .notificaciones import (
+    notificar_asignacion,
+    notificar_medicamento_asignado,
+    verificar_token_confirmacion,
+)
 
 
 def _mismo_hogar(request, medicamento):
@@ -497,3 +501,31 @@ def marcar_tomada(request, pk):
     estado = "tomada" if toma.tomada else "pendiente"
     messages.success(request, f"{pauta.medicamento.nombre}: marcada como {estado}.")
     return redirect("botiquin:tomas_hoy")
+
+
+from datetime import date as _date
+from django.core import signing as _signing
+
+
+def confirmar_toma(request, token):
+    """Confirma la toma de una pauta a partir de un token seguro (email/WhatsApp)."""
+    try:
+        pauta_id, fecha_str = verificar_token_confirmacion(token)
+        fecha = _date.fromisoformat(fecha_str)
+    except Exception:  # noqa: BLE001
+        messages.error(request, "El enlace de confirmación no es válido o ha expirado.")
+        return redirect("cuentas:login")
+
+    pauta = get_object_or_404(PautaToma, pk=pauta_id)
+    toma, _ = TomaRegistrada.objects.get_or_create(pauta=pauta, fecha=fecha)
+    toma.tomada = True
+    toma.save(update_fields=["tomada"])
+
+    messages.success(
+        request, f"¡Listo! Se registró la toma de {pauta.medicamento.nombre}."
+    )
+    return render(
+        request,
+        "botiquin/tomas_confirmacion.html",
+        {"pauta": pauta, "fecha": fecha},
+    )

@@ -34,25 +34,34 @@ def pautas_del_dia(hoy):
     ]
 
 
-def agrupar_por_usuario(pautas):
+def agrupar_por_usuario(pautas, hoy):
+    from django.urls import reverse
+    from botiquin.notificaciones import generar_token_confirmacion, url_base_sitio
+
+    base = url_base_sitio()
     grupos = {}
     for pauta in pautas:
         usuario = getattr(pauta.miembro, "usuario", None)
         if usuario is None:
             continue
-        grupos.setdefault(usuario, []).append(pauta)
+        token = generar_token_confirmacion(pauta.pk, hoy)
+        confirm_url = f"{base}{reverse('botiquin:confirmar_toma', args=[token])}"
+        grupos.setdefault(usuario, []).append({"pauta": pauta, "confirm_url": confirm_url})
     return grupos
 
 
-def enviar_correo(usuario, pautas, hoy):
+def enviar_correo(usuario, items, hoy):
     if not usuario.email:
         logger.warning("Usuario %s sin correo: no se envía alerta de tomas.", usuario.pk)
         return False
+    from botiquin.notificaciones import url_base_sitio
+
     contexto = {
         "usuario": usuario,
-        "pautas": pautas,
+        "items": items,
+        "pautas": [it["pauta"] for it in items],
         "fecha": hoy,
-        "site_url": getattr(settings, "SITE_URL", ""),
+        "site_url": url_base_sitio(),
     }
     texto = render_to_string("botiquin/email_tomas_dia.txt", contexto)
     html = render_to_string("botiquin/email_tomas_dia.html", contexto)
@@ -68,6 +77,31 @@ def enviar_correo(usuario, pautas, hoy):
         return True
     except Exception as exc:  # noqa: BLE001
         logger.exception("Error enviando correo de tomas a %s: %s", usuario.pk, exc)
+        return False
+
+
+def enviar_whatsapp_texto(usuario, texto):
+    import os
+
+    url = os.environ.get("WHATSAPP_API_URL", "").strip()
+    token = os.environ.get("WHATSAPP_API_TOKEN", "").strip()
+    if not url or not token:
+        return False
+    telefono = getattr(usuario, "telefono", "") or ""
+    if not telefono:
+        return False
+    try:
+        import requests
+
+        requests.post(
+            url,
+            json={"telefono": telefono, "mensaje": texto},
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Error enviando WhatsApp a %s: %s", usuario.pk, exc)
         return False
 
 
@@ -104,20 +138,27 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         hoy = timezone.localdate()
         pautas = pautas_del_dia(hoy)
-        grupos = agrupar_por_usuario(pautas)
+        grupos = agrupar_por_usuario(pautas, hoy)
 
         correos = 0
         whatsapps = 0
-        for usuario, lista in grupos.items():
+        for usuario, items in grupos.items():
+            pautas = [it["pauta"] for it in items]
             if usuario.canal_alertas == "correo" or usuario.canal_alertas == "notificacion":
-                if enviar_correo(usuario, lista, hoy):
+                if enviar_correo(usuario, items, hoy):
                     correos += 1
             if usuario.canal_alertas == "whatsapp":
-                if enviar_whatsapp(usuario, lista, hoy):
+                # WhatsApp con formato enriquecido
+                texto = "Tomas del día ({}):\n".format(hoy.strftime("%d/%m/%Y"))
+                for it in items:
+                    p = it["pauta"]
+                    hora = p.hora.strftime("%H:%M") if p.hora else ""
+                    texto += f"💊 *{p.medicamento.nombre}* ({p.miembro.nombre}) — dosis {p.dosis} {hora}\n"
+                    texto += f"✅ Confirmar: {it['confirm_url']}\n"
+                if enviar_whatsapp_texto(usuario, texto):
                     whatsapps += 1
                 else:
-                    # Fallback a correo si WhatsApp no está configurado.
-                    if enviar_correo(usuario, lista, hoy):
+                    if enviar_correo(usuario, items, hoy):
                         correos += 1
 
         self.stdout.write(
