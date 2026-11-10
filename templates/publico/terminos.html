@@ -1,0 +1,151 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-portada-interna">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <p class="pub-antetitulo">Legal</p>
+    <h1 class="pub-titulo-portada">Términos y condiciones</h1>
+    <p class="pub-entradilla pub-entradilla-centrada">
+      Las reglas de uso de Mi Botiquín Digital: qué ofrece el servicio, qué
+      se espera de ti y hasta dónde llegan sus herramientas.
+    </p>
+    <p class="pub-version">
+      Versión {{ version }} · Última actualización: {{ fecha }}
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-prosa">
+      <h2>1. Objeto y aceptación</h2>
+      <p>
+        Estos términos regulan el acceso y uso de {{ sitio.nombre }}, la
+        aplicación web de gestión del botiquín de medicamentos, desarrollada
+        como proyecto académico de {{ institucion.enfoque }}. Al crear una
+        cuenta o al navegar por el sitio aceptas estas condiciones en su
+        versión vigente.
+      </p>
+
+      <h2>2. Descripción del servicio</h2>
+      <p>
+        La aplicación permite registrar los medicamentos que tienes en casa,
+        organizarlos por categoría, ubicación e integrante, recibir alertas de
+        vencimiento y de existencias, programar pautas de toma con
+        recordatorios y compartir el inventario con los miembros de tu hogar.
+        Incluye además recomendaciones de educación sanitaria de carácter
+        preventivo.
+      </p>
+
+      <h2>3. Registro y cuenta</h2>
+      <ul class="pub-lista-checks">
+        <li>Debes ser mayor de edad o actuar con la autorización de tu representante legal.</li>
+        <li>Eres responsable de la veracidad de los datos que registras y de mantener tu correo actualizado, porque es el canal de las alertas.</li>
+        <li>Eres responsable de la confidencialidad de tu contraseña y de las sesiones que inicies en tus dispositivos.</li>
+        <li>Debes informarnos de cualquier uso no autorizado de tu cuenta para que podamos proteger tus datos.</li>
+        <li>Puedes solicitar la eliminación de tu cuenta y de tus datos en cualquier momento.</li>
+      </ul>
+
+      <h2>4. Uso del servicio</h2>
+      <p>
+        El servicio se ofrece para uso personal y doméstico. No está permitido
+        usarlo para:
+      </p>
+      <ul class="pub-lista-checks">
+        <li>Comercializar los datos de los usuarios o prestar el servicio a terceros sin autorización.</li>
+        <li>Intentar acceder a cuentas ajenas, vulnerar la seguridad del sistema o eludir los controles de acceso.</li>
+        <li>Usar la aplicación para analizar o decidir sobre la medicación de terceros sin su autorización.</li>
+        <li>Introducir contenido falso, ofensivo o que vulnere los derechos de otras personas.</li>
+      </ul>
+
+      <h2>5. Alcance: lo que la aplicación no es</h2>
+      <div class="pub-alerta-clinica pub-alerta-clinica-alerta">
+        <span aria-hidden="true">⚠️</span>
+        <p>
+          {{ sitio.nombre }} es una herramienta de organización y seguimiento.
+          <strong>No diagnostica, no prescribe, no interpreta dosis y no
+          reemplaza la atención médica o farmacéutica.</strong> La dosis, el
+          horario y la duración de un tratamiento siempre los indica el
+          profesional de salud que conoce tu historia clínica.
+        </p>
+      </div>
+      <ul class="pub-lista-checks">
+        <li>Las fechas de vencimiento y los avisos son un apoio logístico, no una autorización de uso.</li>
+        <li>Las pautas de toma registradas en la aplicación son un reflejo de lo que el profesional indicó, no una prescripción.</li>
+        <li>Los recordatorios dependen del servidor de correo: si el correo no llega, no hay garantía de que la alerta se cumpla.</li>
+        <li>En caso de urgencia o reacción adversa, acude a un servicio de urgencias.</li>
+      </ul>
+
+      <h2>6. Contenido que registras</h2>
+      <p>
+        Los medicamentos, fotos, notas y pautas que agregas son tuyos. Al
+        registrarlos aceptas que se traten como datos personales (algunos de
+        ellos, sensibles) conforme a la
+        <a href="{% url 'publico:privacidad' %}">política de privacidad</a>.
+        Puedes eliminar cada medicamento y cada pauta cuando quieras.
+      </p>
+
+      <h2>7. Propiedad intelectual</h2>
+      <p>
+        El software, el diseño, la identidad visual y los textos educativos de
+        la aplicación pertenecen a sus autores y se usan con fines académicos
+        y de documentación del proyecto. No está permitido copiar el código, revender la
+        aplicación ni presentar una versión derivada como propia sin
+        autorización.
+      </p>
+
+      <h2>8. Disponibilidad y cambios del servicio</h2>
+      <p>
+        El servicio se ofrece «en el estado en que se encuentra»: puede haber
+        interrupciones por mantenimiento, caída del servidor de correo o
+        cambios en la plataforma. Podemos modificar o ampliar las funciones
+        del servicio; si un cambio afecta de manera sustancial tu uso, se
+        informará por correo o en la propia aplicación.
+      </p>
+
+      <h2>9. Protección de datos</h2>
+      <p>
+        El tratamiento de tus datos personales se rige por la
+        <a href="{% url 'publico:privacidad' %}">política de privacidad</a> y
+        por la Ley 1581 de 2012 y su decreto reglamentario, en cuanto le sean
+        aplicables.
+      </p>
+
+      <h2>10. Limitación de responsabilidad</h2>
+      <p>
+        La aplicación se entrega «tal cual», sin garantía de que esté libre de
+        errores o disponible en todo momento. El responsable no se hace cargo
+        de daños derivados de decisiones tomadas exclusivamente con base en la
+        información registrada en la plataforma, ni de la pérdida de datos por
+        causa del usuario, de equipos no compatibles o de la caída de servicios
+        externos de correo.
+      </p>
+
+      <h2>11. Legislación aplicable y jurisdicción</h2>
+      <p>
+        Estos términos se rigen por las leyes de la República de Colombia. Para
+        cualquier controversia se aplicará la jurisdicción de los tribunales
+        del lugar donde se celebre el domicilio del responsable del
+        servicio, sin perjuicio del derecho del titular a acudir a la
+        Superintendencia de Industria y Comercio en materia de protección de
+        datos.
+      </p>
+
+      <h2>12. Modificaciones</h2>
+      <p>
+        Podemos actualizar estos términos; la versión vigente estará siempre
+        disponible en esta página, con su fecha de actualización. El uso
+        continuado del servicio después de publicada una versión nueva implica
+        la aceptación de los cambios.
+      </p>
+
+      <h2>13. Contacto</h2>
+      <p>
+        Para cualquier duda sobre estos términos puedes escribirnos
+        {% if institucion.correo %}a
+        <a href="mailto:{{ institucion.correo }}">{{ institucion.correo }}</a>{% endif %}.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

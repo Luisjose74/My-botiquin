@@ -21,6 +21,8 @@ Write-Host "=== Mi Botiquín Digital — modo LAN (demostración) ===" -Foregrou
 Write-Host "IP local detectada: $ip"
 Write-Host "URL de acceso:     http://$ip`:8000"
 Write-Host "URL local:         http://localhost:8000"
+Write-Host "Sitio público:     http://$ip`:8000/  (portada y guía educativa)"
+Write-Host "Panel de la app:   http://$ip`:8000/app/  (requiere iniciar sesión)"
 Write-Host ""
 Write-Host "Modo demostración: se activa DJANGO_DEBUG=True para permitir el acceso" -ForegroundColor Yellow
 Write-Host "desde la red local (la IP cambia y no puede fijarse en ALLOWED_HOSTS)." -ForegroundColor Yellow

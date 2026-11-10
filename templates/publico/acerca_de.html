@@ -1,0 +1,192 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-portada-interna">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <p class="pub-antetitulo">Institucional</p>
+    <h1 class="pub-titulo-portada">Acerca del proyecto</h1>
+    <p class="pub-entradilla pub-entradilla-centrada">
+      Mi Botiquín Digital nació de una pregunta sencilla: ¿qué pasa con los
+      medicamentos que ya tenemos en casa y que casi nadie vigila?
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-prosa">
+      <h2>Origen</h2>
+      <p>
+        En el análisis de mercado del proyecto se identificó una necesidad
+        insatisfecha clara: la falta de un control familiar sobre los
+        medicamentos que ya están en la casa. Muchas personas acumulan cajas
+        sin saber con certeza qué contienen, cuándo vencen, cuánto queda ni
+        cómo se conservan, y terminan usando productos vencidos o comprando
+        de nuevo lo que ya tenían en casa.
+      </p>
+      <p>
+        La respuesta no fue construir una tienda de medicamentos: el problema
+        no era la falta de producto, sino la falta de organización. Por eso
+        la plataforma se diseñó como un inventario del botiquín real, con
+        alertas oportunas y educación sanitaria preventiva, el enfoque propio
+        del servicio de {{ institucion.enfoque }}.
+      </p>
+
+      <h2>Propósito, misión y visión</h2>
+      <div class="pub-rejilla-pmv">
+        <article class="pub-tarjeta">
+          <h3>Propósito</h3>
+          <p>
+            Poner a disposición de las familias una herramienta sencilla que
+            convierta el control del botiquín en un hábito cotidiano, no en
+            una tarea que se pospone.
+          </p>
+        </article>
+        <article class="pub-tarjeta">
+          <h3>Misión</h3>
+          <p>
+            Acompañar a las familias en el uso responsable de los
+            medicamentos mediante un inventario accesible, alertas oportunas y
+            educación sanitaria preventiva.
+          </p>
+        </article>
+        <article class="pub-tarjeta">
+          <h3>Visión</h3>
+          <p>
+            Ser el referente de la gestión doméstica de medicamentos en el
+            país, socializar el modelo preventivo de {{ institucion.enfoque }}
+            y extenderlo a hogares, consultorios e instituciones.
+          </p>
+        </article>
+      </div>
+
+      <h2>Metodología: el enfoque de {{ institucion.enfoque }}</h2>
+      <p>
+        El proyecto aplica un enfoque de servicio farmacéutico preventivo y
+        educativo. Eso significa que la herramienta trabaja sobre tres
+        líneas de acción que se complementan:
+      </p>
+      <ol class="pub-lista-numerada">
+        <li>
+          <strong>Inventario y organización.</strong> Cada medicamento tiene
+          un registro con su cantidad, fecha de vencimiento, lote, registro
+          sanitario, categoría y ubicación, de modo que exista una fuente
+          única de verdad sobre lo que hay en casa.
+        </li>
+        <li>
+          <strong>Seguimiento y alertas.</strong> Los avisos escalonados de
+          vencimiento (30, 15 y 5 días), el control de existencias y las
+          pautas de toma convierten la información en acciones concretas.
+        </li>
+        <li>
+          <strong>Educación sanitaria.</strong> Cada alerta, cada ficha de
+          medicamento y los correos comparten el mismo bloque de
+          recomendaciones preventivas sobre almacenamiento, automedicación,
+          desecho seguro y consulta profesional.
+        </li>
+      </ol>
+
+      <h2>Qué hace y qué no hace</h2>
+      <div class="pub-rejilla-hace">
+        <div class="pub-columna-hace pub-columna-si">
+          <h3>Lo que sí hace</h3>
+          <ul>
+            <li>Registra y organiza los medicamentos del hogar.</li>
+            <li>Avisa con anticipación los vencimientos y el stock bajo.</li>
+            <li>Programa pautas de toma y confirma cada toma.</li>
+            <li>Comparte el inventario entre los integrantes del hogar.</li>
+            <li>Enseña recomendaciones preventivas de uso responsable.</li>
+          </ul>
+        </div>
+        <div class="pub-columna-hace pub-columna-no">
+          <h3>Lo que no hace</h3>
+          <ul>
+            <li>No diagnostica ni prescribe medicamentos.</li>
+            <li>No verifica ni ajusta dosis ni horarios indicados.</li>
+            <li>No reemplaza la consulta médica o farmacéutica.</li>
+            <li>No vende ni distribuye medicamentos.</li>
+            <li>No sustituye el control de inventarios de una institución.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2>Equipo y créditos</h2>
+      <div class="pub-tarjeta-creditos">
+        <div>
+          <p class="pub-creditos-etiqueta">Autoría del proyecto</p>
+          <p class="pub-creditos-nombre">{{ institucion.autora }}</p>
+          <p class="pub-creditos-detalle">Código {{ institucion.codigo }}</p>
+        </div>
+        <div>
+          <p class="pub-creditos-etiqueta">Institución</p>
+          <p class="pub-creditos-nombre">{{ institucion.nombre }}</p>
+          <p class="pub-creditos-detalle">
+            {{ institucion.facultad }}<br>{{ institucion.sede }}
+          </p>
+        </div>
+        <div>
+          <p class="pub-creditos-etiqueta">Enfoque</p>
+          <p class="pub-creditos-nombre">{{ institucion.enfoque }}</p>
+          <p class="pub-creditos-detalle">
+            Servicio farmacéutico preventivo y educativo
+          </p>
+        </div>
+      </div>
+
+      <h2>Ficha técnica</h2>
+      <div class="pub-rejilla-ficha">
+        <div class="pub-ficha-item">
+          <span class="pub-ficha-etiqueta">Aplicación</span>
+          <span class="pub-ficha-valor">Python 3.12 · Django 6.1</span>
+        </div>
+        <div class="pub-ficha-item">
+          <span class="pub-ficha-etiqueta">Base de datos</span>
+          <span class="pub-ficha-valor">SQLite · modelos con migraciones</span>
+        </div>
+        <div class="pub-ficha-item">
+          <span class="pub-ficha-etiqueta">Estáticos</span>
+          <span class="pub-ficha-valor">WhiteNoise · diseño adaptable</span>
+        </div>
+        <div class="pub-ficha-item">
+          <span class="pub-ficha-etiqueta">Notificaciones</span>
+          <span class="pub-ficha-valor">Correo SMTP · recordatorios programados</span>
+        </div>
+        <div class="pub-ficha-item">
+          <span class="pub-ficha-etiqueta">Accesibilidad</span>
+          <span class="pub-ficha-valor">WCAG 2.1 AA · alto contraste y texto grande</span>
+        </div>
+        <div class="pub-ficha-item">
+          <span class="pub-ficha-etiqueta">Seguridad</span>
+          <span class="pub-ficha-valor">HTTPS · cookies seguras · contraseñas cifradas</span>
+        </div>
+      </div>
+
+      <h2>Alcance del uso</h2>
+      <p>
+        Esta es una herramienta de apoyo para el autocuidado responsable y la
+        organización del botiquín. No es un dispositivo médico, no mide signos
+        vitales y no realiza recomendaciones terapéuticas. Ante una duda
+        sobre dosis, interacciones o efectos adversos, la indicación siempre
+        viene del profesional de salud que conoce la historia clínica.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="pub-banda-institucional">
+  <div class="pub-contenedor pub-banda-institucional-interior">
+    <div>
+      <h2 class="pub-titulo-institucional">¿Te organizamos el botiquín?</h2>
+      <p class="pub-parrafo">
+        La herramienta es gratuita y puedes empezar a usarla hoy mismo, con tu
+        correo y los medicamentos que ya tienes en casa.
+      </p>
+    </div>
+    {% if request.user.is_authenticated %}
+      <a class="boton boton-inline" href="{% url 'inicio' %}">Ir a mi botiquín</a>
+    {% else %}
+      <a class="boton boton-inline" href="{% url 'cuentas:registro' %}">Crear mi cuenta</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

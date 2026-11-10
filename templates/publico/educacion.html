@@ -1,0 +1,108 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-portada-interna pub-portada-educacion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <p class="pub-antetitulo">{{ institucion.enfoque }}</p>
+    <h1 class="pub-titulo-portada">Guía de educación sanitaria</h1>
+    <p class="pub-entradilla pub-entradilla-centrada">
+      Recomendaciones prácticas para conservar, usar y desechar los
+      medicamentos del hogar con criterios de prevención y seguridad.
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-alerta-clinica">
+      <span aria-hidden="true">ℹ️</span>
+      <p>{{ aviso_profesional }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-sin-espacio">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-consellos">
+      {% include "botiquin/_consejos_farmacia.html" %}
+    </div>
+    <p class="pub-centro pub-centro-nota">
+      Estas son las mismas recomendaciones que aparecen en el panel de la
+      aplicación y en los correos de alerta, para que el mensaje educativo
+      esté siempre disponible, incluso antes de crear una cuenta.
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-alterna">
+  <div class="pub-contenedor">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Guía práctica</p>
+      <h2 class="pub-titulo-seccion">Claves para un botiquín seguro</h2>
+      <p class="pub-parrafo pub-parrafo-centrada">
+        Seis recomendaciones que la {{ institucion.enfoque }} aplica en el
+        punto de venta y que puedes aplicar en casa desde hoy.
+      </p>
+    </div>
+
+    <div class="pub-rejilla-educacion-secciones">
+      {% for seccion in secciones %}
+        <article class="pub-tarjeta-education">
+          <span class="pub-tarjeta-icono" aria-hidden="true">{{ seccion.icono }}</span>
+          <h3>{{ seccion.titulo }}</h3>
+          <p>{{ seccion.texto }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-prosa">
+      <h2>¿Cuándo consultar de inmediato?</h2>
+      <p>
+        La automedicación y el uso prolongado de medicamentos sin indicación
+        profesional son dos de las causas más frecuentes de intoxicaciones y
+        efectos adversos evitables. Consulta de inmediato si:
+      </p>
+      <ul class="pub-lista-checks">
+        <li>Presentas una reacción alérgica o dificultad respiratoria.</li>
+        <li>Tomas un medicamento y no recuerdas haberlo tomado, o temes una doble dosis.</li>
+        <li>Sufres vómitos o diarrea persistentes que impiden hidratarte.</li>
+        <li>Tu síntoma empeora o aparecen síntomas que antes no tenías.</li>
+        <li>Compartes medicamentos con otra persona o mezclas varias marcas del mismo principio activo.</li>
+      </ul>
+
+      <h2>El autodiagnóstico también es un riesgo</h2>
+      <p>
+        Los síntomas suelen ser compatibles con varias enfermedades y la
+        automedicación puede retrasar la atención o enmascarar la evolución
+        real del cuadro clínico. Mantener el inventario de tu botiquín ordenado
+        ayuda al profesional de salud a entender tu tratamiento actual, pero
+        la orientación es siempre suya.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="pub-cta">
+  <div class="pub-contenedor pub-cta-interior">
+    <div>
+      <h2 class="pub-titulo-cta">Lleva este control a tu casa</h2>
+      <p class="pub-cta-texto">
+        Registra los medicamentos de tu botiquín y recibe las recomendaciones
+        de prevención junto a cada alerta, directo en tu panel.
+      </p>
+    </div>
+    <div class="pub-acciones-principales">
+      {% if request.user.is_authenticated %}
+        <a class="boton boton-inline" href="{% url 'inicio' %}">Ir a mi botiquín</a>
+      {% else %}
+        <a class="boton boton-inline" href="{% url 'cuentas:registro' %}">Crear mi cuenta</a>
+        <a class="boton-secundario" href="{% url 'cuentas:login' %}">Iniciar sesión</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

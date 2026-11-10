@@ -1,0 +1,196 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-portada-interna">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <p class="pub-antetitulo">Legal</p>
+    <h1 class="pub-titulo-portada">Política de privacidad</h1>
+    <p class="pub-entradilla pub-entradilla-centrada">
+      Cómo tratamos los datos personales que registras en Mi Botiquín
+      Digital, conforme a la Ley 1581 de 2012 y su decreto reglamentario.
+    </p>
+    <p class="pub-version">
+      Versión {{ version }} · Última actualización: {{ fecha }}
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-prosa">
+      <h2>1. Responsable del tratamiento</h2>
+      <p>
+        El responsable del tratamiento de los datos personales recogidos en
+        esta aplicación es {{ institucion.nombre }}, {{ institucion.facultad }},
+        {{ institucion.sede }}, en el marco del proyecto de
+        {{ institucion.enfoque }} «{{ sitio.nombre }}», responsable de la
+        autoría {{ institucion.autora }} (código {{ institucion.codigo }}).
+      </p>
+      <p>
+        Para cualquier consulta sobre el tratamiento de tus datos puedes
+        escribirnos{% if institucion.correo %} a
+        <a href="mailto:{{ institucion.correo }}">{{ institucion.correo }}</a>{% endif %}.
+      </p>
+
+      <h2>2. Qué datos recogemos</h2>
+      <p>
+        La aplicación funciona con la información mínima necesaria para cumplir
+        la finalidad descrita. Los datos que el usuario decide registrar son:
+      </p>
+
+      <div class="pub-rejilla-datos">
+        {% for item in datos %}
+          <article class="pub-tarjeta-datos">
+            <span class="pub-tarjeta-icono" aria-hidden="true">{{ item.icono }}</span>
+            <h3>{{ item.titulo }}</h3>
+            <p>{{ item.texto }}</p>
+          </article>
+        {% endfor %}
+      </div>
+
+      <p>
+        <strong> Datos sensibles.</strong> La información de los medicamentos
+        que registras (nombre, dosis habitual, principios activos y pautas de
+        toma) puede revelar información sobre tu estado de salud, por lo que
+        se trata como <em>dato sensible</em> y recibe una protección reforzada:
+        solo es visible para tu cuenta y para las personas con las que
+        compartes el hogar, nunca se publica y no se comparte con terceros con
+        fines comerciales.
+      </p>
+
+      <h2>3. Para qué usamos los datos</h2>
+      <ul class="pub-lista-checks">
+        <li>Crear y mantener tu cuenta, tu hogar y la pertenencia a los integrantes.</li>
+        <li>Registrar y mostrar los medicamentos, las pautas y las alertas que tú agregas.</li>
+        <li>Enviarte las alertas de vencimiento, los recordatorios de toma y los avisos que tú actives.</li>
+        <li>Enviarte el código de verificación para restablecer tu contraseña.</li>
+        <li>Atender solicitudes de soporte y responder tus preguntas.</li>
+        <li>Mantener la seguridad de la aplicación y prevenir usos indebidos.</li>
+      </ul>
+      <p>
+        No vendemos, alquilamos ni cedemos tus datos con fines comerciales, y
+        no los usamos para publicidad.
+      </p>
+
+      <h2>4. Base legal</h2>
+      <p>
+        El tratamiento se sustenta en el <strong>consentimiento</strong> que
+        otorgas al crear la cuenta y al registrar cada medicamento, de
+        conformidad con el artículo 5 de la Ley 1581 de 2012. Ese consentimiento
+        es informado, inequívoco y puedes retirarlo cuando quieras, como se
+        explica en el punto 8 de esta política.
+      </p>
+
+      <h2>5. Conservación de la información</h2>
+      <p>
+        Los datos de la cuenta se conservan mientras la cuenta permanezca
+        activa. Si solicitas la eliminación de tu cuenta, los datos personales
+        se eliminan de forma permanente de la base de datos, salvo aquellos
+        registros que la ley exija conservar (por ejemplo, los registros de
+        auditoría o de seguridad del servidor).
+      </p>
+
+      <h2>6. Quién puede acceder a tus datos</h2>
+      <p>
+        El acceso está limitado a:
+      </p>
+      <ul class="pub-lista-checks">
+        <li>Tu, como titular de la cuenta.</li>
+        <li>Los integrantes del hogar que tú invites, únicamente con los medicamentos que les asignes.</li>
+        <li>El personal autorizado del proyecto, solo cuando sea necesario para dar soporte técnico o atender un reclamo.</li>
+        <li>Los proveedores de infraestructura y de correo electrónico, que tratan los datos únicamente para prestar sus servicios y bajo obligaciones de confidencialidad.</li>
+      </ul>
+      <p>
+        No vendemos tus datos a terceros. Si en el futuro se realizara una
+        transferencia internacional o a un tercero, se te informará
+        previamente y se actualizará esta política.
+      </p>
+
+      <h2>7. Cómo protegemos la información</h2>
+      <ul class="pub-lista-checks">
+        <li>Las contraseñas se almacenan cifradas con funciones de derivación con sal; nunca en texto plano.</li>
+        <li>El sitio se sirve con HTTPS y, en producción, con cookies seguras y redirección a conexión cifrada.</li>
+        <li>Cada consulta filtra por usuario y hogar, de modo que una cuenta no puede ver los datos de otra.</li>
+        <li>Se mantienen registros de acceso y de errores en el servidor para detectar usos anómalos.</li>
+      </ul>
+
+      <h2>8. Tus derechos como titular</h2>
+      <p>
+        La Ley 1581 de 2012 te garantiza, como titular de tus datos, los
+        siguientes derechos, que puedes ejercer en cualquier momento y sin
+        costo:
+      </p>
+      <div class="pub-rejilla-derechos">
+        <article class="pub-derecho">
+          <h3>Conocer</h3>
+          <p>Saber qué datos tuyos están siendo tratados y para qué.</p>
+        </article>
+        <article class="pub-derecho">
+          <h3>Actualizar y rectificar</h3>
+          <p>Corregir la información inexacta o desactualizada de tu cuenta y de tu botiquín.</p>
+        </article>
+        <article class="pub-derecho">
+          <h3>Suprimir</h3>
+          <p>Solicitar la eliminación de tus datos y de tu cuenta.</p>
+        </article>
+        <article class="pub-derecho">
+          <h3>Revocar el consentimiento</h3>
+          <p>Retirar tu autorización para que los datos sean tratados.</p>
+        </article>
+        <article class="pub-derecho">
+          <h3>No ser objeto de decisiones</h3>
+          <p>Que no se tome ninguna decisión automatizada que te afecte.</p>
+        </article>
+        <article class="pub-derecho">
+          <h3>Presentar una reclamación</h3>
+          <p>Ante la Superintendencia de Industria y Comercio (SIC) si consideras que tus derechos fueron vulnerados.</p>
+        </article>
+      </div>
+      <p>
+        Para ejercer estos derechos puedes usar las opciones de tu perfil
+        (editar tus datos, eliminar medicamentos o salir del hogar) o
+        escribirnos{% if institucion.correo %} a
+        <a href="mailto:{{ institucion.correo }}">{{ institucion.correo }}</a>{% endif %}.
+        Responderemos dentro de los plazos previstos por la ley.
+      </p>
+
+      <h2>9. Cookies y tecnologías similares</h2>
+      <ul class="pub-lista-checks">
+        <li><strong>Cookies de sesión:</strong> mantienen tu sesión iniciada y el token de protección CSRF. Son necesarias para que la aplicación funcione.</li>
+        <li><strong>Preferencias de accesibilidad:</strong> el alto contraste, el texto grande y el enfoque de teclado se guardan en el almacenamiento local de tu navegador, no en nuestros servidores.</li>
+      </ul>
+      <p>
+        No utilizamos cookies publicitarias ni de seguimiento en el sitio
+        público. Si en el futuro se incorporan servicios de analítica, esta
+        política se actualizará y se solicitará tu consentimiento cuando sea
+        aplicable.
+      </p>
+
+      <h2>10. Menores de edad</h2>
+      <p>
+        La aplicación está dirigida a mayores de edad y a quienes actúan en
+        representación de un menor. Si un menor crea una cuenta, la persona
+        responsable debe eliminar la cuenta y solicitar la eliminación de los
+        datos que se hayan registrado a su nombre.
+      </p>
+
+      <h2>11. Cambios en esta política</h2>
+      <p>
+        Cualquier modificación se publicará en esta misma página con su
+        versión y fecha de actualización. Si el cambio afecta de manera
+        sustancial tus derechos, se informará además por correo electrónico.
+      </p>
+
+      <h2>12. Contacto</h2>
+      <p>
+        Para cualquier asunto relacionado con la protección de tus datos
+        puedes escribirnos{% if institucion.correo %} a
+        <a href="mailto:{{ institucion.correo }}">{{ institucion.correo }}</a>{% endif %}
+        o utilizar el formulario de restablecimiento de contraseña de la
+        aplicación, que permite recuperar el acceso a tu cuenta de forma
+        segura.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

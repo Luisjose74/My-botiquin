@@ -152,6 +152,7 @@ INSTALLED_APPS = [
     # Apps de Mi Botiquín Digital
     'cuentas.apps.CuentasConfig',
     'botiquin.apps.BotiquinConfig',
+    'publico.apps.PublicoConfig',
 ]
 
 # Modelo de usuario personalizado (debe definirse antes de la primera migración)

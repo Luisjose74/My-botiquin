@@ -5,7 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Mi Botiquín Digital{% endblock %}</title>
+  {% block meta %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+  {% block estilos_extra %}{% endblock %}
   <script>document.documentElement.classList.add("js");</script>
   <noscript>
     <style>
@@ -32,6 +34,7 @@
     <span class="deco-2"></span>
   </div>
 
+  {% block cuerpo %}
   <main class="contenedor">
     {% if messages %}
       <div class="mensajes">
@@ -43,6 +46,7 @@
 
     {% block content %}{% endblock %}
   </main>
+  {% endblock %}
 
   <script>
     (function () {

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo_pagina }} · {{ sitio.nombre }}{% endblock %}
+
+{% block meta %}
+  <meta name="description" content="{{ descripcion_pagina }}">
+  <meta name="keywords" content="{% for clave in sitio.palabras_clave %}{{ clave }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+  <meta name="author" content="{{ institucion.autora }}">
+  <link rel="canonical" href="{{ url_canonica }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ sitio.nombre }}">
+  <meta property="og:title" content="{{ titulo_pagina }} · {{ sitio.nombre }}">
+  <meta property="og:description" content="{{ descripcion_pagina }}">
+  <meta property="og:url" content="{{ url_canonica }}">
+  <meta property="og:locale" content="es_CO">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ titulo_pagina }} · {{ sitio.nombre }}">
+  <meta name="twitter:description" content="{{ descripcion_pagina }}">
+{% endblock %}
+
+{% block estilos_extra %}
+  <link rel="stylesheet" href="{% static 'css/publico.css' %}">
+{% endblock %}
+
+{% block cuerpo %}
+<a class="pub-saltar" href="#contenido">Saltar al contenido principal</a>
+
+<header class="pub-barra">
+  <div class="pub-contenedor pub-barra-interior">
+    <a class="marca" href="{% url 'publico:portada' %}">
+      <span class="marca-logo" aria-hidden="true">✚</span>
+      <span>{{ sitio.nombre }}</span>
+    </a>
+
+    <button class="pub-menu-boton" id="pub-menu-boton" type="button"
+            aria-expanded="false" aria-controls="pub-nav">
+      <span class="pub-menu-linea" aria-hidden="true"></span>
+      <span class="pub-menu-linea" aria-hidden="true"></span>
+      <span class="pub-menu-linea" aria-hidden="true"></span>
+      <span class="pub-solo-lectores">Abrir menú</span>
+    </button>
+
+    <nav class="pub-nav" id="pub-nav" aria-label="Navegación del sitio">
+      <a class="pub-nav-enlace {% if seccion_activa == 'portada' %}activo{% endif %}"
+         href="{% url 'publico:portada' %}">Inicio</a>
+      <a class="pub-nav-enlace" href="{% url 'publico:portada' %}#funciones">Funciones</a>
+      <a class="pub-nav-enlace" href="{% url 'publico:portada' %}#como-funciona">Cómo funciona</a>
+      <a class="pub-nav-enlace {% if seccion_activa == 'educacion' %}activo{% endif %}"
+         href="{% url 'publico:educacion' %}">Educación sanitaria</a>
+      <a class="pub-nav-enlace {% if seccion_activa == 'acerca_de' %}activo{% endif %}"
+         href="{% url 'publico:acerca_de' %}">Acerca de</a>
+    </nav>
+
+    <div class="pub-acciones">
+      {% if request.user.is_authenticated %}
+        <a class="boton boton-inline" href="{% url 'inicio' %}">Ir a mi botiquín</a>
+      {% else %}
+        <a class="boton-secundario" href="{% url 'cuentas:login' %}">Iniciar sesión</a>
+        <a class="boton boton-inline" href="{% url 'cuentas:registro' %}">Crear cuenta</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main class="pub-main" id="contenido">
+  {% if messages %}
+    <div class="pub-contenedor">
+      <div class="mensajes">
+        {% for message in messages %}
+          <div class="alerta {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% block contenido %}{% endblock %}
+</main>
+
+<footer class="pub-pie">
+  <div class="pub-contenedor pub-pie-interior">
+    <div class="pub-pie-columna pub-pie-marca">
+      <a class="marca marca-clara" href="{% url 'publico:portada' %}">
+        <span class="marca-logo" aria-hidden="true">✚</span>
+        <span>{{ sitio.nombre }}</span>
+      </a>
+      <p class="pub-pie-texto">
+        {{ sitio.lema }}. Un proyecto académico de {{ institucion.enfoque }} para
+        promover el uso responsable de los medicamentos en el hogar.
+      </p>
+      <p class="pub-pie-institucion">
+        <strong>{{ institucion.nombre }}</strong><br>
+        {{ institucion.facultad }} · {{ institucion.sede }}
+      </p>
+    </div>
+
+    <nav class="pub-pie-columna" aria-label="Producto">
+      <h2 class="pub-pie-titulo">Producto</h2>
+      <ul class="pub-pie-lista">
+        <li><a href="{% url 'publico:portada' %}">Portada</a></li>
+        <li><a href="{% url 'publico:portada' %}#funciones">Funciones</a></li>
+        <li><a href="{% url 'publico:portada' %}#como-funciona">Cómo funciona</a></li>
+        <li><a href="{% url 'publico:portada' %}#alertas">Alertas de vencimiento</a></li>
+        <li><a href="{% url 'publico:educacion' %}">Educación sanitaria</a></li>
+      </ul>
+    </nav>
+
+    <nav class="pub-pie-columna" aria-label="Institucional">
+      <h2 class="pub-pie-titulo">Institucional</h2>
+      <ul class="pub-pie-lista">
+        <li><a href="{% url 'publico:acerca_de' %}">Acerca del proyecto</a></li>
+        <li><a href="{% url 'publico:privacidad' %}">Política de privacidad</a></li>
+        <li><a href="{% url 'publico:terminos' %}">Términos y condiciones</a></li>
+        <li><a href="{% url 'cuentas:login' %}">Iniciar sesión</a></li>
+        <li><a href="{% url 'cuentas:registro' %}">Crear cuenta</a></li>
+      </ul>
+    </nav>
+
+    <div class="pub-pie-columna">
+      <h2 class="pub-pie-titulo">Contacto</h2>
+      <ul class="pub-pie-lista">
+        {% if institucion.correo %}
+          <li><a href="mailto:{{ institucion.correo }}">{{ institucion.correo }}</a></li>
+        {% endif %}
+        <li>{{ institucion.autora }}</li>
+        <li>Código {{ institucion.codigo }}</li>
+        <li>{{ institucion.sede }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pub-contenedor pub-pie-legal">
+    <p class="pub-aviso">
+      {{ aviso_profesional }}
+    </p>
+    <p class="pub-copyright">
+      © {% now "Y" %} {{ institucion.nombre }} · {{ institucion.enfoque }}.
+      Sitio de uso académico.
+    </p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var boton = document.getElementById("pub-menu-boton");
+    var nav = document.getElementById("pub-nav");
+    if (!boton || !nav) return;
+
+    function alternar(abrir) {
+      nav.classList.toggle("abierto", abrir);
+      boton.setAttribute("aria-expanded", abrir ? "true" : "false");
+    }
+
+    boton.addEventListener("click", function () {
+      alternar(!nav.classList.contains("abierto"));
+    });
+
+    nav.addEventListener("click", function (evento) {
+      if (evento.target.tagName === "A") alternar(false);
+    });
+
+    document.addEventListener("keydown", function (evento) {
+      if (evento.key === "Escape" && nav.classList.contains("abierto")) {
+        alternar(false);
+        boton.focus();
+      }
+    });
+  })();
+</script>
+{% endblock %}

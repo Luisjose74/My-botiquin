@@ -1,0 +1,8 @@
+"""Configuración de la app de páginas públicas e institucionales."""
+from django.apps import AppConfig
+
+
+class PublicoConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "publico"
+    verbose_name = "Páginas públicas e institucionales"

@@ -1,0 +1,342 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-hero">
+  <div class="pub-contenedor pub-hero-interior">
+    <div class="pub-hero-texto">
+      <p class="pub-antetitulo">
+        <span class="pub-insignia">{{ institucion.enfoque }}</span>
+        <span class="pub-insignia pub-insignia-suave">{{ institucion.sigla }}</span>
+      </p>
+      <h1 class="pub-titulo-hero">
+        Organiza, cuida y<br>
+        <span class="pub-resaltado">nunca olvides</span><br>
+        tus medicamentos
+      </h1>
+      <p class="pub-entradilla">
+        Mi Botiquín Digital convierte el botiquín físico del hogar en un
+        inventario ordenado y supervisado: registra cada caja, te avisa 30, 15
+        y 5 días antes de que algo venza y comparte el control con tu familia.
+      </p>
+
+      <div class="pub-acciones-principales">
+        {% if request.user.is_authenticated %}
+          <a class="boton boton-inline" href="{% url 'inicio' %}">Ir a mi botiquín</a>
+        {% else %}
+          <a class="boton boton-inline" href="{% url 'cuentas:registro' %}">Crear mi botiquín gratis</a>
+          <a class="boton-secundario" href="{% url 'cuentas:login' %}">Ya tengo cuenta</a>
+        {% endif %}
+      </div>
+
+      <ul class="pub-garantias">
+        <li><span aria-hidden="true">✅</span> Sin costo para las familias</li>
+        <li><span aria-hidden="true">📱</span> Desde el celular o la computadora</li>
+        <li><span aria-hidden="true">🔒</span> Datos protegidos con HTTPS</li>
+      </ul>
+    </div>
+
+    <div class="pub-hero-visual" aria-hidden="true">
+      <div class="pub-mock">
+        <div class="pub-mock-barra">
+          <span class="pub-mock-punto"></span>
+          <span class="pub-mock-punto"></span>
+          <span class="pub-mock-punto"></span>
+          <span class="pub-mock-titulo">Mi botiquín</span>
+        </div>
+
+        <div class="pub-mock-stats">
+          <div class="pub-mock-stat">
+            <b>12</b><span>Registrados</span>
+          </div>
+          <div class="pub-mock-stat pub-mock-stat-ok">
+            <b>9</b><span>Óptimos</span>
+          </div>
+          <div class="pub-mock-stat pub-mock-stat-warn">
+            <b>2</b><span>Por vencer</span>
+          </div>
+          <div class="pub-mock-stat pub-mock-stat-bad">
+            <b>1</b><span>Vencido</span>
+          </div>
+        </div>
+
+        <ul class="pub-mock-lista">
+          <li>
+            <span class="pub-mock-icono">⏳</span>
+            <span class="pub-mock-datos">
+              <strong>Amoxicilina 500 mg</strong>
+              <small>Vence en 12 días · aviso de 15 días</small>
+            </span>
+          </li>
+          <li>
+            <span class="pub-mock-icono">📉</span>
+            <span class="pub-mock-datos">
+              <strong>Paracetamol</strong>
+              <small>Quedan 2 unidades</small>
+            </span>
+          </li>
+          <li>
+            <span class="pub-mock-icono">⚠️</span>
+            <span class="pub-mock-datos">
+              <strong>Jarabe para la tos</strong>
+              <small>Venció el 3 de octubre</small>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-banda-confianza">
+  <div class="pub-contenedor pub-banda-interior">
+    <p class="pub-banda-texto">
+      Basado en la necesidad insatisfecha detectada en el mercadeo: en muchos
+      hogares se acumulan medicamentos sin control de vencimiento,
+      conservación ni cantidad disponible.
+    </p>
+    <a class="pub-banda-enlace" href="{% url 'publico:acerca_de' %}">
+      Conoce el origen del proyecto →
+    </a>
+  </div>
+</section>
+
+<section class="pub-seccion" id="problema">
+  <div class="pub-contenedor">
+    <div class="pub-dos-columnas">
+      <div>
+        <p class="pub-antetitulo">El problema</p>
+        <h2 class="pub-titulo-seccion">Un botiquín sin control es un riesgo</h2>
+        <p class="pub-parrafo">
+          La mayoría de las familias guarda los medicamentos en una repisa, sin
+          saber con certeza qué hay, cuánto queda, dónde se conserva cada
+          producto ni cuándo vence. El resultado son cajas vencidas que se
+          siguen usando, compras repetidas de lo que ya tienes y medicamentos
+          que se estropean porque se guardaron mal.
+        </p>
+        <p class="pub-parrafo">
+          Mi Botiquín Digital no vende medicamentos ni sustituye la consulta
+          profesional: organiza lo que ya tienes en casa y te avisa a tiempo
+          para que decidas con criterio.
+        </p>
+      </div>
+
+      <ul class="pub-lista-problemas">
+        <li>
+          <span aria-hidden="true">📅</span>
+          <div>
+            <strong>Fechas de vencimiento que nadie revisa</strong>
+            <small>Los medicamentos vencidos cambian su eficacia o pueden volverse nocivos.</small>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">🌡️</span>
+          <div>
+            <strong>Almacenamiento deficiente</strong>
+            <small>La humedad, el calor y la luz degradan muchos principios activos.</small>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">🧾</span>
+          <div>
+            <strong>Inventario que nadie conoce</strong>
+            <small>En hogares con varias personas nadie sabe qué toma cada integrante.</small>
+          </div>
+        </li>
+        <li>
+          <span aria-hidden="true">💸</span>
+          <div>
+            <strong>Compra de lo que ya se tiene</strong>
+            <small>Sin control de existencias se repiten productos y se acumulan caducidades.</small>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-alterna" id="funciones">
+  <div class="pub-contenedor">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Funciones</p>
+      <h2 class="pub-titulo-seccion">Todo lo que el botiquín digital hace por ti</h2>
+      <p class="pub-parrafo pub-parrafo-centrado">
+        Un inventario claro, avisos oportunos y educación sanitaria en un solo
+        lugar, pensado para funcionar desde cualquier dispositivo.
+      </p>
+    </div>
+
+    <div class="pub-rejilla-funciones">
+      {% for funcion in funciones %}
+        <article class="pub-tarjeta animar" style="--d: {{ forloop.counter0 }}0ms">
+          <span class="pub-tarjeta-icono" aria-hidden="true">{{ funcion.icono }}</span>
+          <h3>{{ funcion.titulo }}</h3>
+          <p>{{ funcion.texto }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion" id="alertas">
+  <div class="pub-contenedor">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Alertas de vencimiento</p>
+      <h2 class="pub-titulo-seccion">Un aviso escalonado: 30, 15 y 5 días</h2>
+      <p class="pub-parrafo pub-parrafo-centrado">
+        Cada hito se avisa por separado y solo una vez, para que puedas actuar
+        con calma: continuar el tratamiento si está indicado, comprar antes de
+        que se agote o retirar el producto cuando ya no sirve.
+      </p>
+    </div>
+
+    <div class="pub-tabla-envoltura">
+      <table class="pub-tabla">
+        <caption class="pub-solo-lectores">
+          Días que faltan para el vencimiento y aviso generado
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Días que faltan</th>
+            <th scope="col">Alerta en el panel</th>
+            <th scope="col">Qué significa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for hito in hitos %}
+            <tr>
+              <th scope="row">{{ hito.dias }}</th>
+              <td><span class="pub-tag pub-tag-{{ forloop.counter }}">{{ hito.alerta }}</span></td>
+              <td>{{ hito.comportamiento }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="pub-centro pub-centro-nota">
+      Además, la aplicación avisa cuando un medicamento se agota o cuando quedan
+      dos unidades o menos.
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-alterna" id="como-funciona">
+  <div class="pub-contenedor">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Cómo funciona</p>
+      <h2 class="pub-titulo-seccion">Empezar toma menos de cinco minutos</h2>
+    </div>
+
+    <ol class="pub-pasos">
+      {% for paso in pasos %}
+        <li class="pub-paso animar" style="--d: {{ forloop.counter0 }}0ms">
+          <span class="pub-paso-numero" aria-hidden="true">{{ paso.numero }}</span>
+          <h3>{{ paso.titulo }}</h3>
+          <p>{{ paso.texto }}</p>
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+<section class="pub-seccion" id="para-quien">
+  <div class="pub-contenedor">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">¿Para quién es?</p>
+      <h2 class="pub-titulo-seccion">Pensado para hogares y para el cuidado de otros</h2>
+    </div>
+
+    <div class="pub-rejilla-perfiles">
+      {% for perfil in perfiles %}
+        <article class="pub-perfil">
+          <span class="pub-perfil-icono" aria-hidden="true">{{ perfil.icono }}</span>
+          <h3>{{ perfil.titulo }}</h3>
+          <p>{{ perfil.texto }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-educacion">
+  <div class="pub-contenedor pub-rejilla-educacion">
+    <div>
+      <p class="pub-antetitulo">Educación sanitaria</p>
+      <h2 class="pub-titulo-seccion">El enfoque de {{ institucion.enfoque }}</h2>
+      <p class="pub-parrafo">
+        La aplicación no solo registra: también enseña. Junto a las alertas,
+        el panel incluye recomendaciones preventivas para conservar bien
+        los medicamentos, evitar la automedicación y saber cuándo consultar a
+        un profesional de salud.
+      </p>
+      <p class="pub-parrafo">
+        <a class="pub-enlace-fuerte" href="{% url 'publico:educacion' %}">
+          Ver la guía completa de educación sanitaria →
+        </a>
+      </p>
+    </div>
+
+    <div class="pub-educacion-panel">
+      {% include "botiquin/_consejos_farmacia.html" %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-alterna" id="preguntas">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Preguntas frecuentes</p>
+      <h2 class="pub-titulo-seccion">Lo que suelen preguntarnos</h2>
+    </div>
+
+    <div class="pub-faq">
+      {% for item in faq %}
+        <details class="pub-faq-item">
+          <summary class="pub-faq-pregunta">
+            {{ item.pregunta }}
+            <span class="pub-faq-icono" aria-hidden="true">＋</span>
+          </summary>
+          <div class="pub-faq-respuesta">
+            <p>{{ item.respuesta }}</p>
+          </div>
+        </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-cta">
+  <div class="pub-contenedor pub-cta-interior">
+    <div>
+      <h2 class="pub-titulo-cta">Empieza a ordenar el botiquín de tu casa</h2>
+      <p class="pub-cta-texto">
+        Crea tu cuenta gratis y registra el primer medicamento. En menos de
+        cinco minutos tendrás el control de tu botiquín en la palma de la mano.
+      </p>
+    </div>
+    <div class="pub-acciones-principales">
+      {% if request.user.is_authenticated %}
+        <a class="boton boton-inline" href="{% url 'inicio' %}">Ir a mi botiquín</a>
+      {% else %}
+        <a class="boton boton-inline" href="{% url 'cuentas:registro' %}">Crear mi cuenta</a>
+        <a class="boton-secundario" href="{% url 'cuentas:login' %}">Iniciar sesión</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-banda-institucional">
+  <div class="pub-contenedor pub-banda-institucional-interior">
+    <div>
+      <p class="pub-antetitulo">Proyecto institucional</p>
+      <h2 class="pub-titulo-institucional">{{ institucion.nombre }}</h2>
+      <p class="pub-parrafo">
+        {{ institucion.facultad }} · {{ institucion.sede }}.<br>
+        Desarrollado por {{ institucion.autora }} (código {{ institucion.codigo }})
+        en el marco de {{ institucion.enfoque }}.
+      </p>
+    </div>
+    <a class="boton-secundario" href="{% url 'publico:acerca_de' %}">Conoce el proyecto</a>
+  </div>
+</section>
+{% endblock %}

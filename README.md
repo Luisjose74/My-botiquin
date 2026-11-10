@@ -9,6 +9,19 @@ Incluye además un **sitio público** (portada, guía de educación sanitaria,
 página institucional y textos legales) y un **panel privado** para las
 familias que usan la herramienta.
 
+## Estructura del sitio
+
+| Dirección | Página | Acceso |
+| --- | --- | --- |
+| `/` | Portada pública (qué es el proyecto, funciones, FAQ) | Público |
+| `/educacion/` | Guía de educación sanitaria (Regencia de Farmacia) | Público |
+| `/acerca-de/` | Página institucional (origen, metodología, créditos) | Público |
+| `/privacidad/` | Política de privacidad (Ley 1581 de 2012) | Público |
+| `/terminos/` | Términos y condiciones de uso | Público |
+| `/app/` | Panel de la aplicación (resumen del botiquín) | Con sesión |
+| `/botiquin/…` | Inventario, alertas, pautas y tomas | Con sesión |
+| `/cuentas/…` | Registro, perfil, hogar compartido | Mixto |
+
 ## Requisitos
 
 - Python 3.12+
@@ -291,3 +304,14 @@ Para ejecutarlo automáticamente cada hora en Windows, sigue la guía
 ```powershell
 python manage.py test
 ```
+
+## Paquete de entrega
+
+Para generar el ZIP con el código fuente (sin base de datos, entornos
+virtuales ni archivos subidos):
+
+```powershell
+python scripts/empaquetar_entrega.py
+```
+
+Se crea `MiBotiquinDigital-entrega.zip` en la raíz del proyecto.

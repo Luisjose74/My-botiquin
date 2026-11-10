@@ -15,7 +15,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("cuentas/", include("cuentas.urls")),
     path("botiquin/", include("botiquin.urls")),
-    path("", inicio, name="inicio"),
+    # Panel privado de la aplicación (requiere iniciar sesión).
+    path("app/", inicio, name="inicio"),
+    # Páginas públicas e institucionales (portada, educación, legales).
+    path("", include("publico.urls")),
 ]
 
 if settings.DEBUG:
