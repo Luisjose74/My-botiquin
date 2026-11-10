@@ -51,12 +51,14 @@
           día{{ medicamento.dias_vencido|pluralize }}. No debe utilizarse;
           consulta cómo desecharlo de forma segura.
         </div>
+        {% include "botiquin/_consejos_farmacia.html" %}
       {% elif medicamento.estado == 'proximo' %}
         <div class="aviso aviso-warn">
           ⏳ Vence en {{ medicamento.dias_para_vencer }}
           día{{ medicamento.dias_para_vencer|pluralize }}. Úsalo pronto o
           consulta a tu servicio farmacéutico.
         </div>
+        {% include "botiquin/_consejos_farmacia.html" %}
       {% elif medicamento.estado == 'agotado' %}
         <div class="aviso aviso-info">
           📦 No quedan unidades de este medicamento en el botiquín.

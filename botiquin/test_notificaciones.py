@@ -14,10 +14,10 @@ from cuentas.models import Usuario
 from .alertas import sincronizar_alertas
 from .models import Alerta, Categoria, Medicamento
 
-LOCMEM = {"default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"}}
+LOCMEM = "django.core.mail.backends.locmem.EmailBackend"
 
 
-@override_settings(MAILERS=LOCMEM)
+@override_settings(EMAIL_BACKEND=LOCMEM)
 class StockBajoTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -62,7 +62,7 @@ class StockBajoTests(TestCase):
 
         sincronizar_alertas(self.usuario, notificar=False)
 
-        self.assertEqual(self.tipos(), {"Prioritario": "por_vencer"})
+        self.assertEqual(self.tipos(), {"Prioritario": "por_vencer_15"})
 
     def test_recuperar_stock_elimina_la_alerta(self):
         medicamento = self.crear("Repuesto", 200, 2)
@@ -72,8 +72,13 @@ class StockBajoTests(TestCase):
         medicamento.save()
         resultado = sincronizar_alertas(self.usuario, notificar=False)
 
-        self.assertEqual(resultado, {"creadas": 0, "eliminadas": 1})
-        self.assertFalse(Alerta.objects.filter(medicamento=medicamento).exists())
+        self.assertEqual(resultado["archivadas"], 1)
+        self.assertEqual(resultado["eliminadas"], 0)
+        alerta = Alerta.objects.get(medicamento=medicamento)
+        self.assertTrue(alerta.archivada)
+        self.assertFalse(
+            Alerta.objects.filter(usuario=self.usuario, leida=False).exists()
+        )
 
     def test_panel_muestra_stock_bajo(self):
         self.crear("Pocas unidades", 200, 2)
@@ -86,7 +91,7 @@ class StockBajoTests(TestCase):
         self.assertContains(respuesta, "Stock bajo")
 
 
-@override_settings(MAILERS=LOCMEM, SITE_URL="https://demo.ngrok-free.app")
+@override_settings(EMAIL_BACKEND=LOCMEM, SITE_URL="https://demo.ngrok-free.app")
 class NotificacionesCorreoTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -129,7 +134,7 @@ class NotificacionesCorreoTests(TestCase):
         self.assertEqual(correo.to, ["paciente@example.com"])
         self.assertIn("2 alertas nuevas", correo.subject)
         self.assertIn("Ibuprofeno: vencido", correo.body)
-        self.assertIn("Amoxicilina: próximo a vencer", correo.body)
+        self.assertIn("Amoxicilina: vence en 15 días", correo.body)
         self.assertIn("https://demo.ngrok-free.app/botiquin/alertas/", correo.body)
         self.assertEqual(len(correo.alternatives), 1)
 

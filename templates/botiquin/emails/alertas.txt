@@ -10,4 +10,5 @@ Tienes {{ total }} alerta{{ total|pluralize:",s" }} nueva{{ total|pluralize:",s"
 {% endif %}
 Puedes cambiar cómo quieres recibir las alertas en tu perfil.
 
+{% include "botiquin/_consejos_farmacia.txt" %}
 Mi Botiquín Digital

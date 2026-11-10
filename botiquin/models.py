@@ -97,6 +97,9 @@ class MedicamentoQuerySet(models.QuerySet):
 class Medicamento(models.Model):
     UMBRAL_ALERTA_DIAS = 30  # días previos al vencimiento para alertar
     UMBRAL_STOCK_BAJO = 2  # unidades o menos (y mayores que cero) = stock bajo
+    # Hitos de aviso de vencimiento (días que faltan). El aviso más cercano
+    # al vencimiento es el que queda activo; los anteriores se archivan.
+    HITOS_VENCIMIENTO = (30, 15, 5)
 
     # Quién registra y quién lo usa
     usuario = models.ForeignKey(
@@ -253,7 +256,9 @@ class Medicamento(models.Model):
 class Alerta(models.Model):
     TIPOS = [
         ("vencido", "Medicamento vencido"),
-        ("por_vencer", "Próximo a vencer"),
+        ("por_vencer_30", "Vence en 30 días"),
+        ("por_vencer_15", "Vence en 15 días"),
+        ("por_vencer_5", "Vence en 5 días"),
         ("agotado", "Sin existencias"),
         ("stock_bajo", "Stock bajo"),
     ]
@@ -277,6 +282,12 @@ class Alerta(models.Model):
     mensaje = models.CharField("Mensaje", max_length=255)
     leida = models.BooleanField("Leída", default=False)
     notificada = models.BooleanField("Notificación enviada", default=False)
+    archivada = models.BooleanField(
+        "Archivada",
+        default=False,
+        help_text="El hito de aviso ya fue superado (por ejemplo, el aviso de 30 días "
+                  "cuando el medicamento entra en la ventana de 15 días).",
+    )
     creada = models.DateTimeField("Creada el", auto_now_add=True)
 
     class Meta:

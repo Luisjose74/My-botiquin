@@ -17,10 +17,14 @@ if (-not $ip) {
 if (-not $ip) { $ip = "127.0.0.1" }
 
 Write-Host ""
-Write-Host "=== Mi Botiquín Digital — modo LAN ===" -ForegroundColor Cyan
+Write-Host "=== Mi Botiquín Digital — modo LAN (demostración) ===" -ForegroundColor Cyan
 Write-Host "IP local detectada: $ip"
 Write-Host "URL de acceso:     http://$ip`:8000"
 Write-Host "URL local:         http://localhost:8000"
+Write-Host ""
+Write-Host "Modo demostración: se activa DJANGO_DEBUG=True para permitir el acceso" -ForegroundColor Yellow
+Write-Host "desde la red local (la IP cambia y no puede fijarse en ALLOWED_HOSTS)." -ForegroundColor Yellow
+Write-Host "Para una instalación real usa DJANGO_DEBUG=False con tu dominio y HTTPS." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Asegúrate de que el firewall permita el puerto 8000 (ver instrucciones abajo)."
 Write-Host "Para detener el servidor: Ctrl+C"
@@ -39,5 +43,9 @@ try {
 } catch {
     Write-Host "No se pudo crear la regla de firewall automáticamente (ejecuta como administrador si es necesario)." -ForegroundColor Yellow
 }
+
+# Modo demostración: permite el acceso desde cualquier IP de la red local
+# (la IP puede cambiar y no puede fijarse en ALLOWED_HOSTS).
+$env:DJANGO_DEBUG = "True"
 
 python manage.py runserver 0.0.0.0:8000

@@ -25,22 +25,25 @@ def sincronizar_alertas_todos():
     ).distinct()
 
     total_creadas = 0
+    total_archivadas = 0
     total_eliminadas = 0
     for usuario in usuarios:
         try:
             resultado = sincronizar_alertas(usuario)
             total_creadas += resultado["creadas"]
+            total_archivadas += resultado["archivadas"]
             total_eliminadas += resultado["eliminadas"]
         except Exception as exc:  # noqa: BLE001
             logger.exception("Error sincronizando alertas de %s: %s", usuario.pk, exc)
 
     logger.info(
-        "Alertas vencimiento %s: creadas=%d, eliminadas=%d",
-        ahora.strftime("%H:%M"), total_creadas, total_eliminadas,
+        "Alertas vencimiento %s: creadas=%d, archivadas=%d, eliminadas=%d",
+        ahora.strftime("%H:%M"), total_creadas, total_archivadas, total_eliminadas,
     )
     print(
         f"[alertas-vencimiento] {ahora.strftime('%H:%M')}: "
-        f"creadas={total_creadas}, eliminadas={total_eliminadas}",
+        f"creadas={total_creadas}, archivadas={total_archivadas}, "
+        f"eliminadas={total_eliminadas}",
         flush=True,
     )
     return total_creadas, total_eliminadas

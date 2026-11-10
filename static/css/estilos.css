@@ -1636,9 +1636,15 @@ a:hover { text-decoration: underline; }
     opacity 200ms var(--ease-out);
 }
 .alerta-item.tipo-vencido { border-left-color: #d94a4a; }
-.alerta-item.tipo-por_vencer { border-left-color: #e0a11a; }
+.alerta-item.tipo-por_vencer_30 { border-left-color: #4b8ff0; }
+.alerta-item.tipo-por_vencer_15 { border-left-color: #e0a11a; }
+.alerta-item.tipo-por_vencer_5 { border-left-color: #e2603a; }
 .alerta-item.tipo-agotado { border-left-color: #7b879e; }
 .alerta-item.tipo-stock_bajo { border-left-color: var(--blue); }
+.consejos-farmacia ul { margin: 0; padding-left: 18px; }
+.consejos-farmacia li { margin-bottom: 5px; }
+.consejos-farmacia li:last-child { margin-bottom: 0; }
+.consejos-farmacia strong { color: var(--blue-dark, #0b2a6f); }
 .alerta-item.leida { opacity: 0.62; background: #fff; }
 .alerta-icono {
   display: inline-grid;

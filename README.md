@@ -2,7 +2,12 @@
 
 Aplicación web para gestionar el inventario de medicamentos de un hogar:
 registro con foto de la caja, categorías, fechas de vencimiento, cantidades,
-ubicación y alertas de vencimiento.
+ubicación, alertas escalonadas de vencimiento (30, 15 y 5 días) y recomendaciones
+de atención farmacéutica preventiva (Regencia de Farmacia).
+
+Incluye además un **sitio público** (portada, guía de educación sanitaria,
+página institucional y textos legales) y un **panel privado** para las
+familias que usan la herramienta.
 
 ## Requisitos
 
@@ -15,8 +20,46 @@ ubicación y alertas de vencimiento.
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
+copy .env.example .env
 python manage.py migrate
+python manage.py createsuperuser
 python manage.py runserver
+```
+
+En producción (o en una copia de entrega) hay que recopilar los archivos
+estáticos, que WhiteNoise sirve cuando `DJANGO_DEBUG=False`:
+
+```powershell
+python manage.py collectstatic --noinput
+```
+
+> Con `DJANGO_DEBUG=False`, `runserver` sigue sirviendo los estáticos gracias a
+> WhiteNoise, siempre que se haya ejecutado `collectstatic` al menos una vez.
+
+## Configuración (`.env`)
+
+Todas las variables están documentadas en `.env.example`. Las essentials:
+
+| Variable | Para qué sirve |
+| --- | --- |
+| `DJANGO_DEBUG` | `False` en producción. Sin `DJANGO_SECRET_KEY` la app no arranca. |
+| `DJANGO_SECRET_KEY` | Clave secreta: `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
+| `ALLOWED_HOSTS` | Dominios permitidos, separados por coma. Nunca `*` en producción. |
+| `CSRF_TRUSTED_ORIGINS` | Se deriva de `ALLOWED_HOSTS` si lo dejas vacío. |
+| `SITE_URL` | URL pública; se usa en los enlaces de los correos. |
+| `DJANGO_TRAS_PROXY_HTTPS` | `True` si la app está detrás de un túnel HTTPS (ngrok). |
+| `DJANGO_SECURE_SSL_REDIRECT` | Redirige todo el tráfico a HTTPS. |
+| `DJANGO_SESSION_COOKIE_SECURE` / `DJANGO_CSRF_COOKIE_SECURE` | Cookies solo por HTTPS. |
+| `DJANGO_SECURE_HSTS_SECONDS` | HSTS (`31536000` con dominio estable, `0` en túneles). |
+| `EMAIL_*` | Configuración SMTP estándar de Django. |
+
+Los flags de HTTPS se activan por defecto cuando `DJANGO_DEBUG=False`, y se
+pueden apagar por `.env` para probar en la red local sin certificado.
+
+Comprobación rápida de la configuración de seguridad:
+
+```powershell
+python manage.py check --deploy
 ```
 
 ## Acceso en red local (LAN) y túneles
@@ -57,60 +100,68 @@ Notas:
   (Windows Defender → Firewall → "Permitir una aplicación") o el antivirus.
 - Para túneles HTTPS (ngrok, cloudflared) sigue la sección "Feria / URL pública".
 
-## Correo electrónico (recuperación de contraseña)
+## Correo electrónico (SMTP)
 
-El envío se hace por SMTP (Gmail). Las credenciales se leen de variables de
-entorno o del archivo `.env` (no se sube a GitHub).
+El envío usa la **configuración estándar de Django** (`EMAIL_BACKEND`,
+`EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`,
+`EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`), leída de `.env`.
 
 1. Copia `.env.example` a `.env`.
 2. Crea una cuenta dedicada de Gmail (recomendado) y activa la verificación
    en dos pasos.
 3. Genera una **contraseña de aplicación** en
-   https://myaccount.google.com/apppasswords
+   https://myaccount.google.com/apppasswords (16 caracteres, sin espacios).
 4. Completa `.env`:
 
 ```
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
 EMAIL_HOST_USER=tu-cuenta@gmail.com
-EMAIL_HOST_PASSWORD=xxxx xxxx xxxx xxxx
+EMAIL_HOST_PASSWORD=xxxxxxxxxxxxxxxx
 DEFAULT_FROM_EMAIL=Mi Botiquín Digital <tu-cuenta@gmail.com>
+EMAIL_TIMEOUT=10
 ```
 
-5. Prueba el envío desde la consola de Django:
+5. Prueba el envío:
 
 ```powershell
-python manage.py shell
+# Prueba local: captura el correo en un servidor SMTP interno (sin internet)
+python scripts/probar_correo.py --local
+
+# Prueba real: envía con el SMTP configurado en .env
+python scripts/probar_correo.py --real tu-correo@ejemplo.com
 ```
 
-```python
-from django.core.mail import send_mail
-send_mail(
-    "Prueba Mi Botiquín Digital",
-    "Si lees esto, el SMTP funciona correctamente.",
-    "tu-cuenta@gmail.com",
-    ["tu-correo@ejemplo.com"],
-)
-```
+Si no llega, revisa la carpeta de spam la primera vez. Si el error es
+`SMTPServerDisconnected` durante la autenticación, la contraseña de aplicación
+es incorrecta o fue revocada: genera una nueva.
 
-Si no llega, revisa la carpeta de spam la primera vez.
+> **Importante:** si una contraseña de aplicación se ha compartido o quedó
+> expuesta, revócala en Google y genera otra. No la guardes en el repositorio.
 
-## Feria / URL pública
+## Feria / URL pública (túnel HTTPS)
 
 Para exponer la app con un túnel (ngrok, cloudflared, etc.) en `.env`:
 
 ```
-DJANGO_DEBUG=True
+DJANGO_DEBUG=False
 DJANGO_TRAS_PROXY_HTTPS=True
+DJANGO_SECURE_SSL_REDIRECT=True
+DJANGO_SESSION_COOKIE_SECURE=True
+DJANGO_CSRF_COOKIE_SECURE=True
 ALLOWED_HOSTS=tu-dominio.ngrok-free.app,localhost,127.0.0.1
 SITE_URL=https://tu-dominio.ngrok-free.app
 ```
 
 - `CSRF_TRUSTED_ORIGINS` se deriva solo de `ALLOWED_HOSTS` (`https://tu-dominio...`).
   Defínelo a mano solo si necesitas otros orígenes.
-- Mantén `DJANGO_DEBUG=True` para la demostración: con `False` Django no sirve
-  los archivos estáticos (CSS) y la página se ve sin estilo.
+- Con la URL pública de ngrok cambia en cada arranque: actualiza `ALLOWED_HOSTS`
+  y `SITE_URL` con la nueva.
+- Ejecuta `python manage.py collectstatic --noinput` antes de la demostración
+  (con `DEBUG=False` los estilos los sirve WhiteNoise desde `staticfiles/`).
 - Los enlaces de los correos usan `SITE_URL`, así que llegan con la URL pública.
 
 ## Seguridad y producción
@@ -119,21 +170,90 @@ SITE_URL=https://tu-dominio.ngrok-free.app
   `python -c "import secrets; print(secrets.token_urlsafe(50))"`).
 - Con `DJANGO_DEBUG=False` la aplicación no arranca sin `DJANGO_SECRET_KEY`.
 - Nunca subas `.env` al repositorio.
+- Con `DEBUG=False` se activan cookies seguras y redirección a HTTPS; se
+  pueden desactivar por `.env` para uso local en HTTP.
+- `python manage.py check --deploy` lista los avisos de seguridad pendientes.
 
-## Alertas por correo
+## Alertas de vencimiento (30, 15 y 5 días)
 
 Cada alerta aparece en el panel. Si el usuario eligió el canal **Correo
-electrónico** en su perfil, además recibe un único correo con las alertas nuevas
-(no se repiten las ya enviadas).
+electrónico** en su perfil, además recibe un correo con las alertas nuevas (no
+se repiten las ya enviadas).
 
-Tipos de alerta (en orden de prioridad): agotado, vencido, próximo a vencer
-(30 días o menos) y stock bajo (2 unidades o menos).
+Tipos de alerta (en orden de prioridad): agotado, vencido, próximo a vencer y
+stock bajo (2 unidades o menos).
+
+El aviso de vencimiento es **escalonado en tres hitos independientes**:
+
+| Días que faltan | Alerta | Comportamiento |
+| --- | --- | --- |
+| 31 o más | — | Sin aviso. |
+| 16 a 30 | `por_vencer_30` | Primer aviso. |
+| 6 a 15 | `por_vencer_15` | El aviso de 30 días queda archivado. |
+| 1 a 5 | `por_vencer_5` | El aviso de 15 días queda archivado. |
+| Vencido | `vencido` | Aviso permanente hasta que se disponga del medicamento. |
+
+Cada hito se avisa por correo una sola vez (controlado por `Alerta.notificada`).
+El aviso de "vencido" permanece activo en el panel mientras el medicamento siga
+vencido en el inventario.
 
 Para recalcular alertas y enviar correos sin abrir la app:
 
 ```powershell
 python manage.py sincronizar_alertas
 ```
+
+## Atención farmacéutica preventiva (Regencia de Farmacia)
+
+La app incluye recomendaciones educativas en el panel de alertas, en el detalle
+del medicamento y en los correos:
+
+- No consumas medicamentos vencidos (y entrégalos en puntos de recolección).
+- Evita la automedicación.
+- Respeta las condiciones de almacenamiento (fresco, seco, sin luz, en su
+  envase original y fuera del alcance de los niños).
+- No compartas medicamentos.
+- Consulta al personal de salud ante dudas de dosis, interacciones o efectos
+  adversos.
+
+El texto está centralizado en `templates/botiquin/_consejos_farmacia.html`
+(HTML) y `templates/botiquin/_consejos_farmacia.txt` (correo en texto plano),
+de modo que se actualiza desde un solo lugar. La página pública
+`/educacion/` reutiliza ese mismo bloque, así que el mensaje educativo es
+idéntico en el sitio, en la app y en los correos.
+
+## Páginas públicas e institucionales
+
+La app `publico` sirve el sitio público, sin iniciar sesión:
+
+| Página | Archivo | Contenido |
+| --- | --- | --- |
+| Portada | `templates/publico/portada.html` | Hero, problema, funciones, tabla de hitos de vencimiento, pasos, perfiles, preguntas frecuentes y llamadas a la acción. |
+| Educación sanitaria | `templates/publico/educacion.html` | Guía preventiva (almacenamiento, desecho seguro, señales de alarma, interacciones) y cuándo consultar de inmediato. |
+| Institucional | `templates/publico/acerca_de.html` | Origen, propósito/misión/visión, metodología de Regencia de Farmacia, qué hace y qué no hace, créditos y ficha técnica. |
+| Privacidad | `templates/publico/privacidad.html` | Tratamiento de datos conforme a la Ley 1581 de 2012: responsable, datos, finalidad, base legal, seguridad, derechos del titular, cookies y menores de edad. |
+| Términos | `templates/publico/terminos.html` | Objeto, uso del servicio, alcance clínico, propiedad intelectual, limitación de responsabilidad y legislación aplicable. |
+
+Todo el contenido institucional y educativo se edita desde **un solo
+archivo**: `publico/contenido.py` (datos de la institución, funciones, pasos,
+hitos, preguntas frecuentes y secciones de la guía). Los datos de la
+institución también se pueden sobrescribir por entorno sin tocar el código:
+
+```bash
+CONTACTO_CORREO=regencia.farmacia@uptc.edu.co
+INSTITUCION_NOMBRE=Universidad ...
+INSTITUCION_AUTORA=Nombre Apellido
+```
+
+Si no se define `CONTACTO_CORREO`, se usa la dirección remitente de
+`DEFAULT_FROM_EMAIL`.
+
+Las páginas públicas incluyen metadatos para buscadores (descripción,
+canonical y Open Graph), enlace de salto al contenido, navegación adaptable
+con menú en móvil y el aviso de que el contenido es educativo y no reemplaza
+la consulta profesional.
+
+## Recordatorios de toma y programación
 
 Para enviar las alertas matutinas de tomas del día (según las pautas activas):
 
@@ -165,3 +285,9 @@ Programa `enviar_alertas_tomas` a primera hora del día (una vez) y
 
 Para ejecutarlo automáticamente cada hora en Windows, sigue la guía
 [docs/automatizacion-windows.md](docs/automatizacion-windows.md).
+
+## Pruebas
+
+```powershell
+python manage.py test
+```

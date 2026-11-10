@@ -53,10 +53,93 @@ class AlertasYPanelTests(TestCase):
         self.assertEqual(
             tipos,
             {
-                "Por vencer": "por_vencer",
+                "Por vencer": "por_vencer_15",
                 "Vencido": "vencido",
                 "Agotado": "agotado",
             },
+        )
+
+    def test_cada_hito_de_vencimiento_tiene_su_alerta(self):
+        """Los avisos se escalonan en 30, 15 y 5 días antes de caducar."""
+        self.crear("A 30 días", 30)
+        self.crear("A 15 días", 15)
+        self.crear("A 5 días", 5)
+        self.crear("A 6 días", 6)
+        self.crear("A 31 días", 31)
+
+        sincronizar_alertas(self.usuario)
+
+        tipos = dict(
+            Alerta.objects.filter(usuario=self.usuario).values_list(
+                "medicamento__nombre", "tipo"
+            )
+        )
+        self.assertEqual(
+            tipos,
+            {
+                "A 30 días": "por_vencer_30",
+                "A 15 días": "por_vencer_15",
+                "A 5 días": "por_vencer_5",
+                "A 6 días": "por_vencer_15",
+            },
+        )
+
+    def test_hito_superado_se_archiva(self):
+        """Al entrar en la ventana de 15 días, el aviso de 30 queda archivado."""
+        medicamento = self.crear("Cambio de hito", 30)
+        sincronizar_alertas(self.usuario)
+
+        alerta_30 = Alerta.objects.get(medicamento=medicamento, tipo="por_vencer_30")
+        self.assertFalse(alerta_30.archivada)
+
+        medicamento.fecha_vencimiento = self.hoy + timedelta(days=12)
+        medicamento.save()
+        resultado = sincronizar_alertas(self.usuario)
+
+        alerta_30.refresh_from_db()
+        self.assertTrue(alerta_30.archivada)
+        self.assertTrue(alerta_30.leida)
+        self.assertEqual(resultado["archivadas"], 1)
+        self.assertTrue(
+            Alerta.objects.filter(
+                medicamento=medicamento, tipo="por_vencer_15", archivada=False
+            ).exists()
+        )
+        # En el panel solo queda vigente el aviso más próximo.
+        pendientes = Alerta.objects.filter(
+            usuario=self.usuario, leida=False, archivada=False
+        )
+        self.assertEqual(pendientes.count(), 1)
+        self.assertEqual(pendientes.first().tipo, "por_vencer_15")
+
+    def test_hito_5_se_activa_y_el_de_15_queda_archivado(self):
+        medicamento = self.crear("Ultimos dias", 12)
+        sincronizar_alertas(self.usuario)
+
+        medicamento.fecha_vencimiento = self.hoy + timedelta(days=3)
+        medicamento.save()
+        sincronizar_alertas(self.usuario)
+
+        self.assertTrue(
+            Alerta.objects.filter(
+                medicamento=medicamento, tipo="por_vencer_5", archivada=False
+            ).exists()
+        )
+        self.assertTrue(
+            Alerta.objects.filter(medicamento=medicamento, tipo="por_vencer_15").first().archivada
+        )
+
+    def test_alerta_vencida_es_permanente(self):
+        """El aviso de vencido permanece hasta que el medicamento se disponga."""
+        medicamento = self.crear("Vencido permanente", -10)
+        sincronizar_alertas(self.usuario)
+        sincronizar_alertas(self.usuario)
+
+        alerta = Alerta.objects.get(medicamento=medicamento, tipo="vencido")
+        self.assertFalse(alerta.archivada)
+        self.assertFalse(alerta.leida)
+        self.assertEqual(
+            Alerta.objects.filter(medicamento=medicamento, tipo="vencido").count(), 1
         )
 
     def test_sincronizar_no_duplica_alertas(self):
@@ -64,7 +147,10 @@ class AlertasYPanelTests(TestCase):
         sincronizar_alertas(self.usuario)
         resultado = sincronizar_alertas(self.usuario)
 
-        self.assertEqual(resultado, {"creadas": 0, "eliminadas": 0})
+        self.assertEqual(
+            resultado,
+            {"creadas": 0, "archivadas": 0, "eliminadas": 0, "reactivadas": 0},
+        )
         self.assertEqual(Alerta.objects.filter(usuario=self.usuario).count(), 1)
 
     def test_alerta_leida_no_vuelve_a_crearse(self):
@@ -76,7 +162,7 @@ class AlertasYPanelTests(TestCase):
 
         self.assertTrue(Alerta.objects.get(medicamento=medicamento).leida)
 
-    def test_cambio_de_estado_reemplaza_la_alerta(self):
+    def test_cambio_de_estado_crea_alerta_nueva_y_archiva_la_anterior(self):
         medicamento = self.crear("Cambiante", 10)
         sincronizar_alertas(self.usuario)
 
@@ -84,18 +170,26 @@ class AlertasYPanelTests(TestCase):
         medicamento.save()
         resultado = sincronizar_alertas(self.usuario)
 
-        self.assertEqual(resultado, {"creadas": 1, "eliminadas": 1})
-        self.assertEqual(Alerta.objects.get(medicamento=medicamento).tipo, "vencido")
+        self.assertEqual(resultado["creadas"], 1)
+        self.assertEqual(resultado["archivadas"], 1)
+        self.assertEqual(resultado["eliminadas"], 0)
+        vencida = Alerta.objects.get(medicamento=medicamento, tipo="vencido")
+        self.assertFalse(vencida.archivada)
 
-    def test_quitar_del_riesgo_elimina_la_alerta(self):
+    def test_quitar_del_riesgo_archiva_la_alerta(self):
         medicamento = self.crear("Recuperado", -3)
         sincronizar_alertas(self.usuario)
 
         medicamento.fecha_vencimiento = self.hoy + timedelta(days=300)
         medicamento.save()
-        sincronizar_alertas(self.usuario)
+        resultado = sincronizar_alertas(self.usuario)
 
-        self.assertFalse(Alerta.objects.filter(medicamento=medicamento).exists())
+        self.assertEqual(resultado["archivadas"], 1)
+        alerta = Alerta.objects.get(medicamento=medicamento)
+        self.assertTrue(alerta.archivada)
+        self.assertFalse(
+            Alerta.objects.filter(usuario=self.usuario, leida=False).exists()
+        )
 
     def test_panel_muestra_resumen_y_alertas(self):
         self.crear("Panel vencido", -1)

@@ -111,6 +111,33 @@ if os.environ.get("DJANGO_TRAS_PROXY_HTTPS", "False").lower() == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
+# ---------------------------------------------------------------------------
+# Seguridad web (HTTPS, cookies y cabeceras)
+# ---------------------------------------------------------------------------
+def _flag(nombre, defecto):
+    """Lee una variable booleana del entorno."""
+    return os.environ.get(nombre, str(defecto)).lower() == "true"
+
+
+# Con DEBUG=False la app se considera de producción: cookies seguras y
+# redirección a HTTPS por defecto (se pueden desactivar por .env para probar
+# en red local sin certificado).
+_PRODUCCION = not DEBUG
+SECURE_SSL_REDIRECT = _flag("DJANGO_SECURE_SSL_REDIRECT", _PRODUCCION)
+SESSION_COOKIE_SECURE = _flag("DJANGO_SESSION_COOKIE_SECURE", _PRODUCCION)
+CSRF_COOKIE_SECURE = _flag("DJANGO_CSRF_COOKIE_SECURE", _PRODUCCION)
+# HSTS: 0 = desactivado. Actívalo (31536000) cuando el dominio tenga HTTPS
+# estable; en túneles con URL cambiante conviene dejarlo en 0.
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _flag(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", False
+)
+SECURE_HSTS_PRELOAD = _flag("DJANGO_SECURE_HSTS_PRELOAD", False)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -140,6 +167,7 @@ PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", "86400"))
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -217,7 +245,41 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Carpeta donde se recopilan los estáticos para producción (collectstatic).
+# WhiteNoise los sirve desde aquí cuando DEBUG=False.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+
+try:
+    from whitenoise.storage import CompressedManifestStaticFilesStorage
+
+    class AlmacenamientoEstatico(CompressedManifestStaticFilesStorage):
+        """Estáticos comprimidos y con hash, pero tolerantes.
+
+        Si falta el manifiesto (por ejemplo, antes del primer
+        `collectstatic`), la app sigue funcionando en lugar de romperse.
+        """
+
+        manifest_strict = False
+
+except ImportError:  # pragma: no cover - whitenoise es dependencia del proyecto
+    AlmacenamientoEstatico = None
+
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        # En desarrollo se sirven los archivos tal cual (sin hash); en
+        # producción, WhiteNoise sirve la carpeta recopilada con collectstatic.
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG or AlmacenamientoEstatico is None
+            else "botiquin_project.settings.AlmacenamientoEstatico"
+        ),
+    },
+}
 # Archivos subidos por el usuario (fotos de cajas, perfiles)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -229,24 +291,24 @@ FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-# Email
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
-        'OPTIONS': {
-            'host': os.environ.get('EMAIL_HOST', 'smtp.gmail.com'),
-            'port': int(os.environ.get('EMAIL_PORT', 587)),
-            'username': os.environ.get('EMAIL_HOST_USER', ''),
-            'password': os.environ.get('EMAIL_HOST_PASSWORD', ''),
-            'use_tls': os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true',
-            'use_ssl': os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true',
-        }
-    },
-}
+# Email (configuración estándar de Django: EMAIL_BACKEND + EMAIL_HOST, etc.)
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").lower() == "true"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+# Tiempo máximo de espera (segundos) al hablar con el servidor SMTP.
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Mi Botiquín Digital <no-reply@mibotiquin.local>"
 )
+# Las respuestas a los correos del usuario llegan al buzón configurado.
+SERVER_EMAIL = os.environ.get("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 
 # URL pública de la app (p. ej. el túnel de ngrok) para enlaces en los correos
 SITE_URL = os.environ.get("SITE_URL", "")

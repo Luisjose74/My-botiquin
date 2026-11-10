@@ -16,15 +16,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         usuarios = Usuario.objects.filter(medicamentos__isnull=False).distinct()
         total_creadas = 0
+        total_archivadas = 0
         total_eliminadas = 0
         for usuario in usuarios:
             resultado = sincronizar_alertas(usuario)
             total_creadas += resultado["creadas"]
+            total_archivadas += resultado["archivadas"]
             total_eliminadas += resultado["eliminadas"]
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Alertas creadas: {total_creadas}. "
+                f"Alertas archivadas: {total_archivadas}. "
                 f"Alertas eliminadas: {total_eliminadas}."
             )
         )
