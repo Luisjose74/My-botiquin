@@ -1,5 +1,8 @@
 """Pruebas de las páginas públicas e institucionales (Fase 6)."""
-from django.test import TestCase
+import time
+
+from django.core import mail
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from cuentas.models import Usuario
@@ -11,6 +14,8 @@ FRASES_RECOMENDACIONES = [
     "No compartas medicamentos",
     "Consulta al personal de salud",
 ]
+
+LOCMEM = "django.core.mail.backends.locmem.EmailBackend"
 
 
 class PaginasPublicasTests(TestCase):
@@ -138,3 +143,107 @@ class PaginasPublicasTests(TestCase):
         self.assertContains(respuesta, "Facultad de Estudios a Distancia")
         self.assertContains(respuesta, "Sogamoso, Boyacá")
         self.assertContains(respuesta, "no diagnostica")
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM)
+class SitemapYRobotsTests(TestCase):
+    """Archivos para los buscadores."""
+
+    def test_sitemap_lista_las_paginas_publicas(self):
+        respuesta = self.client.get("/sitemap.xml")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "/educacion/")
+        self.assertContains(respuesta, "/acerca-de/")
+        self.assertContains(respuesta, "/contacto/")
+
+    def test_sitemap_no_incluye_el_panel_privado(self):
+        respuesta = self.client.get("/sitemap.xml")
+
+        self.assertNotContains(respuesta, "/app/")
+        self.assertNotContains(respuesta, "/cuentas/")
+
+    def test_robots_txt_esta_disponible(self):
+        respuesta = self.client.get("/robots.txt")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn("text/plain", respuesta["Content-Type"])
+        self.assertContains(respuesta, "User-agent: *")
+        self.assertContains(respuesta, "Disallow: /app/")
+        self.assertContains(respuesta, "Sitemap: ")
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM)
+class FormularioContactoTests(TestCase):
+    """Formulario público de contacto."""
+
+    def setUp(self):
+        mail.outbox = []
+
+    def datos_validos(self, **cambios):
+        datos = {
+            "nombre": "Ana Pérez",
+            "correo": "ana@example.com",
+            "asunto": "consulta",
+            "mensaje": "¿Cómo puedo registrar una pauta de toma?",
+            "sitio_web": "",
+            "inicio": str(int(time.time()) - 30),
+        }
+        datos.update(cambios)
+        return datos
+
+    def test_el_formulario_se_muestra_sin_sesion(self):
+        respuesta = self.client.get(reverse("publico:contacto"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Contáctanos")
+        self.assertContains(respuesta, 'name="nombre"')
+        self.assertContains(respuesta, 'name="mensaje"')
+
+    def test_un_mensaje_valido_envia_el_correo(self):
+        respuesta = self.client.post(
+            reverse("publico:contacto"), self.datos_validos(), follow=True
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        correo = mail.outbox[0]
+        self.assertIn("Ana Pérez", correo.body)
+        self.assertIn("¿Cómo puedo registrar una pauta de toma?", correo.body)
+        self.assertEqual(correo.reply_to, ["ana@example.com"])
+        self.assertContains(respuesta, "Gracias por escribirnos")
+
+    def test_el_asunto_del_correo_usa_el_motivo_elegido(self):
+        self.client.post(reverse("publico:contacto"), self.datos_validos())
+
+        self.assertIn("Consulta", mail.outbox[0].subject)
+
+    def test_un_mensaje_incompleto_no_envia_correo(self):
+        respuesta = self.client.post(
+            reverse("publico:contacto"),
+            self.datos_validos(correo="correo-invalido"),
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(respuesta, "Revisa los campos marcados")
+
+    def test_el_campo_trampa_descarta_el_envio_de_bots(self):
+        respuesta = self.client.post(
+            reverse("publico:contacto"),
+            self.datos_validos(sitio_web="http://spam.example"),
+            follow=True,
+        )
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(respuesta, "Gracias por escribirnos")
+
+    def test_un_envio_instantaneo_se_ignora(self):
+        respuesta = self.client.post(
+            reverse("publico:contacto"),
+            self.datos_validos(inicio=str(int(time.time()))),
+            follow=True,
+        )
+
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(respuesta, "Gracias por escribirnos")

@@ -1,13 +1,19 @@
 """Vistas de las páginas públicas e institucionales de Mi Botiquín Digital.
 
-Todas las páginas de esta app son públicas: no requieren inicio de sesión y
-solo aceptan el método GET. El contenido se toma de `publico.contenido`, de
+Las páginas de contenido (portada, educación, institucional y legales) no
+requieren inicio de sesión y solo aceptan el método GET. El formulario de
+contacto sí acepta POST. El contenido se toma de `publico.contenido`, de
 modo que la información institucional y educativa se actualiza desde un solo
 lugar.
 """
+import smtplib
+import time
+
 from django.conf import settings
-from django.shortcuts import render
-from django.views.decorators.http import require_GET
+from django.contrib import messages
+from django.core.mail import EmailMultiAlternatives
+from django.shortcuts import redirect, render
+from django.views.decorators.http import require_GET, require_http_methods
 
 from .contenido import (
     AVISO_PROFESIONAL,
@@ -23,6 +29,7 @@ from .contenido import (
     SITIO,
     VERSION_LEGAL,
 )
+from .forms import ETIQUETAS_ASUNTO, ContactoForm
 
 
 def _url_canonica(request):
@@ -96,6 +103,130 @@ def educacion(request):
         seccion_activa="educacion",
     )
     return render(request, "publico/educacion.html", contexto)
+
+
+def _destinatario_contacto():
+    """Casilla que recibe los mensajes del formulario de contacto."""
+    correo = (INSTITUCION.get("correo") or "").strip()
+    if correo:
+        return correo
+    from email.utils import parseaddr
+
+    return parseaddr(getattr(settings, "DEFAULT_FROM_EMAIL", ""))[1]
+
+
+def _enviar_mensaje_contacto(form):
+    """Envía el mensaje del formulario por correo.
+
+    Devuelve True si el correo salió, False si falló el envío.
+    """
+    destinatario = _destinatario_contacto()
+    if not destinatario:
+        return False
+
+    motivo = ETIQUETAS_ASUNTO.get(form.cleaned_data["asunto"], "Consulta")
+    # El asunto se limpia de saltos de línea para no romper la cabecera.
+    asunto = f"[Contacto · {motivo}] {form.cleaned_data['nombre']}".replace(
+        "\n", " "
+    ).replace("\r", " ")
+
+    cuerpo = (
+        f"Mensaje recibido desde el formulario de contacto de {SITIO['nombre']}.\n\n"
+        f"Nombre: {form.cleaned_data['nombre']}\n"
+        f"Correo: {form.cleaned_data['correo']}\n"
+        f"Motivo: {motivo}\n\n"
+        f"{form.cleaned_data['mensaje']}\n"
+    )
+
+    mensaje = EmailMultiAlternatives(
+        subject=asunto[:120],
+        body=cuerpo,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[destinatario],
+        reply_to=[form.cleaned_data["correo"]],
+    )
+    try:
+        mensaje.send()
+    except (smtplib.SMTPException, OSError):
+        return False
+    return True
+
+
+@require_http_methods(["GET", "POST"])
+def contacto(request):
+    """Formulario público de contacto con el equipo del proyecto."""
+    if request.method == "POST":
+        # Campo trampa: si viene relleno se confirma el envío sin procesar.
+        if (request.POST.get("sitio_web") or "").strip():
+            messages.success(
+                request,
+                "¡Gracias por escribirnos! Te responderemos a la brevedad.",
+            )
+            return redirect("publico:contacto")
+
+        form = ContactoForm(request.POST)
+        if form.is_valid():
+            if form.envio_simulado:
+                # Envío automatizado: se acepta sin mandar el correo.
+                messages.success(
+                    request,
+                    "¡Gracias por escribirnos! Te responderemos a la brevedad.",
+                )
+                return redirect("publico:contacto")
+
+            if _enviar_mensaje_contacto(form):
+                messages.success(
+                    request,
+                    "¡Gracias por escribirnos! Recibimos tu mensaje y te "
+                    "responderemos a la brevedad.",
+                )
+                return redirect("publico:contacto")
+
+            messages.error(
+                request,
+                "No pudimos enviar el mensaje en este momento. Escríbenos "
+                "directamente a "
+                f"{_destinatario_contacto()} o inténtalo de nuevo más tarde.",
+            )
+        else:
+            messages.error(
+                request,
+                "Revisa los campos marcados: falta información para enviar el "
+                "mensaje.",
+            )
+    else:
+        form = ContactoForm(initial={"inicio": str(int(time.time()))})
+
+    contexto = _contexto(
+        request,
+        titulo="Contacto",
+        descripcion=(
+            "Escríbenos para resolver dudas, reportar un error o enviar "
+            "sugerencias sobre Mi Botiquín Digital."
+        ),
+        form=form,
+        marca_tiempo=int(time.time()),
+        destinatario=_destinatario_contacto(),
+        seccion_activa="contacto",
+    )
+    return render(request, "publico/contacto.html", contexto)
+
+
+@require_GET
+def robots_txt(request):
+    """Archivo robots.txt del sitio (indica el sitemap a los buscadores)."""
+    base = getattr(settings, "SITE_URL", "").strip().rstrip("/")
+    sitemap = (
+        f"{base}/sitemap.xml"
+        if base
+        else request.build_absolute_uri("/sitemap.xml")
+    )
+    return render(
+        request,
+        "publico/robots.txt",
+        {"sitemap": sitemap},
+        content_type="text/plain; charset=utf-8",
+    )
 
 
 @require_GET

@@ -992,6 +992,51 @@
   line-height: 1.55;
 }
 
+/* ---------- Contacto ---------- */
+.pub-rejilla-contacto {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.pub-contacto-formulario {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+.pub-contacto-formulario .boton {
+  width: auto;
+  padding: 0.85rem 1.5rem;
+  margin-top: 0.5rem;
+}
+.pub-contacto-formulario .nota {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+/* Campo trampa: oculto para las personas, visible para los bots. */
+.pub-campos-ocultos {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.pub-contacto-datos {
+  display: grid;
+  gap: 0.9rem;
+}
+.pub-contacto-datos .pub-tarjeta h3 {
+  margin-top: 0.6rem;
+}
+.pub-contacto-datos .pub-tarjeta p {
+  line-height: 1.6;
+}
+
 /* ---------- Pie ---------- */
 .pub-pie {
   position: relative;
@@ -1070,7 +1115,8 @@
 @media (max-width: 980px) {
   .pub-hero-interior,
   .pub-dos-columnas,
-  .pub-rejilla-educacion {
+  .pub-rejilla-educacion,
+  .pub-rejilla-contacto {
     grid-template-columns: 1fr;
   }
   .pub-hero-visual { order: 2; }

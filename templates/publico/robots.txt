@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Áreas privadas: no se indexan.
+Disallow: /app/
+Disallow: /botiquin/
+Disallow: /cuentas/
+Disallow: /admin/
+
+Sitemap: {{ sitemap }}

@@ -16,8 +16,11 @@ familias que usan la herramienta.
 | `/` | Portada pública (qué es el proyecto, funciones, FAQ) | Público |
 | `/educacion/` | Guía de educación sanitaria (Regencia de Farmacia) | Público |
 | `/acerca-de/` | Página institucional (origen, metodología, créditos) | Público |
+| `/contacto/` | Formulario de contacto con el equipo del proyecto | Público |
 | `/privacidad/` | Política de privacidad (Ley 1581 de 2012) | Público |
 | `/terminos/` | Términos y condiciones de uso | Público |
+| `/sitemap.xml` | Mapa del sitio para los buscadores | Público |
+| `/robots.txt` | Instrucciones para los buscadores | Público |
 | `/app/` | Panel de la aplicación (resumen del botiquín) | Con sesión |
 | `/botiquin/…` | Inventario, alertas, pautas y tomas | Con sesión |
 | `/cuentas/…` | Registro, perfil, hogar compartido | Mixto |
@@ -265,6 +268,34 @@ Las páginas públicas incluyen metadatos para buscadores (descripción,
 canonical y Open Graph), enlace de salto al contenido, navegación adaptable
 con menú en móvil y el aviso de que el contenido es educativo y no reemplaza
 la consulta profesional.
+
+## Formulario de contacto
+
+`/contacto/` permite escribir al equipo del proyecto sin sesión. El mensaje
+se envía por SMTP a la casilla configurada en `CONTACTO_CORREO` (si no se
+define, se usa el remitente de `DEFAULT_FROM_EMAIL`) y la respuesta se
+puede dirigir al correo de quien escribe (`Reply-To`).
+
+El formulario trae dos protecciones sencillas contra el envío automatizado:
+un campo trampa invisible y una marca de tiempo que obliga a que el formulario
+permanezca abierto unos segundos. Un envío automatizado se acepta en pantalla
+pero no genera correo.
+
+Para probarlo sin salir del computador:
+
+```powershell
+python scripts/probar_correo.py --local
+```
+
+## Mapas para los buscadores
+
+- `/sitemap.xml` lista solo las páginas públicas (la página privada `/app/` y
+  las áreas de cuenta no se indexan).
+- `/robots.txt` permite todo lo público y bloquea `/app/`, `/botiquin/`,
+  `/cuentas/` y `/admin/`.
+
+Ambos usan el dominio de `SITE_URL` cuando está configurado; si no, el
+dominio de la petición.
 
 ## Recordatorios de toma y programación
 

@@ -1,0 +1,91 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-portada-interna">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <p class="pub-antetitulo">Soporte</p>
+    <h1 class="pub-titulo-portada">Contáctanos</h1>
+    <p class="pub-entradilla pub-entradilla-centrada">
+      ¿Tienes una duda, encontraste un error o quieres sugerir una mejora?
+      Escríbenos y te responderemos a la brevedad.
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-rejilla-contacto">
+      <div class="pub-contacto-formulario">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alerta error" role="alert">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          {% include "botiquin/_campo.html" with campo=form.nombre %}
+          {% include "botiquin/_campo.html" with campo=form.correo %}
+          {% include "botiquin/_campo.html" with campo=form.asunto %}
+          {% include "botiquin/_campo.html" with campo=form.mensaje %}
+
+          <div class="pub-campos-ocultos" aria-hidden="true">
+            {{ form.sitio_web }}
+            {{ form.inicio }}
+          </div>
+
+          <button class="boton" type="submit">Enviar mensaje →</button>
+        </form>
+
+        <p class="nota">
+          Los campos marcados con <span class="req">*</span> son obligatorios.
+          Usamos tus datos solo para responderte.
+        </p>
+      </div>
+
+      <aside class="pub-contacto-datos">
+        <div class="pub-tarjeta">
+          <span class="pub-tarjeta-icono" aria-hidden="true">✉️</span>
+          <h3>Correo directo</h3>
+          {% if destinatario %}
+            <p>
+              También puedes escribirnos a
+              <a href="mailto:{{ destinatario }}">{{ destinatario }}</a>.
+            </p>
+          {% else %}
+            <p>Usa el formulario para communicate con el equipo.</p>
+          {% endif %}
+        </div>
+
+        <div class="pub-tarjeta">
+          <span class="pub-tarjeta-icono" aria-hidden="true">🏠</span>
+          <h3>Proyecto</h3>
+          <p>
+            {{ institucion.nombre }}<br>
+            {{ institucion.facultad }}<br>
+            {{ institucion.sede }}
+          </p>
+        </div>
+
+        <div class="pub-tarjeta">
+          <span class="pub-tarjeta-icono" aria-hidden="true">🧾</span>
+          <h3>Enfoque</h3>
+          <p>
+            {{ institucion.enfoque }}: uso responsable de los medicamentos en
+            el hogar, con educación sanitaria preventiva.
+          </p>
+        </div>
+
+        <div class="pub-alerta-clinica">
+          <span aria-hidden="true">⚠️</span>
+          <p>
+            Mi Botiquín Digital no es un servicio de urgencias. Si tienes una
+            emergencia médica, pide atención de urgencias de inmediato.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

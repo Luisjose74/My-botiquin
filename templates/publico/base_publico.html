@@ -50,6 +50,8 @@
          href="{% url 'publico:educacion' %}">Educación sanitaria</a>
       <a class="pub-nav-enlace {% if seccion_activa == 'acerca_de' %}activo{% endif %}"
          href="{% url 'publico:acerca_de' %}">Acerca de</a>
+      <a class="pub-nav-enlace {% if seccion_activa == 'contacto' %}activo{% endif %}"
+         href="{% url 'publico:contacto' %}">Contacto</a>
     </nav>
 
     <div class="pub-acciones">
@@ -102,6 +104,7 @@
         <li><a href="{% url 'publico:portada' %}#como-funciona">Cómo funciona</a></li>
         <li><a href="{% url 'publico:portada' %}#alertas">Alertas de vencimiento</a></li>
         <li><a href="{% url 'publico:educacion' %}">Educación sanitaria</a></li>
+        <li><a href="{% url 'publico:contacto' %}">Contacto</a></li>
       </ul>
     </nav>
 

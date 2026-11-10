@@ -147,6 +147,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Mapa del sitio (sitemap.xml) para los buscadores
+    'django.contrib.sitemaps',
     # Plantillas de widgets de formularios (FORM_RENDERER personalizado)
     'django.forms',
     # Apps de Mi Botiquín Digital

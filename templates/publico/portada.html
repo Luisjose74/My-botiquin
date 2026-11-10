@@ -336,7 +336,10 @@
         en el marco de {{ institucion.enfoque }}.
       </p>
     </div>
-    <a class="boton-secundario" href="{% url 'publico:acerca_de' %}">Conoce el proyecto</a>
+    <div class="pub-acciones-principales">
+      <a class="boton-secundario" href="{% url 'publico:acerca_de' %}">Conoce el proyecto</a>
+      <a class="boton-secundario" href="{% url 'publico:contacto' %}">Escríbenos</a>
+    </div>
   </div>
 </section>
 {% endblock %}
