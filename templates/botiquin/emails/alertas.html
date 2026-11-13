@@ -36,6 +36,26 @@
               </table>
               {% endfor %}
 
+              {% if hay_vencidos %}
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 4px;border:1px solid #dce7f7;border-left:4px solid #1565e8;border-radius:12px;background:#f4f8ff;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:14px;font-weight:700;color:#0b2a6f;">🔵 ¿Ese medicamento ya venció?</div>
+                    <div style="font-size:13px;line-height:1.55;color:#5b6b8c;margin-top:4px;">
+                      Entrégalo en un Punto Azul de Sogamoso. No lo arrojes a la
+                      basura común ni al desagüe: contamina el agua y puede
+                      ingerirse por accidente.
+                    </div>
+                    <div style="margin-top:12px;">
+                      <a href="{{ url_puntos_azules }}" style="display:inline-block;background:#1565e8;color:#ffffff;text-decoration:none;font-weight:700;font-size:13.5px;padding:11px 18px;border-radius:10px;">
+                        Ver Puntos Azules en Sogamoso para su desecho seguro →
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              {% endif %}
+
               {% if url_panel %}
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 22px;">
                 <tr>

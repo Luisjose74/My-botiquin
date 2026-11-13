@@ -1781,6 +1781,34 @@ a:hover { text-decoration: underline; }
   line-height: 1.45;
 }
 .alerta-texto small { color: var(--sub); font-size: 0.72rem; }
+
+/* Enlace destacado al directorio de Puntos Azules (desecho seguro) */
+.alerta-desecho {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.45rem 0 0.5rem;
+  padding: 0.42rem 0.75rem;
+  border-radius: 10px;
+  background: var(--soft);
+  border: 1px solid #cfe0f8;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: background 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.alerta-desecho:hover {
+  background: #ddebff;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.alerta-desecho::after {
+  content: "→";
+  font-weight: 700;
+}
+
 .alerta-acciones {
   display: flex;
   flex-direction: column;

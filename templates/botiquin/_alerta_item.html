@@ -7,6 +7,11 @@ Tarjeta de una alerta. Uso: {% include "botiquin/_alerta_item.html" with alerta=
   <div class="alerta-texto">
     <h3>{{ alerta.titulo }}</h3>
     <p>{{ alerta.mensaje }}</p>
+    {% if alerta.tipo == 'vencido' %}
+      <a class="alerta-desecho" href="{% url 'publico:puntos_azules' %}#directorio">
+        Ver Puntos Azules en Sogamoso para su desecho seguro
+      </a>
+    {% endif %}
     <small>Hace {{ alerta.creada|timesince }}{% if alerta.medicamento.miembro %} · Para {{ alerta.medicamento.miembro.nombre }}{% endif %}{% if alerta.leida %} · Leída{% endif %}{% if alerta.archivada %} · Archivada{% endif %}</small>
   </div>
 

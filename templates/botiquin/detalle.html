@@ -50,6 +50,9 @@
           ⚠️ Este medicamento venció hace {{ medicamento.dias_vencido }}
           día{{ medicamento.dias_vencido|pluralize }}. No debe utilizarse;
           consulta cómo desecharlo de forma segura.
+          <a class="alerta-desecho" href="{% url 'publico:puntos_azules' %}#directorio">
+            Ver Puntos Azules en Sogamoso para su desecho seguro
+          </a>
         </div>
         {% include "botiquin/_consejos_farmacia.html" %}
       {% elif medicamento.estado == 'proximo' %}

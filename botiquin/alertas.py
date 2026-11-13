@@ -120,6 +120,17 @@ def _url_panel_alertas():
     return f"{base}{reverse('botiquin:alertas')}" if base else ""
 
 
+def _url_puntos_azules():
+    """URL absoluta del directorio de Puntos Azules (sección del directorio)."""
+    from .notificaciones import url_base_sitio
+
+    ruta = f"{reverse('publico:puntos_azules')}#directorio"
+    base = getattr(settings, "SITE_URL", "").strip().rstrip("/")
+    if not base:
+        base = url_base_sitio()
+    return f"{base}{ruta}"
+
+
 def _usuario_notificacion(medicamento):
     """Devuelve el usuario que debe recibir la notificación de una alerta.
 
@@ -166,6 +177,9 @@ def enviar_alertas_por_correo(usuario, alertas):
         "alertas": alertas,
         "total": total,
         "url_panel": _url_panel_alertas(),
+        # Enlace al directorio de Puntos Azules para el desecho seguro.
+        "url_puntos_azules": _url_puntos_azules(),
+        "hay_vencidos": any(alerta.tipo == "vencido" for alerta in alertas),
     }
     asunto = _asunto_alertas(alertas)
     texto = render_to_string("botiquin/emails/alertas.txt", contexto)

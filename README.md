@@ -329,6 +329,21 @@ productos que no se reciben en `NO_ENTREGAR`.
 > Los puntos de recolección pueden cambiar de horario o de cobertura: la
 > página incluye una nota que invita a confirmar antes de ir.
 
+### Desde la aplicación (usuario con sesión)
+
+El directorio no es solo una página pública: está integrado en el flujo del
+panel privado, para que el usuario sepa dónde entregar el medicamento
+vencido en el momento en que lo necesita.
+
+| Dónde | Qué aparece |
+| --- | --- |
+| Barra de navegación del panel (`/app/`) | Enlace «🔵 Puntos Azules». |
+| Alertas de medicamentos vencidos | Botón destacado «Ver Puntos Azules en Sogamoso para su desecho seguro» (también en la ficha del medicamento vencido). |
+| Correo de notificación de vencimiento | Bloque «¿Ese medicamento ya venció?» con el botón al directorio y la advertencia de no arrojarlo a la basura ni al desagüe. |
+
+El enlace del correo es absoluto: usa `SITE_URL` cuando está configurado (en
+la feria o en producción) y, si no, el dominio base del sitio.
+
 ## Formulario de contacto
 
 `/contacto/` permite escribir al equipo del proyecto sin sesión. El mensaje

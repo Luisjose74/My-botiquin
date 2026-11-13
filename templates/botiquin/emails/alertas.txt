@@ -5,6 +5,15 @@ Tienes {{ total }} alerta{{ total|pluralize:",s" }} nueva{{ total|pluralize:",s"
 {% for alerta in alertas %}- {{ alerta.titulo }}{% if alerta.medicamento.miembro %} (para {{ alerta.medicamento.miembro.nombre }}){% endif %}
   {{ alerta.mensaje }}
 {% endfor %}
+{% if hay_vencidos %}
+🔵 ¿Ese medicamento ya venció?
+Entrégalo en un Punto Azul de Sogamoso. No lo arrojes a la basura común ni al
+desagüe: contamina el agua y puede ingerirse por accidente.
+
+Ver Puntos Azules en Sogamoso para su desecho seguro:
+{{ url_puntos_azules }}
+
+{% endif %}
 {% if url_panel %}Revísalas aquí: {{ url_panel }}
 {% else %}Revísalas en la sección Alertas de Mi Botiquín Digital.
 {% endif %}
