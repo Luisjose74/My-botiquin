@@ -174,6 +174,69 @@ class SitemapYRobotsTests(TestCase):
 
 
 @override_settings(EMAIL_BACKEND=LOCMEM)
+class PuntosAzulesTests(TestCase):
+    """Directorio de Puntos Azules y guía de entrega segura."""
+
+    def test_la_pagina_se_muestra_sin_sesion(self):
+        respuesta = self.client.get(reverse("publico:puntos_azules"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Puntos Azules")
+        self.assertContains(respuesta, "Puntos de recolección en Sogamoso")
+
+    def test_explica_que_son_y_para_que_sirven(self):
+        respuesta = self.client.get(reverse("publico:puntos_azules"))
+
+        self.assertContains(respuesta, "¿Qué son los Puntos Azules?")
+        self.assertContains(respuesta, "¿Para qué sirven?")
+        self.assertContains(respuesta, "contaminan el agua")
+
+    def test_advierte_la_prohibicion_de_tirar_medicamentos(self):
+        respuesta = self.client.get(reverse("publico:puntos_azules"))
+
+        self.assertContains(respuesta, "Está prohibido arrojarlos")
+        self.assertContains(respuesta, "al desagüe")
+        self.assertContains(respuesta, "a la basura común")
+
+    def test_lista_los_cinco_puntos_de_sogamoso(self):
+        respuesta = self.client.get(reverse("publico:puntos_azules"))
+
+        self.assertContains(respuesta, "Hospital Regional de Sogamoso")
+        self.assertContains(respuesta, "Salud Sogamoso, sede Centro")
+        self.assertContains(respuesta, "Droguería Cruz Verde")
+        self.assertContains(respuesta, "Droguería Colsubsidio")
+        # Las dos droguerías Colsubsidio aparecen con direcciones distintas.
+        self.assertContains(respuesta, "Calle 14 # 11-74")
+        self.assertContains(respuesta, "Calle 13 # 11-61")
+        self.assertContains(respuesta, "Carrera 10 # 90")
+
+    def test_explica_la_entrega_segura(self):
+        respuesta = self.client.get(reverse("publico:puntos_azules"))
+
+        self.assertContains(respuesta, "Cómo entregar de forma segura")
+        self.assertContains(respuesta, "Separa lo que vas a entregar")
+        self.assertContains(respuesta, "Conserva el envase original")
+        self.assertContains(respuesta, "No entregues elementos de riesgo")
+
+    def test_los_puntos_con_direccion_enlazan_al_mapa(self):
+        respuesta = self.client.get(reverse("publico:puntos_azules"))
+
+        self.assertContains(respuesta, "google.com/maps/search")
+        self.assertContains(respuesta, "Calle%2014%20%23%2011-74")
+
+    def test_el_directorio_aparece_en_el_sitemap(self):
+        respuesta = self.client.get("/sitemap.xml")
+
+        self.assertContains(respuesta, "/puntos-azules/")
+
+    def test_la_guia_educativa_enlaza_al_directorio(self):
+        respuesta = self.client.get(reverse("publico:educacion"))
+
+        self.assertContains(respuesta, reverse("publico:puntos_azules"))
+        self.assertContains(respuesta, "Ver el directorio de Puntos Azules")
+
+
+@override_settings(EMAIL_BACKEND=LOCMEM)
 class FormularioContactoTests(TestCase):
     """Formulario público de contacto."""
 

@@ -1,0 +1,163 @@
+{% extends "publico/base_publico.html" %}
+
+{% block contenido %}
+<section class="pub-portada-interna pub-portada-azules">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <p class="pub-antetitulo">Manejo responsable de residuos farmacéuticos</p>
+    <h1 class="pub-titulo-portada">Puntos Azules</h1>
+    <p class="pub-entradilla pub-entradilla-centrada">
+      Dónde entregar los medicamentos que ya no usas, para que no terminen
+      contaminando el agua, el suelo o la basura de tu calle.
+    </p>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-contenedor">
+    <div class="pub-rejilla-intro">
+      <article class="pub-tarjeta-intro">
+        <span class="pub-tarjeta-icono" aria-hidden="true">🔵</span>
+        <h2>¿Qué son los Puntos Azules?</h2>
+        <p>{{ intro.que_son }}</p>
+      </article>
+
+      <article class="pub-tarjeta-intro">
+        <span class="pub-tarjeta-icono" aria-hidden="true">🌍</span>
+        <h2>¿Para qué sirven?</h2>
+        <p>{{ intro.proposito }}</p>
+      </article>
+
+      <article class="pub-tarjeta-intro pub-tarjeta-intro-alerta">
+        <span class="pub-tarjeta-icono" aria-hidden="true">⛔</span>
+        <h2>Está prohibido arrojarlos</h2>
+        <p>{{ intro.prohibicion }}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-alterna" id="directorio">
+  <div class="pub-contenedor">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Directorio</p>
+      <h2 class="pub-titulo-seccion">Puntos de recolección en Sogamoso</h2>
+      <p class="pub-parrafo pub-parrafo-centrada">
+        Estos son los puntos habilitados para recibir los medicamentos que
+        sobran, vencieron o se deterioraron. Acércate al que te quede más
+        cerca.
+      </p>
+    </div>
+
+    <ul class="pub-lista-puntos">
+      {% for punto in puntos %}
+        <li class="pub-punto">
+          <span class="pub-punto-icono" aria-hidden="true">{{ punto.icono }}</span>
+          <div class="pub-punto-datos">
+            <p class="pub-punto-tipo">{{ punto.tipo }}</p>
+            <h3 class="pub-punto-nombre">{{ punto.nombre }}</h3>
+            {% if punto.direccion %}
+              <p class="pub-punto-direccion">
+                <span aria-hidden="true">📍</span> {{ punto.direccion }}
+              </p>
+              <a class="pub-punto-mapa"
+                 href="https://www.google.com/maps/search/?api=1&query={{ punto.direccion|urlencode }}"
+                 target="_blank" rel="noopener noreferrer">
+                Ver en el mapa →
+              </a>
+            {% else %}
+              <p class="pub-punto-direccion pub-punto-sin-direccion">
+                <span aria-hidden="true">📍</span>
+                Sogamoso, Boyacá — consulta la dirección exacta y el horario
+                de recepción en el punto de atención.
+              </p>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <p class="pub-centro pub-centro-nota">{{ nota_directorio }}</p>
+  </div>
+</section>
+
+<section class="pub-seccion" id="entrega">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Guía de entrega</p>
+      <h2 class="pub-titulo-seccion">Cómo entregar de forma segura</h2>
+      <p class="pub-parrafo pub-parrafo-centrada">
+        La entrega correcta depende de dos cosas: separar lo que sí se recibe y
+        empacar cada medicamento como si fuera a viajar contigo.
+      </p>
+    </div>
+
+    <ol class="pub-pasos">
+      {% for paso in instrucciones %}
+        <li class="pub-paso animar" style="--d: {{ forloop.counter0 }}0ms">
+          <span class="pub-paso-icono" aria-hidden="true">{{ paso.icono }}</span>
+          <h3>{{ paso.titulo }}</h3>
+          <p>{{ paso.texto }}</p>
+        </li>
+      {% endfor %}
+    </ol>
+
+    <div class="pub-alerta-clinica pub-alerta-clinica-alerta pub-alerta-no-entregar">
+      <span aria-hidden="true">🚫</span>
+      <div>
+        <p class="pub-alerta-titulo">No entregues esto en un punto azul</p>
+        <ul class="pub-lista-checks pub-lista-checks-compacta">
+          {% for item in no_entregar %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-seccion-alterna">
+  <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-prosa">
+      <h2>Lo que ocurre cuando un medicamento llega al río</h2>
+      <p>
+        El río no procesa los medicamentos: los arrastra hasta el
+        embalse y de ahí al acueducto. Lo que se vierte en el agua no
+        desaparece, se transforma y termina en los seres vivos que la
+        consumen, incluido el humano.
+      </p>
+      <p>
+        Las consecuencias no son solo ecológicas. Los residuos farmacéuticos
+        pueden favorecer la resistencia de los microorganismos a los
+        antibióticos, y una pastilla a medio tomar en la basura puede ser
+        ingerida por un niño o un animal.
+      </p>
+      <p>
+        Por eso la aplicación te avisa cuando un medicamento está por vencer o
+        ya venció: para que lo retires del botiquín y lo entregues en un
+        punto de recolección, no para que lo consumas ni para que termines en
+        la basura.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="pub-cta">
+  <div class="pub-contenedor pub-cta-interior">
+    <div>
+      <h2 class="pub-titulo-cta">¿Ya revisaste tu botiquín?</h2>
+      <p class="pub-cta-texto">
+        Registra tus medicamentos y recibe el aviso 30, 15 y 5 días antes de
+        que venzan, para retirarlos a tiempo y llevarlos a un punto azul.
+      </p>
+    </div>
+    <div class="pub-acciones-principales">
+      {% if request.user.is_authenticated %}
+        <a class="boton boton-inline" href="{% url 'inicio' %}">Ir a mi botiquín</a>
+      {% else %}
+        <a class="boton boton-inline" href="{% url 'cuentas:registro' %}">Crear mi cuenta</a>
+        <a class="boton-secundario" href="{% url 'publico:educacion' %}">Guía educativa</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

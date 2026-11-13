@@ -20,6 +20,7 @@ class PublicoSitemap(Sitemap):
     PRIORIDADES = {
         "publico:portada": 0.9,
         "publico:educacion": 0.8,
+        "publico:puntos_azules": 0.8,
         "publico:acerca_de": 0.7,
         "publico:contacto": 0.6,
         "publico:privacidad": 0.4,
@@ -30,6 +31,7 @@ class PublicoSitemap(Sitemap):
         return [
             "publico:portada",
             "publico:educacion",
+            "publico:puntos_azules",
             "publico:acerca_de",
             "publico:contacto",
             "publico:privacidad",

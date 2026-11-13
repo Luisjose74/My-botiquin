@@ -51,6 +51,13 @@
           <span class="pub-tarjeta-icono" aria-hidden="true">{{ seccion.icono }}</span>
           <h3>{{ seccion.titulo }}</h3>
           <p>{{ seccion.texto }}</p>
+          {% if seccion.enlace %}
+            <p class="pub-tarjeta-enlace">
+              <a class="pub-enlace-fuerte" href="{% url seccion.enlace.url %}">
+                {{ seccion.enlace.texto }} →
+              </a>
+            </p>
+          {% endif %}
         </article>
       {% endfor %}
     </div>

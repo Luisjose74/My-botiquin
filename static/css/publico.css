@@ -647,6 +647,9 @@
   font-size: 0.86rem;
   line-height: 1.65;
 }
+.pub-tarjeta-enlace {
+  margin-top: 0.6rem !important;
+}
 
 .pub-alerta-clinica {
   display: flex;
@@ -1035,6 +1038,139 @@
 }
 .pub-contacto-datos .pub-tarjeta p {
   line-height: 1.6;
+}
+
+/* ---------- Puntos Azules ---------- */
+.pub-portada-azules {
+  background: linear-gradient(180deg, #e6f0ff 0%, rgba(243, 248, 255, 0) 100%);
+}
+
+.pub-rejilla-intro {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+.pub-tarjeta-intro {
+  padding: 1.4rem 1.3rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+.pub-tarjeta-intro h2 {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+}
+.pub-tarjeta-intro p {
+  margin: 0;
+  color: var(--sub);
+  font-size: 0.87rem;
+  line-height: 1.65;
+}
+.pub-tarjeta-intro-alerta {
+  background: #fff6f6;
+  border-color: #f6c7c7;
+}
+.pub-tarjeta-intro-alerta h2 {
+  color: var(--et);
+}
+
+.pub-lista-puntos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.9rem;
+}
+.pub-punto {
+  display: flex;
+  gap: 0.9rem;
+  padding: 1.15rem 1.2rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out);
+}
+.pub-punto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 26px 50px -26px rgba(11, 42, 111, 0.45);
+}
+.pub-punto-icono {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--soft);
+  font-size: 1.2rem;
+}
+.pub-punto-datos {
+  display: grid;
+  gap: 0.2rem;
+  align-content: start;
+}
+.pub-punto-tipo {
+  margin: 0;
+  color: var(--blue);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.pub-punto-nombre {
+  margin: 0;
+  font-size: 1.02rem;
+  letter-spacing: -0.015em;
+}
+.pub-punto-direccion {
+  margin: 0.2rem 0 0;
+  color: var(--sub);
+  font-size: 0.87rem;
+  line-height: 1.55;
+}
+.pub-punto-sin-direccion {
+  font-size: 0.83rem;
+}
+.pub-punto-mapa {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pub-paso-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.6rem;
+  border-radius: 12px;
+  background: var(--soft);
+  font-size: 1.1rem;
+}
+
+.pub-alerta-no-entregar {
+  margin-top: 1.4rem;
+  align-items: flex-start;
+}
+.pub-alerta-titulo {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  color: #7a4a00;
+}
+.pub-lista-checks-compacta {
+  margin-bottom: 0;
+}
+.pub-lista-checks-compacta li {
+  font-size: 0.85rem;
+  color: #6b4a1c;
+}
+.pub-lista-checks-compacta li::before {
+  content: "✕";
+  color: var(--et);
 }
 
 /* ---------- Pie ---------- */

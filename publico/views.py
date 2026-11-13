@@ -22,9 +22,14 @@ from .contenido import (
     FECHA_ACTUALIZACION,
     FUNCIONES,
     HITOS_VENCIMIENTO,
+    INSTRUCCIONES_ENTREGA,
     INSTITUCION,
+    NO_ENTREGAR,
     PASOS,
     PERFILES,
+    PUNTOS_AZULES,
+    PUNTOS_AZULES_INTRO,
+    PUNTOS_AZULES_NOTA,
     SECCIONES_EDUCACION,
     SITIO,
     VERSION_LEGAL,
@@ -227,6 +232,27 @@ def robots_txt(request):
         {"sitemap": sitemap},
         content_type="text/plain; charset=utf-8",
     )
+
+
+@require_GET
+def puntos_azules(request):
+    """Directorio de Puntos Azules y guía de entrega segura."""
+    contexto = _contexto(
+        request,
+        titulo="Puntos Azules",
+        descripcion=(
+            "Directorio de los puntos de recolección de medicamentos de "
+            "Sogamoso (Boyacá) y guía para entregar de forma segura los "
+            "medicamentos vencidos o deteriorados."
+        ),
+        intro=PUNTOS_AZULES_INTRO,
+        puntos=PUNTOS_AZULES,
+        nota_directorio=PUNTOS_AZULES_NOTA,
+        instrucciones=INSTRUCCIONES_ENTREGA,
+        no_entregar=NO_ENTREGAR,
+        seccion_activa="puntos_azules",
+    )
+    return render(request, "publico/puntos_azules.html", contexto)
 
 
 @require_GET

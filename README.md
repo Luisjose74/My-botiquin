@@ -15,6 +15,7 @@ familias que usan la herramienta.
 | --- | --- | --- |
 | `/` | Portada pública (qué es el proyecto, funciones, FAQ) | Público |
 | `/educacion/` | Guía de educación sanitaria (Regencia de Farmacia) | Público |
+| `/puntos-azules/` | Directorio de Puntos Azules de Sogamoso y guía de entrega | Público |
 | `/acerca-de/` | Página institucional (origen, metodología, créditos) | Público |
 | `/contacto/` | Formulario de contacto con el equipo del proyecto | Público |
 | `/privacidad/` | Política de privacidad (Ley 1581 de 2012) | Público |
@@ -246,14 +247,16 @@ La app `publico` sirve el sitio público, sin iniciar sesión:
 | --- | --- | --- |
 | Portada | `templates/publico/portada.html` | Hero, problema, funciones, tabla de hitos de vencimiento, pasos, perfiles, preguntas frecuentes y llamadas a la acción. |
 | Educación sanitaria | `templates/publico/educacion.html` | Guía preventiva (almacenamiento, desecho seguro, señales de alarma, interacciones) y cuándo consultar de inmediato. |
+| Puntos Azules | `templates/publico/puntos_azules.html` | Qué son los puntos de recolección de medicamentos, por qué está prohibido arrojarlos a la basura o al desagüe, directorio de Sogamoso y guía de entrega segura. |
 | Institucional | `templates/publico/acerca_de.html` | Origen, propósito/misión/visión, metodología de Regencia de Farmacia, qué hace y qué no hace, créditos y ficha técnica. |
 | Privacidad | `templates/publico/privacidad.html` | Tratamiento de datos conforme a la Ley 1581 de 2012: responsable, datos, finalidad, base legal, seguridad, derechos del titular, cookies y menores de edad. |
 | Términos | `templates/publico/terminos.html` | Objeto, uso del servicio, alcance clínico, propiedad intelectual, limitación de responsabilidad y legislación aplicable. |
 
 Todo el contenido institucional y educativo se edita desde **un solo
 archivo**: `publico/contenido.py` (datos de la institución, funciones, pasos,
-hitos, preguntas frecuentes y secciones de la guía). Los datos de la
-institución también se pueden sobrescribir por entorno sin tocar el código:
+hitos, preguntas frecuentes, secciones de la guía y directorio de Puntos
+Azules). Los datos de la institución también se pueden sobrescribir por
+entorno sin tocar el código:
 
 ```bash
 CONTACTO_CORREO=regencia.farmacia@uptc.edu.co
@@ -268,6 +271,27 @@ Las páginas públicas incluyen metadatos para buscadores (descripción,
 canonical y Open Graph), enlace de salto al contenido, navegación adaptable
 con menú en móvil y el aviso de que el contenido es educativo y no reemplaza
 la consulta profesional.
+
+## Directorio de Puntos Azules
+
+`/puntos-azules/` reúne tres cosas:
+
+1. **Qué son los Puntos Azules**, su propósito ambiental y por qué está
+   prohibido arrojar medicamentos al desagüe o a la basura común.
+2. **El directorio de Sogamoso** con los puntos de recolección habilitados
+   (hospital, entidad de salud y droguerías) y enlace al mapa en Google.
+3. **La guía de entrega segura**: separar perecederos de no perecederos,
+   empacar sin mezclar con la basura doméstica, conservar el envase original,
+   no entregar elementos de riesgo y respetar el horario del punto.
+
+Para actualizar el directorio basta con editar la lista `PUNTOS_AZULES` en
+`publico/contenido.py` (cada punto tiene `tipo`, `nombre` y `direccion`; si
+se deja la dirección vacía, el sitio indica que se consulte en el punto de
+atención). Los pasos de entrega se editan en `INSTRUCCIONES_ENTREGA` y los
+productos que no se reciben en `NO_ENTREGAR`.
+
+> Los puntos de recolección pueden cambiar de horario o de cobertura: la
+> página incluye una nota que invita a confirmar antes de ir.
 
 ## Formulario de contacto
 

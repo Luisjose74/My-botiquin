@@ -341,6 +341,10 @@ SECCIONES_EDUCACION = [
             "inodoro: los residuos farmacéuticos contaminan el agua y "
             "pueden volver al consumo humano o animal."
         ),
+        "enlace": {
+            "texto": "Ver el directorio de Puntos Azules en Sogamoso",
+            "url": "publico:puntos_azules",
+        },
     },
     {
         "icono": "🚨",
@@ -385,6 +389,143 @@ SECCIONES_EDUCACION = [
             "salud."
         ),
     },
+]
+
+
+# ---------------------------------------------------------------------------
+# Directorio de Puntos Azules (puntos de recolección de medicamentos)
+# ---------------------------------------------------------------------------
+
+#: Texto introductorio de la página de Puntos Azules.
+PUNTOS_AZULES_INTRO = {
+    "que_son": (
+        "Los Puntos Azules son los puntos de recolección de medicamentos "
+        "habilitados en droguerías, hospitales y entidades de salud. Allí "
+        "entregas los medicamentos que ya no usas: los que vencieron, los que "
+        "se deterioraron o los que simplemente te sobran. En vez de terminar "
+        "en la basura común, se recogen y se destinan a un manejo adecuado."
+    ),
+    "proposito": (
+        "Un medicamento que llega al río, al embalse o al suelo sigue "
+        "actuando: sus componentes activos contaminan el agua que bebemos, "
+        "afectan a otros seres vivos y regresan hasta nosotros por la cadena "
+        "alimentaria. Los antibióticos desechados al ambiente incluso favorecen "
+        "la aparición de bacterias resistentes. Recogerlos y tratarlos bien es, "
+        "por eso, una medida de salud pública y de cuidado del ambiente."
+    ),
+    "prohibicion": (
+        "Está prohibido arrojar medicamentos al desagüe, al inodoro o a la "
+        "basura común: contaminan el agua, exponen a niños y animales a una "
+        "intoxicación accidental y hacen imposible cualquier manejo seguro. "
+        "La normativa sanitaria y ambiental del país lo prohíbe expresamente, "
+        "y la responsabilidad es de cada persona que tiene medicamentos en su "
+        "casa."
+    ),
+}
+
+
+#: Puntos de recolección verificados en Sogamoso (Boyacá).
+PUNTOS_AZULES = [
+    {
+        "icono": "🏥",
+        "tipo": "Hospital",
+        "nombre": "Hospital Regional de Sogamoso",
+        "direccion": "",
+    },
+    {
+        "icono": "🏥",
+        "tipo": "Entidad de salud",
+        "nombre": "Salud Sogamoso, sede Centro",
+        "direccion": "",
+    },
+    {
+        "icono": "💊",
+        "tipo": "Droguería",
+        "nombre": "Droguería Cruz Verde",
+        "direccion": "Calle 14 # 11-74",
+    },
+    {
+        "icono": "💊",
+        "tipo": "Droguería",
+        "nombre": "Droguería Colsubsidio",
+        "direccion": "Calle 13 # 11-61",
+    },
+    {
+        "icono": "💊",
+        "tipo": "Droguería",
+        "nombre": "Droguería Colsubsidio",
+        "direccion": "Carrera 10 # 90",
+    },
+]
+
+
+#: Nota al pie del directorio (los puntos pueden cambiar).
+PUNTOS_AZULES_NOTA = (
+    "Los puntos de recolección pueden cambiar de horario o de cobertura. "
+    "Confirma antes de ir y, si un punto no puede recibir tu medicamento, "
+    "pide orientación a la autoridad de salud o ambiental municipal."
+)
+
+
+#: Pasos para entregar los medicamentos de forma segura.
+INSTRUCCIONES_ENTREGA = [
+    {
+        "icono": "🧺",
+        "titulo": "Separa lo que vas a entregar",
+        "texto": (
+            "Haz dos grupos: los medicamentos no perecederos (tabletas, "
+            "cápsulas, jarabes e inyectables) y los perecederos o que "
+            "requieren refrigeración (vacunas, sueros y productos con la "
+            "fecha próxima a vencer). Estos últimos no siempre son aceptados "
+            "en el punto: consérvalos y pregunta por su manejo especial."
+        ),
+    },
+    {
+        "icono": "📦",
+        "titulo": "No los mezcles con la basura doméstica",
+        "texto": (
+            "Empaqueta todo en una bolsa resistente o en un recipiente con "
+            "tapa, y sepáralo del resto de los residuos de la casa. Si el "
+            "envase está roto o el medicamento es líquido, haz doble "
+            "empacado (una bolsa dentro de otra)."
+        ),
+    },
+    {
+        "icono": "🏷️",
+        "titulo": "Conserva el envase original",
+        "texto": (
+            "Entrega el medicamento en su envase o, al menos, con el nombre y "
+            "el principio activo a la vista. El punto necesita identificarlo "
+            "para clasificarlo y darle un manejo seguro."
+        ),
+    },
+    {
+        "icono": "🚫",
+        "titulo": "No entregues elementos de riesgo",
+        "texto": (
+            "Las jeringas, las agujas, los elementos corto punzantes y los "
+            "aerosoles presurizados necesitan un manejo distinto y no se "
+            "reciben en los puntos de recolección."
+        ),
+    },
+    {
+        "icono": "🕗",
+        "titulo": "Entrega dentro del horario del punto",
+        "texto": (
+            "Cada punto tiene su propia franja de atención. Si no lo reciben, "
+            "no dejes el medicamento en la puerta ni lo devuelvas a la "
+            "basura: escoge otro punto del directorio o pide orientación."
+        ),
+    },
+]
+
+
+#: Productos que no deben entregarse en un punto azul.
+NO_ENTREGAR = [
+    "Jeringas, agujas y elementos corto punzantes.",
+    "Aerosoles presurizados y productos inflamables.",
+    "Residuos clínicos (sangre, saliva, tejidos y otros productos de atención).",
+    "Alimentos, productos de aseo y otros residuos domésticos.",
 ]
 
 
