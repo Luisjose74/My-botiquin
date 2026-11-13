@@ -1,0 +1,47 @@
+{% comment %}
+Consejos para el cuidado de tu botiquín: tres pilares de Regencia de Farmacia.
+
+Se usa en el portal público (/educacion/), en las vistas de apoyo de la app
+privada (panel, alertas y ficha del medicamento) y en el correo de alertas.
+
+Uso: {% include "_consejos_cuidado.html" %}
+
+Escribe los estilos en línea porque el bloque también viaja dentro del correo
+en HTML (que no carga las hojas de estilo de la app).
+{% endcomment %}
+<div class="consejos-cuidado" style="margin:18px 0;padding:16px;background:#f2f7ff;border:1px solid #dce7f7;border-radius:12px;text-align:left;">
+  <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0b2a6f;">
+    🧾 Consejos para el cuidado de tu botiquín
+  </p>
+  <p style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6b8c;">
+    Enfoque de Regencia de Farmacia: conservar bien, usar con criterio y
+    desechar de forma responsable.
+  </p>
+
+  {% for pilar in pilares_cuidado %}
+    <div style="margin:0 0 10px;padding:12px 14px;background:#ffffff;border:1px solid #e4edf9;border-radius:10px;">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#1565e8;">
+        {{ pilar.icono }} {{ pilar.titulo }}
+      </p>
+      <p style="margin:0 0 8px;font-size:12.5px;line-height:1.55;color:#3f5275;">
+        {{ pilar.intro }}
+      </p>
+      <ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:#3f5275;">
+        {% for consejo in pilar.consejos %}
+          <li style="margin:0 0 5px;">
+            <strong style="color:#0b2a6f;">{{ consejo.titulo }}:</strong>
+            {{ consejo.texto }}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if pilar.titulo == 'Desecho responsable' and url_puntos_azules %}
+        <p style="margin:10px 0 0;">
+          <a href="{{ url_puntos_azules }}"
+             style="display:inline-block;background:#1565e8;color:#ffffff;text-decoration:none;font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:9px;">
+            Ver el directorio de Puntos Azules en Sogamoso →
+          </a>
+        </p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>

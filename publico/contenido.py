@@ -319,6 +319,151 @@ AVISO_PROFESIONAL = (
 )
 
 
+# ---------------------------------------------------------------------------
+# Consejos para el cuidado de tu botiquín (tres pilares de Regencia de
+# Farmacia). Se usan en el portal público, en las vistas de apoyo de la app
+# privada y en el correo de alertas: un solo contenido, un solo lugar.
+# ---------------------------------------------------------------------------
+PILARES_CUIDADO = [
+    {
+        "icono": "🧊",
+        "titulo": "Conservación",
+        "intro": (
+            "Guarda cada medicamento como lo indica su empaque: es la forma "
+            "más sencilla de que siga sirviendo y de que nadie lo tome por "
+            "error."
+        ),
+        "consejos": [
+            {
+                "titulo": "Según el empaque",
+                "texto": (
+                    "Respeta las condiciones del envase: «lugar fresco y seco», "
+                    "«protegido de la luz» o «refrigerar». Si el producto "
+                    "exige refrigeración, el termómetro del refrigerador debe "
+                    "marcar entre 2 °C y 8 °C."
+                ),
+            },
+            {
+                "titulo": "Humedad, luz y calor",
+                "texto": (
+                    "El baño, la cocina, el cajón de la paleta y la ventana del "
+                    "carro son los peores lugares: la humedad, el calor y la luz "
+                    "directa degradan los principios activos."
+                ),
+            },
+            {
+                "titulo": "En su envase original",
+                "texto": (
+                    "Conserva el medicamento en su envase, con el blíster o la "
+                    "caja y el prospecto: así puedes identificarlo, ver el lote "
+                    "y saber cómo usarlo."
+                ),
+            },
+            {
+                "titulo": "Fuera del alcance de niños y mascotas",
+                "texto": (
+                    "Guárdalo en un sitio alto o con cerradura. Cada año se "
+                    "registran intoxicaciones accidentales de niños que toman "
+                    "medicamentos del botiquín."
+                ),
+            },
+        ],
+    },
+    {
+        "icono": "💊",
+        "titulo": "Uso seguro",
+        "intro": (
+            "Tomar bien un medicamento es cumplir la dosis, en el horario y "
+            "durante el tiempo indicados. La aplicación no reemplaza la "
+            "indicación de tu profesional de salud."
+        ),
+        "consejos": [
+            {
+                "titulo": "Respeta la dosis y el horario",
+                "texto": (
+                    "Toma exactamente la dosis y a la hora indicados. Si se te "
+                    "olvidó una toma, no la dupliques: pregunta a tu "
+                    "profesional de salud qué hacer."
+                ),
+            },
+            {
+                "titulo": "Verifica los vencimientos",
+                "texto": (
+                    "Revisa la fecha de vencimiento y el lote antes de cada "
+                    "toma. Un medicamento vencido puede cambiar su eficacia o "
+                    "volverse nocivo."
+                ),
+            },
+            {
+                "titulo": "No compartas fármacos formulados",
+                "texto": (
+                    "Los medicamentos con fórmula y dosis prescritas —antibióticos, "
+                    "anticoagulantes, anticonceptivos— son para una persona y "
+                    "una dosis: no los compartas ni los repartas."
+                ),
+            },
+            {
+                "titulo": "Evita la automedicación con antibióticos",
+                "texto": (
+                    "Úsalos solo cuando te los haya indicado un profesional de "
+                    "salud y completa el tratamiento. Tomarlos por cuenta "
+                    "propia no cura y genera resistencia."
+                ),
+            },
+            {
+                "titulo": "Consulta al profesional de salud",
+                "texto": (
+                    "Ante dudas sobre dosis, interacciones o efectos "
+                    "adversos, consulta a tu regente de farmacia o a tu médico "
+                    "antes de tomarlo."
+                ),
+            },
+        ],
+    },
+    {
+        "icono": "🗑️",
+        "titulo": "Desecho responsable",
+        "intro": (
+            "Un medicamento que ya no sirve sigue siendo un residuo "
+            "farmacéutico: hay que entregarlo, no tirarlo."
+        ),
+        "consejos": [
+            {
+                "titulo": "Separa los caducados para Puntos Azules",
+                "texto": (
+                    "Retira del botiquín lo que venció o se deterioró y "
+                    "llévalo a un Punto Azul de Sogamoso. No lo dejes en la "
+                    "basura de la casa."
+                ),
+            },
+            {
+                "titulo": "Nunca al inodoro ni al lavamanos",
+                "texto": (
+                    "Arrojar medicamentos al desagüe o al inodoro contamina el "
+                    "agua que bebemos y los ríos, y puede obstruir las "
+                    "tuberías."
+                ),
+            },
+            {
+                "titulo": "No los mezcles con la basura doméstica",
+                "texto": (
+                    "Empácalos aparte, en una bolsa o un recipiente con tapa, y "
+                    "sepáralos del resto de los residuos de la casa."
+                ),
+            },
+            {
+                "titulo": "Elementos cortopunzantes aparte",
+                "texto": (
+                    "Las agujas y jeringas no se entregan en el punto azul: "
+                    "consulta en el servicio farmacéutico o en la secretaría de "
+                    "salud de tu municipio su manejo y recogida."
+                ),
+            },
+        ],
+    },
+]
+
+
 #: Bloques de la guía de educación sanitaria.
 SECCIONES_EDUCACION = [
     {
@@ -331,6 +476,7 @@ SECCIONES_EDUCACION = [
             "Separa los medicamentos de uso externo de los de uso oral y "
             "revisa que estén fuera del alcance de los niños."
         ),
+        "cubierto_por_pilares": True,
     },
     {
         "icono": "🗑️",
@@ -345,6 +491,7 @@ SECCIONES_EDUCACION = [
             "texto": "Ver el directorio de Puntos Azules en Sogamoso",
             "url": "publico:puntos_azules",
         },
+        "cubierto_por_pilares": True,
     },
     {
         "icono": "🚨",

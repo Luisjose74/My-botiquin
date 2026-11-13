@@ -96,6 +96,12 @@ def acerca_de(request):
 @require_GET
 def educacion(request):
     """Guía de educación sanitaria preventiva (Regencia de Farmacia)."""
+    # Las tarjetas cubiertas por los tres pilares de cuidado no se repiten.
+    secciones = [
+        seccion
+        for seccion in SECCIONES_EDUCACION
+        if not seccion.get("cubierto_por_pilares")
+    ]
     contexto = _contexto(
         request,
         titulo="Educación sanitaria",
@@ -104,7 +110,7 @@ def educacion(request):
             "desecho seguro de medicamentos vencidos, señales de alarma y "
             "cuándo consultar a un profesional de salud."
         ),
-        secciones=SECCIONES_EDUCACION,
+        secciones=secciones,
         seccion_activa="educacion",
     )
     return render(request, "publico/educacion.html", contexto)

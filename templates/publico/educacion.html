@@ -21,27 +21,37 @@
   </div>
 </section>
 
-<section class="pub-seccion pub-seccion-sin-espacio">
+<section class="pub-seccion">
   <div class="pub-contenedor pub-contenedor-estrecho">
+    <div class="pub-centro">
+      <p class="pub-antetitulo">Consejos</p>
+      <h2 class="pub-titulo-seccion">Consejos para el cuidado de tu botiquín</h2>
+      <p class="pub-parrafo pub-parrafo-centrada">
+        Tres pilares del enfoque de {{ institucion.enfoque }}: conservar bien,
+        usar con criterio y desechar de forma responsable.
+      </p>
+    </div>
+
     <div class="pub-consellos">
-      {% include "botiquin/_consejos_farmacia.html" %}
+      {% include "_consejos_cuidado.html" %}
     </div>
     <p class="pub-centro pub-centro-nota">
-      Estas son las mismas recomendaciones que aparecen en el panel de la
-      aplicación y en los correos de alerta, para que el mensaje educativo
-      esté siempre disponible, incluso antes de crear una cuenta.
+      Son las mismas recomendaciones que aparecen en el panel de la aplicación
+      y en los correos de alerta, para que el mensaje educativo esté siempre
+      disponible, incluso antes de crear una cuenta.
     </p>
   </div>
 </section>
 
-<section class="pub-seccion pub-seccion-alterna">
+<section class="pub-seccion pub-seccion-alterna pub-seccion-sin-espacio">
   <div class="pub-contenedor">
     <div class="pub-centro">
       <p class="pub-antetitulo">Guía práctica</p>
       <h2 class="pub-titulo-seccion">Claves para un botiquín seguro</h2>
       <p class="pub-parrafo pub-parrafo-centrada">
-        Seis recomendaciones que la {{ institucion.enfoque }} aplica en el
-        punto de venta y que puedes aplicar en casa desde hoy.
+        {{ secciones|length }} recomendaciones adicionales que la
+        {{ institucion.enfoque }} aplica en el punto de venta y que puedes
+        aplicar en casa desde hoy.
       </p>
     </div>
 

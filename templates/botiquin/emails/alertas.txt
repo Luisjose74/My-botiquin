@@ -19,5 +19,5 @@ Ver Puntos Azules en Sogamoso para su desecho seguro:
 {% endif %}
 Puedes cambiar cómo quieres recibir las alertas en tu perfil.
 
-{% include "botiquin/_consejos_farmacia.txt" %}
+{% include "_consejos_cuidado.txt" %}
 Mi Botiquín Digital

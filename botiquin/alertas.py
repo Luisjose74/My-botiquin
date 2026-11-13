@@ -172,6 +172,8 @@ def enviar_alertas_por_correo(usuario, alertas):
         return False
 
     total = len(alertas)
+    from publico.contenido import PILARES_CUIDADO
+
     contexto = {
         "usuario": usuario,
         "alertas": alertas,
@@ -180,6 +182,8 @@ def enviar_alertas_por_correo(usuario, alertas):
         # Enlace al directorio de Puntos Azules para el desecho seguro.
         "url_puntos_azules": _url_puntos_azules(),
         "hay_vencidos": any(alerta.tipo == "vencido" for alerta in alertas),
+        # Pilares educativos de cuidado del botiquín.
+        "pilares_cuidado": PILARES_CUIDADO,
     }
     asunto = _asunto_alertas(alertas)
     texto = render_to_string("botiquin/emails/alertas.txt", contexto)

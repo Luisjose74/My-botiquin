@@ -258,22 +258,36 @@ python manage.py sincronizar_alertas
 
 ## Atención farmacéutica preventiva (Regencia de Farmacia)
 
-La app incluye recomendaciones educativas en el panel de alertas, en el detalle
-del medicamento y en los correos:
+La sección educativa **«Consejos para el cuidado de tu botiquín»** está
+organizada en tres pilares y aparece con el mismo contenido en el portal
+público, en las vistas de apoyo de la app privada y en el correo de
+alertas.
 
-- No consumas medicamentos vencidos (y entrégalos en puntos de recolección).
-- Evita la automedicación.
-- Respeta las condiciones de almacenamiento (fresco, seco, sin luz, en su
-  envase original y fuera del alcance de los niños).
-- No compartas medicamentos.
-- Consulta al personal de salud ante dudas de dosis, interacciones o efectos
-  adversos.
+| Pilar | Contenido |
+| --- | --- |
+| 🧊 **Conservación** | Guardar según el empaque (lugar fresco y seco, protegido de la luz o refrigerado a 2–8 °C), evitar humedad, luz y calor, conservar en el envase original y fuera del alcance de niños y mascotas. |
+| 💊 **Uso seguro** | Respetar la dosis y el horario, verificar vencimientos y lote, no compartir fármacos formulados, evitar la automedicación con antibióticos y consultar al profesional de salud. |
+| 🗑️ **Desecho responsable** | Separar los caducados para Puntos Azules, no usar el inodoro ni el lavamanos, no mezclarlos con la basura doméstica y consultar el manejo de los elementos cortopunzantes (agujas) en el servicio farmacéutico. |
 
-El texto está centralizado en `templates/botiquin/_consejos_farmacia.html`
-(HTML) y `templates/botiquin/_consejos_farmacia.txt` (correo en texto plano),
-de modo que se actualiza desde un solo lugar. La página pública
-`/educacion/` reutiliza ese mismo bloque, así que el mensaje educativo es
-idéntico en el sitio, en la app y en los correos.
+Todo el texto vive en **un solo lugar**:
+
+| Pieza | Ubicación |
+| --- | --- |
+| Contenido de los tres pilares | `publico/contenido.py` → `PILARES_CUIDADO` |
+| Bloque para la web y el correo en HTML | `templates/_consejos_cuidado.html` |
+| Bloque para el correo en texto plano | `templates/_consejos_cuidado.txt` |
+| Inyección del contenido en las plantillas | `publico/context_processors.py` → `consejos_cuidado` |
+
+El context processor pone el contenido a disposición de todas las plantillas,
+así que el bloque se puede incluir desde cualquier vista sin repetir datos.
+Dónde se muestra:
+
+- Portal público: `/educacion/` (sección principal) y `/` (avance en la
+  portada).
+- App privada: panel (`/app/`), centro de avisos (`/botiquin/alertas/`) y
+  ficha del medicamento vencido o por vencer (`/botiquin/<id>/`).
+- Correo: resumen de alertas por vencimiento (HTML y texto plano), con el
+  enlace al directorio de Puntos Azules en el pilar de desecho responsable.
 
 ## Páginas públicas e institucionales
 

@@ -59,20 +59,47 @@ class PaginasPublicasTests(TestCase):
         self.assertContains(respuesta, 'rel="canonical"')
         self.assertContains(respuesta, 'property="og:title"')
 
-    def test_educacion_reutiliza_las_recomendaciones_centralizadas(self):
+    def test_educacion_reutiliza_los_consejos_centralizados(self):
         respuesta = self.client.get(reverse("publico:educacion"))
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "Recomendaciones de Regencia de Farmacia")
-        for frase in FRASES_RECOMENDACIONES:
-            self.assertContains(respuesta, frase)
+        contenido = respuesta.content.decode("utf-8")
+        self.assertIn("Consejos para el cuidado de tu botiquín", contenido)
+        for pilar in ("Conservación", "Uso seguro", "Desecho responsable"):
+            self.assertIn(pilar, contenido)
+        for frase in (
+            "Según el empaque",
+            "Fuera del alcance de niños y mascotas",
+            "No compartas fármacos formulados",
+            "Evita la automedicación con antibióticos",
+            "Separa los caducados para Puntos Azules",
+            "Nunca al inodoro ni al lavamanos",
+            "Elementos cortopunzantes aparte",
+        ):
+            self.assertIn(frase, contenido)
 
     def test_educacion_incluye_las_secciones_de_la_guia(self):
         respuesta = self.client.get(reverse("publico:educacion"))
 
-        self.assertContains(respuesta, "Cómo almacenar correctamente")
-        self.assertContains(respuesta, "Qué hacer con los medicamentos vencidos")
         self.assertContains(respuesta, "Señales de alarma")
+        self.assertContains(respuesta, "Antes de combinar medicamentos")
+        self.assertContains(respuesta, "Niños, embarazo y adultos mayores")
+        self.assertContains(respuesta, "Cómo llevar la lista a la consulta")
+
+    def test_educacion_no_repite_lo_que_ya_cubren_los_pilares(self):
+        """Las tarjetas de almacenamiento y desecho no se duplican."""
+        respuesta = self.client.get(reverse("publico:educacion"))
+
+        self.assertNotContains(respuesta, "Cómo almacenar correctamente")
+        self.assertNotContains(respuesta, "Qué hacer con los medicamentos vencidos")
+
+    def test_la_portada_muestra_los_consejos_de_cuidado(self):
+        respuesta = self.client.get(reverse("publico:portada"))
+
+        contenido = respuesta.content.decode("utf-8")
+        self.assertIn("Consejos para el cuidado de tu botiquín", contenido)
+        for pilar in ("Conservación", "Uso seguro", "Desecho responsable"):
+            self.assertIn(pilar, contenido)
 
     def test_educacion_advierte_que_no_reemplaza_la_consulta(self):
         respuesta = self.client.get(reverse("publico:educacion"))

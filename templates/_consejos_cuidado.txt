@@ -1,0 +1,16 @@
+{% comment %}
+Consejos para el cuidado de tu botiquín — versión en texto plano para el
+correo. Debe mantener la misma estructura y los mismos textos que
+`_consejos_cuidado.html`.
+{% endcomment %}
+🧾 Consejos para el cuidado de tu botiquín
+Enfoque de Regencia de Farmacia: conservar bien, usar con criterio y desechar
+de forma responsable.
+
+{% for pilar in pilares_cuidado %}{{ pilar.icono }} {{ pilar.titulo }}
+{{ pilar.intro }}
+{% for consejo in pilar.consejos %}  - {{ consejo.titulo }}: {{ consejo.texto }}
+{% endfor %}{% if pilar.titulo == 'Desecho responsable' and url_puntos_azules %}
+Ver el directorio de Puntos Azules en Sogamoso: {{ url_puntos_azules }}
+{% endif %}
+{% endfor %}

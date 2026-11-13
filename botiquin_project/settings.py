@@ -193,6 +193,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'botiquin.context_processors.alertas_pendientes',
+                # Contenido educativo compartido (portal público + app privada)
+                'publico.context_processors.consejos_cuidado',
             ],
         },
     },
