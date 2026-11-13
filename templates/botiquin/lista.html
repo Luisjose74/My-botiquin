@@ -47,15 +47,15 @@
 <section class="filtros animar" style="--d: 160ms">
   <div class="chips-filtro" role="group" aria-label="Filtrar por estado">
     <a class="chip-filtro {% if estado_actual == 'todos' %}activo{% endif %}"
-       href="?estado=todos{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if miembro_actual %}&miembro={{ miembro_actual }}{% endif %}">Todos</a>
+       href="?estado=todos{% if filtros_base %}&{{ filtros_base }}{% endif %}">Todos</a>
     <a class="chip-filtro {% if estado_actual == 'optimos' %}activo{% endif %}"
-       href="?estado=optimos{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if miembro_actual %}&miembro={{ miembro_actual }}{% endif %}">Óptimos</a>
+       href="?estado=optimos{% if filtros_base %}&{{ filtros_base }}{% endif %}">Óptimos</a>
     <a class="chip-filtro {% if estado_actual == 'por_vencer' %}activo{% endif %}"
-       href="?estado=por_vencer{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if miembro_actual %}&miembro={{ miembro_actual }}{% endif %}">Por vencer</a>
+       href="?estado=por_vencer{% if filtros_base %}&{{ filtros_base }}{% endif %}">Por vencer</a>
     <a class="chip-filtro {% if estado_actual == 'vencidos' %}activo{% endif %}"
-       href="?estado=vencidos{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if miembro_actual %}&miembro={{ miembro_actual }}{% endif %}">Vencidos</a>
+       href="?estado=vencidos{% if filtros_base %}&{{ filtros_base }}{% endif %}">Vencidos</a>
     <a class="chip-filtro {% if estado_actual == 'agotados' %}activo{% endif %}"
-       href="?estado=agotados{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if miembro_actual %}&miembro={{ miembro_actual }}{% endif %}">Agotados</a>
+       href="?estado=agotados{% if filtros_base %}&{{ filtros_base }}{% endif %}">Agotados</a>
   </div>
 
   <form class="filtros-form" method="get">
@@ -64,9 +64,20 @@
     <div class="buscador-campo">
       <span aria-hidden="true">🔍</span>
       <input class="campo" type="search" name="q" value="{{ q }}"
-             placeholder="Buscar por nombre, lote o registro sanitario…"
+             placeholder="Buscar por nombre, concentración, lote o INVIMA…"
              aria-label="Buscar medicamentos">
     </div>
+
+    <select class="campo campo-select" name="clasificacion"
+            aria-label="Filtrar por clasificación de uso">
+      <option value="">Toda clasificación</option>
+      {% for clasificacion in clasificaciones %}
+        <option value="{{ clasificacion.pk }}"
+          {% if clasificacion_actual == clasificacion.pk %}selected{% endif %}>
+          {{ clasificacion.icono }} {{ clasificacion.nombre }}
+        </option>
+      {% endfor %}
+    </select>
 
     <select class="campo campo-select" name="categoria" aria-label="Filtrar por categoría">
       <option value="">Todas las categorías</option>
@@ -90,7 +101,7 @@
 
     <button class="boton boton-inline" type="submit">Filtrar</button>
 
-    {% if q or categoria_actual or miembro_actual or estado_actual != 'todos' %}
+    {% if q or categoria_actual or clasificacion_actual or miembro_actual or estado_actual != 'todos' %}
       <a class="limpiar-filtros" href="{% url 'botiquin:lista' %}">Limpiar</a>
     {% endif %}
   </form>
@@ -99,6 +110,8 @@
 <div class="resultado-info">
   {{ medicamentos|length }} medicamento{{ medicamentos|length|pluralize }}
   {% if estado_actual != 'todos' %} · filtro: {{ estado_label }}{% endif %}
+  {% if clasificacion_actual %} · {{ clasificacion_actual.nombre }}{% endif %}
+  {% if categoria_actual %} · {{ categoria_actual.nombre }}{% endif %}
 </div>
 
 <section class="grid-meds">
@@ -107,10 +120,10 @@
              style="--d: calc(220ms + {{ forloop.counter0 }} * 35ms)">
       <div class="med-card-top">
         <span class="med-icono" aria-hidden="true">
-          {% if medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}
+          {% if medicamento.clasificacion %}{{ medicamento.clasificacion.icono }}{% elif medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}
         </span>
         <div class="med-titulo">
-          <h3>{{ medicamento.nombre }}</h3>
+          <h3>{{ medicamento.nombre_completo }}</h3>
           <p>{{ medicamento.get_presentacion_display }} · {{ medicamento.cantidad }} und.</p>
         </div>
         <span class="tag {{ medicamento.estado }}">{{ medicamento.estado_label }}</span>
@@ -118,6 +131,9 @@
 
       <ul class="med-meta">
         <li><span aria-hidden="true">📅</span> Vence: {{ medicamento.fecha_vencimiento|date:"d/m/Y" }}</li>
+        {% if medicamento.clasificacion %}
+          <li><span aria-hidden="true">🗂️</span> {{ medicamento.clasificacion.nombre }}</li>
+        {% endif %}
         {% if medicamento.ubicacion %}
           <li><span aria-hidden="true">📍</span> {{ medicamento.ubicacion }}</li>
         {% endif %}
@@ -136,21 +152,21 @@
     <div class="vacio-app">
       <span class="vacio-icono" aria-hidden="true">🧺</span>
       <h2>
-        {% if q or categoria_actual or miembro_actual or estado_actual != 'todos' %}
+        {% if q or categoria_actual or clasificacion_actual or miembro_actual or estado_actual != 'todos' %}
           Sin resultados
         {% else %}
           Tu botiquín está vacío
         {% endif %}
       </h2>
       <p>
-        {% if q or categoria_actual or miembro_actual or estado_actual != 'todos' %}
+        {% if q or categoria_actual or clasificacion_actual or miembro_actual or estado_actual != 'todos' %}
           No encontramos medicamentos con esos filtros.
         {% else %}
           Registra tu primer medicamento para empezar a controlar
           vencimientos y cantidades.
         {% endif %}
       </p>
-      {% if q or categoria_actual or miembro_actual or estado_actual != 'todos' %}
+      {% if q or categoria_actual or clasificacion_actual or miembro_actual or estado_actual != 'todos' %}
         <a class="boton boton-inline" href="{% url 'botiquin:lista' %}">Ver todo el botiquín</a>
       {% else %}
         <a class="boton boton-inline" href="{% url 'botiquin:crear' %}">＋ Registrar medicamento</a>

@@ -191,6 +191,42 @@ SITE_URL=https://tu-dominio.ngrok-free.app
   pueden desactivar por `.env` para uso local en HTTP.
 - `python manage.py check --deploy` lista los avisos de seguridad pendientes.
 
+## Registro detallado de medicamentos
+
+El formulario de registro (`/botiquin/nuevo/`) recoge los datos completos de
+cada caja, organizados en cinco secciones:
+
+| Sección | Campos |
+| --- | --- |
+| Identificación del medicamento | Nombre, **concentración** (500 mg, 125 mg/5 mL…), **forma farmacéutica** (tableta, cápsula, suspensión, solución, crema, gotas, aerosol, inyectable, supositorio, parche, polvo…) y cantidad |
+| Clasificación | **Clasificación de uso** y categoría terapéutica |
+| Vencimiento y trazabilidad | Fecha de vencimiento, número de lote y **registro INVIMA** |
+| Conservación y responsable | Condición de almacenamiento, ubicación, notas de conservación e integrante |
+| Indicación prescrita y observaciones | **Indicación prescrita** y observaciones |
+
+### Clasificación de uso
+
+El modelo `Clasificacion` agrupa los medicamentos según cómo se usan en casa
+y complemente la categoría terapéutica. El catálogo inicial trae tres
+clasificaciones, y se edita desde el panel de administración:
+
+| Clasificación | Para qué sirve |
+| --- | --- |
+| 💊 Tratamiento crónico | Medicamentos de uso prolongado para enfermedades crónicas. |
+| 🤧 Antigripal | Para resfriados, gripe y síntomas de temporada. |
+| 🩹 Uso ocasional | Para dolor, alergias o malestares puntuales. |
+
+Se puede filtrar el botiquín por clasificación y la búsqueda también cubre
+la concentración.
+
+### Indicación prescrita
+
+La **indicación prescrita** registra lo que indicó el profesional de salud. La
+aplicación solo guarda ese dato: el formulario, la ficha del medicamento y
+la ayuda en pantalla dejan claro que *Mi Botiquín Digital no sugiere
+tratamientos ni dosis*. Si la concentración ya aparece en el nombre, el
+formulario avisa para evitar datos duplicados.
+
 ## Alertas de vencimiento (30, 15 y 5 días)
 
 Cada alerta aparece en el panel. Si el usuario eligió el canal **Correo

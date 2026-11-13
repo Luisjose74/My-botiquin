@@ -4,7 +4,7 @@ Estas son tus tomas programadas para hoy ({{ fecha|date:"d/m/Y" }}):
 
 {% for item in items %}
 {% with pauta=item.pauta %}
-- {{ pauta.medicamento.nombre }} ({{ pauta.miembro.nombre }})
+- {{ pauta.medicamento.nombre_completo }} ({{ pauta.miembro.nombre }})
   Dosis: {{ pauta.dosis }}{% if pauta.hora %} · Hora: {{ pauta.hora }}{% endif %}
   Confirmar: {{ item.confirm_url }}
 {% endwith %}

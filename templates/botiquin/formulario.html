@@ -1,7 +1,7 @@
 {% extends "base_app.html" %}
 
 {% block title %}
-  {% if modo == "editar" %}Editar {{ medicamento.nombre }}{% else %}Registrar medicamento{% endif %} · Mi Botiquín Digital
+  {% if modo == "editar" %}Editar {{ medicamento.nombre_completo }}{% else %}Registrar medicamento{% endif %} · Mi Botiquín Digital
 {% endblock %}
 
 {% block app_content %}
@@ -43,54 +43,101 @@
         <div class="seccion-cabecera">
           <span class="seccion-icono" aria-hidden="true">📋</span>
           <div>
-            <h2>Datos del medicamento</h2>
-            <p>Lo esencial para identificarlo en tu botiquín.</p>
+            <h2>Identificación del medicamento</h2>
+            <p>Nombre, concentración y forma farmacéutica.</p>
           </div>
         </div>
 
         <div class="campos-grid">
-          {% include "botiquin/_campo.html" with campo=form.nombre ancho=True %}
-          {% include "botiquin/_campo.html" with campo=form.categoria %}
+          {% include "botiquin/_campo.html" with campo=form.nombre %}
+          {% include "botiquin/_campo.html" with campo=form.concentracion %}
           {% include "botiquin/_campo.html" with campo=form.presentacion %}
           {% include "botiquin/_campo.html" with campo=form.cantidad %}
-          {% include "botiquin/_campo.html" with campo=form.lote %}
         </div>
       </section>
 
-      <section class="tarjeta form-seccion animar" style="--d: 200ms">
+      <section class="tarjeta form-seccion animar" style="--d: 180ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">🗂️</span>
+          <div>
+            <h2>Clasificación</h2>
+            <p>Para qué se usa en casa y a qué grupo pertenece.</p>
+          </div>
+        </div>
+
+        <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.clasificacion %}
+          {% include "botiquin/_campo.html" with campo=form.categoria %}
+        </div>
+
+        <div class="clasificaciones-ayuda">
+          {% for clasificacion in clasificaciones %}
+            <p>
+              <strong>{{ clasificacion.icono }} {{ clasificacion.nombre }}:</strong>
+              {{ clasificacion.descripcion }}
+            </p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="tarjeta form-seccion animar" style="--d: 220ms">
         <div class="seccion-cabecera">
           <span class="seccion-icono" aria-hidden="true">📅</span>
           <div>
-            <h2>Vencimiento y conservación</h2>
-            <p>Así podremos avisarte antes de que caduque.</p>
+            <h2>Vencimiento y trazabilidad</h2>
+            <p>Lo que aparece en la caja: fecha, lote y registro INVIMA.</p>
           </div>
         </div>
 
         <div class="campos-grid">
           {% include "botiquin/_campo.html" with campo=form.fecha_vencimiento %}
-          {% include "botiquin/_campo.html" with campo=form.condicion_almacenamiento %}
-          {% include "botiquin/_campo.html" with campo=form.ubicacion ancho=True %}
+          {% include "botiquin/_campo.html" with campo=form.lote %}
+          {% include "botiquin/_campo.html" with campo=form.registro_sanitario ancho=True %}
         </div>
       </section>
 
       <section class="tarjeta form-seccion animar" style="--d: 260ms">
         <div class="seccion-cabecera">
-          <span class="seccion-icono" aria-hidden="true">📝</span>
+          <span class="seccion-icono" aria-hidden="true">🏠</span>
           <div>
-            <h2>Notas adicionales</h2>
-            <p>Opcional: indicaciones o cuidados especiales.</p>
+            <h2>Conservación y responsable</h2>
+            <p>Dónde se guarda, cómo se conserva y quién lo usa.</p>
           </div>
         </div>
 
         <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.condicion_almacenamiento %}
+          {% include "botiquin/_campo.html" with campo=form.ubicacion %}
           {% include "botiquin/_campo.html" with campo=form.notas_conservacion ancho=True %}
+        </div>
+      </section>
+
+      <section class="tarjeta form-seccion animar" style="--d: 300ms">
+        <div class="seccion-cabecera">
+          <span class="seccion-icono" aria-hidden="true">🩺</span>
+          <div>
+            <h2>Indicación prescrita y observaciones</h2>
+            <p>Lo que indicó tu profesional de salud y tus propias notas.</p>
+          </div>
+        </div>
+
+        <div class="aviso aviso-info form-aviso-indicacion">
+          <span aria-hidden="true">ℹ️</span>
+          Registra <strong>solo lo que te indicó tu médico o tu regente de
+          farmacia</strong>. Mi Botiquín Digital organiza la información que
+          tú consignas: no sugiere qué medicamento debes tomar, ni con qué
+          dosis, ni cuándo.
+        </div>
+
+        <div class="campos-grid">
+          {% include "botiquin/_campo.html" with campo=form.indicacion_prescrita ancho=True %}
           {% include "botiquin/_campo.html" with campo=form.notas ancho=True %}
         </div>
       </section>
     </div>
 
     <aside class="form-lado">
-      <section class="tarjeta form-seccion animar" style="--d: 180ms">
+      <section class="tarjeta form-seccion animar" style="--d: 200ms">
         <div class="seccion-cabecera">
           <span class="seccion-icono" aria-hidden="true">📷</span>
           <div>
@@ -114,7 +161,7 @@
         {% include "botiquin/_campo.html" with campo=form.foto sin_etiqueta=True %}
       </section>
 
-      <section class="tarjeta form-seccion animar" style="--d: 240ms">
+      <section class="tarjeta form-seccion animar" style="--d: 260ms">
         <div class="seccion-cabecera">
           <span class="seccion-icono" aria-hidden="true">👤</span>
           <div>
@@ -125,17 +172,17 @@
 
         <div class="campos-grid">
           {% include "botiquin/_campo.html" with campo=form.miembro ancho=True %}
-          {% include "botiquin/_campo.html" with campo=form.registro_sanitario ancho=True %}
         </div>
       </section>
 
-      <section class="tarjeta form-tips animar" style="--d: 300ms">
+      <section class="tarjeta form-tips animar" style="--d: 320ms">
         <h2>Antes de guardar</h2>
         <ul>
           <li>Revisa que la <strong>fecha de vencimiento</strong> coincida con la caja.</li>
           <li>Anota la <strong>ubicación</strong> para encontrarlo rápido.</li>
+          <li>Elige la <strong>clasificación de uso</strong>: crónica, antigripal u ocasional.</li>
+          <li>La <strong>indicación prescrita</strong> solo la completas si tu profesional de salud te la dejó por escrito.</li>
           <li>Si la cantidad llega a cero, aparecerá como <strong>agotado</strong>.</li>
-          <li>Una foto clara ayuda a evitar confusiones entre cajas similares.</li>
         </ul>
       </section>
     </aside>

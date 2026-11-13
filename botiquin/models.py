@@ -19,13 +19,20 @@ class EstadoInventario(models.TextChoices):
 
 
 class Presentacion(models.TextChoices):
+    """Formas farmacéuticas en las que se expende un medicamento."""
+
     TABLETA = "tableta", "Tabletas"
+    COMPRIMIDO = "comprimido", "Comprimido o gragea"
     CAPSULA = "capsula", "Cápsulas"
     SUSPENSION = "suspension", "Suspensión"
+    SOLUCION = "solucion", "Solución"
     CREMA = "crema", "Crema / ungüento"
     GOTA = "gota", "Gotas"
     AEROSOL = "aerosol", "Aerosol"
     INYECTABLE = "inyectable", "Inyectable"
+    SUPOSITORIO = "supositorio", "Supositorio"
+    PARCHE = "parche", "Parche"
+    POLVO = "polvo", "Polvo o sobre"
     OTRO = "otro", "Otro"
 
 
@@ -48,6 +55,33 @@ class Categoria(models.Model):
         verbose_name = "Categoría"
         verbose_name_plural = "Categorías"
         ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class Clasificacion(models.Model):
+    """Clasificación de uso del medicamento.
+
+    Complementa la categoría terapéutica: responde *para qué* se usa el
+    medicamento en el hogar (tratamiento de una enfermedad crónica,
+    temporada de gripa, uso ocasional por un dolor o alergia puntual).
+    """
+
+    nombre = models.CharField("Nombre", max_length=60, unique=True)
+    icono = models.CharField("Icono", max_length=10, default="💊")
+    descripcion = models.CharField(
+        "Descripción",
+        max_length=160,
+        blank=True,
+        help_text="Se muestra como ayuda al elegir la clasificación.",
+    )
+    orden = models.PositiveSmallIntegerField("Orden", default=0)
+
+    class Meta:
+        verbose_name = "Clasificación de uso"
+        verbose_name_plural = "Clasificaciones de uso"
+        ordering = ["orden", "nombre"]
 
     def __str__(self):
         return self.nombre
@@ -124,11 +158,26 @@ class Medicamento(models.Model):
         null=True,
         blank=True,
     )
+    clasificacion = models.ForeignKey(
+        Clasificacion,
+        verbose_name="Clasificación de uso",
+        on_delete=models.PROTECT,
+        related_name="medicamentos",
+        null=True,
+        blank=True,
+        help_text="Tratamiento crónico, antigripal, uso ocasional…",
+    )
 
     # Datos de la caja
     nombre = models.CharField("Nombre del medicamento", max_length=120)
+    concentracion = models.CharField(
+        "Concentración",
+        max_length=60,
+        blank=True,
+        help_text="Ej.: 500 mg, 125 mg/5 mL, 1 g.",
+    )
     presentacion = models.CharField(
-        "Presentación",
+        "Forma farmacéutica",
         max_length=20,
         choices=Presentacion.choices,
         default=Presentacion.TABLETA,
@@ -141,10 +190,21 @@ class Medicamento(models.Model):
     )
     lote = models.CharField("Número de lote", max_length=40, blank=True)
     registro_sanitario = models.CharField(
-        "Registro sanitario (INVIMA)",
+        "Registro INVIMA",
         max_length=60,
         blank=True,
         help_text="Déjalo vacío si no lo tienes a la mano.",
+    )
+
+    # Indicación prescrita: se registra lo que indicó el profesional de salud.
+    # La aplicación solo guarda el dato: no propone tratamientos ni dosis.
+    indicacion_prescrita = models.TextField(
+        "Indicación prescrita",
+        blank=True,
+        help_text=(
+            "Registra solo lo que te indicó tu médico o tu regente de farmacia. "
+            "Mi Botiquín Digital no sugiere tratamientos ni dosis."
+        ),
     )
 
     # Fechas de caducidad
@@ -175,7 +235,7 @@ class Medicamento(models.Model):
     foto = models.ImageField(
         "Foto de la caja", upload_to="medicamentos/", blank=True, null=True
     )
-    notas = models.TextField("Notas adicionales", blank=True)
+    notas = models.TextField("Observaciones", blank=True)
     activo = models.BooleanField("Activo en el botiquín", default=True)
 
     objects = MedicamentoQuerySet.as_manager()
@@ -190,7 +250,15 @@ class Medicamento(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.nombre} ({self.cantidad} und.)"
+        return f"{self.nombre_completo} ({self.cantidad} und.)"
+
+    # ------------------ Datos derivados ------------------
+    @property
+    def nombre_completo(self):
+        """Nombre y concentración juntos (para listados y avisos)."""
+        if self.concentracion:
+            return f"{self.nombre} {self.concentracion}"
+        return self.nombre
 
     # ------------------ Lógica de fechas y estados ------------------
     @property

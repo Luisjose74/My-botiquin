@@ -82,9 +82,9 @@
         {% for medicamento in atencion %}
           <li>
             <a class="dash-fila" href="{% url 'botiquin:detalle' medicamento.pk %}">
-              <span class="med-icono" aria-hidden="true">{% if medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}</span>
+              <span class="med-icono" aria-hidden="true">{% if medicamento.clasificacion %}{{ medicamento.clasificacion.icono }}{% elif medicamento.categoria %}{{ medicamento.categoria.icono }}{% else %}💊{% endif %}</span>
               <span class="dash-fila-texto">
-                <strong>{{ medicamento.nombre }}</strong>
+                <strong>{{ medicamento.nombre_completo }}</strong>
                 <small>
                   {% if medicamento.cantidad == 0 %}Sin unidades
                   {% elif medicamento.dias_para_vencer < 0 %}Venció el {{ medicamento.fecha_vencimiento_formateada }}

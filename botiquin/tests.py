@@ -12,7 +12,13 @@ from django.utils import timezone
 
 from cuentas.models import Usuario
 
-from .models import Categoria, Medicamento, PautaToma, TomaRegistrada
+from .models import (
+    Categoria,
+    Clasificacion,
+    Medicamento,
+    PautaToma,
+    TomaRegistrada,
+)
 
 MEDIA_TEMPORAL = tempfile.mkdtemp(prefix="botiquin_test_")
 
@@ -33,6 +39,9 @@ class MedicamentoCRUDTests(TestCase):
             username="otro_usuario", password="ClaveSegura123!"
         )
         cls.categoria = Categoria.objects.create(nombre="Categoria de prueba")
+        cls.clasificacion = Clasificacion.objects.create(
+            nombre="Clasificación de prueba", icono="💊"
+        )
         cls.miembro = cls.usuario.hogar.miembros.first()
 
     @classmethod
@@ -48,6 +57,7 @@ class MedicamentoCRUDTests(TestCase):
         datos = {
             "nombre": "Paracetamol prueba",
             "categoria": self.categoria.pk,
+            "clasificacion": self.clasificacion.pk,
             "presentacion": "tableta",
             "cantidad": 10,
             "lote": "L-TEST",
@@ -354,6 +364,9 @@ class VisibilidadCompartidaTests(TestCase):
         miembro.save()
 
         cls.categoria = Categoria.objects.create(nombre="Cat compartida")
+        cls.clasificacion = Clasificacion.objects.create(
+            nombre="Clasificación compartida", icono="💊"
+        )
         cls.med_admin = Medicamento.objects.create(
             usuario=cls.admin, nombre="Medicamento del admin", cantidad=5,
             fecha_vencimiento="2031-01-01", categoria=cls.categoria,
@@ -394,6 +407,7 @@ class VisibilidadCompartidaTests(TestCase):
         respuesta = self.client.post(
             reverse("botiquin:editar", args=[self.med_admin.pk]),
             {"nombre": "Medicamento editado", "categoria": self.med_admin.categoria.pk,
+             "clasificacion": self.clasificacion.pk,
              "presentacion": "tableta", "cantidad": 5,
              "fecha_vencimiento": "2031-01-01", "condicion_almacenamiento": "seco"},
         )

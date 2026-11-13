@@ -1315,6 +1315,52 @@ a:hover { text-decoration: underline; }
 }
 .form-tips strong { color: var(--ink); }
 
+/* ============================================================
+   Registro detallado — clasificación de uso e indicación
+   ============================================================ */
+
+/* Ayuda con la descripción de cada clasificación de uso */
+.clasificaciones-ayuda {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+  padding: 0.75rem 0.9rem;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.clasificaciones-ayuda p {
+  margin: 0;
+  color: var(--sub);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.clasificaciones-ayuda strong { color: var(--ink); }
+
+/* Aviso sobre el alcance de la indicación prescrita */
+.form-aviso-indicacion {
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.form-aviso-indicacion strong { color: var(--ink); }
+
+/* Bloque de indicación prescrita en la ficha */
+.detalle-indicacion {
+  padding: 0.9rem 1rem;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--blue);
+  border-radius: 12px;
+}
+.detalle-indicacion h3 { margin-top: 0; }
+.detalle-indicacion p { color: var(--ink); }
+.detalle-indicacion .ayuda {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.74rem;
+}
+
 .form-barra-acciones {
   position: sticky;
   bottom: 0.75rem;

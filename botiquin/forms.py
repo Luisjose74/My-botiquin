@@ -7,22 +7,36 @@ from .widgets import FotoCajaInput
 
 
 class MedicamentoForm(forms.ModelForm):
-    """Registro / edición de una caja de medicamento."""
+    """Registro / edición de una caja de medicamento.
+
+    El formulario recoge los datos de identificación (nombre, concentración y
+    forma farmacéutica), la clasificación de uso, los datos de trazabilidad
+    (vencimiento, lote y registro INVIMA), la conservación y la indicación
+    que *[indica el profesional de salud]*, nunca una recomendación propia.
+    """
 
     class Meta:
         model = Medicamento
         fields = (
+            # Identificación
             "nombre",
-            "categoria",
+            "concentracion",
             "presentacion",
             "cantidad",
+            # Clasificación
+            "clasificacion",
+            "categoria",
+            # Trazabilidad
+            "fecha_vencimiento",
             "lote",
             "registro_sanitario",
-            "fecha_vencimiento",
+            # Conservación y responsable
             "condicion_almacenamiento",
             "ubicacion",
-            "miembro",
             "notas_conservacion",
+            "miembro",
+            # Indicación y observaciones
+            "indicacion_prescrita",
             "notas",
             "foto",
         )
@@ -30,15 +44,22 @@ class MedicamentoForm(forms.ModelForm):
             "nombre": forms.TextInput(
                 attrs={
                     "class": "campo",
-                    "placeholder": "Ej.: Paracetamol 500 mg",
+                    "placeholder": "Ej.: Paracetamol",
                     "autofocus": True,
                 }
             ),
-            "categoria": forms.Select(attrs={"class": "campo campo-select"}),
+            "concentracion": forms.TextInput(
+                attrs={
+                    "class": "campo",
+                    "placeholder": "Ej.: 500 mg",
+                }
+            ),
             "presentacion": forms.Select(attrs={"class": "campo campo-select"}),
             "cantidad": forms.NumberInput(
                 attrs={"class": "campo", "min": 0, "placeholder": "0"}
             ),
+            "clasificacion": forms.Select(attrs={"class": "campo campo-select"}),
+            "categoria": forms.Select(attrs={"class": "campo campo-select"}),
             "lote": forms.TextInput(
                 attrs={"class": "campo", "placeholder": "Ej.: L-2026A"}
             ),
@@ -63,7 +84,18 @@ class MedicamentoForm(forms.ModelForm):
                 attrs={
                     "class": "campo",
                     "rows": 2,
-                    "placeholder": "Ej.: no refrigerar, mantener en su caja original.",
+                    "placeholder": "Opcional: cuidados especiales al guardarlo.",
+                }
+            ),
+            "indicacion_prescrita": forms.Textarea(
+                attrs={
+                    "class": "campo",
+                    "rows": 3,
+                    "maxlength": 500,
+                    "placeholder": (
+                        "Ej.: dolor de cabeza y fiebre, según la indicación "
+                        "recibida del médico."
+                    ),
                 }
             ),
             "notas": forms.Textarea(
@@ -84,9 +116,25 @@ class MedicamentoForm(forms.ModelForm):
         labels = {
             "fecha_vencimiento": "Fecha de vencimiento",
             "miembro": "¿Quién lo usa?",
+            "presentacion": "Forma farmacéutica",
+            "registro_sanitario": "Registro INVIMA",
+            "notas": "Observaciones",
+            "notas_conservacion": "Notas de conservación",
+            "indicacion_prescrita": "Indicación prescrita",
+            "clasificacion": "Clasificación de uso",
+            "categoria": "Categoría",
         }
         help_texts = {
             "foto": "Formatos permitidos: JPG, PNG o WEBP. Máximo 5 MB.",
+            "concentracion": "Ej.: 500 mg, 125 mg/5 mL, 1 g.",
+            "indicacion_prescrita": (
+                "Escribe solo lo que te indicó tu médico o tu regente de "
+                "farmacia. Mi Botiquín Digital no sugiere tratamientos ni dosis."
+            ),
+            "clasificacion": (
+                "Indica cómo se usa en casa: de forma prolongada, en temporada "
+                "o de manera puntual."
+            ),
         }
 
     def __init__(self, *args, usuario=None, **kwargs):
@@ -95,6 +143,9 @@ class MedicamentoForm(forms.ModelForm):
 
         self.fields["categoria"].required = True
         self.fields["categoria"].empty_label = "Selecciona una categoría"
+
+        self.fields["clasificacion"].required = True
+        self.fields["clasificacion"].empty_label = "Selecciona la clasificación de uso"
 
         if usuario and usuario.hogar:
             self.fields["miembro"].queryset = usuario.hogar.miembros.all()
@@ -107,6 +158,22 @@ class MedicamentoForm(forms.ModelForm):
         self.fields["lote"].required = False
         self.fields["registro_sanitario"].required = False
         self.fields["ubicacion"].required = False
+        self.fields["concentracion"].required = False
+        self.fields["indicacion_prescrita"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        nombre = (cleaned.get("nombre") or "").strip()
+        concentracion = (cleaned.get("concentracion") or "").strip()
+
+        # Evita duplicar la concentración dentro del nombre.
+        if nombre and concentracion and concentracion.lower() in nombre.lower():
+            self.add_error(
+                "concentracion",
+                "Esta concentración ya aparece en el nombre. Escribe solo el "
+                "nombre del medicamento y deja la concentración en su campo.",
+            )
+        return cleaned
 
     def clean_foto(self):
         foto = self.cleaned_data.get("foto")

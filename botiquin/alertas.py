@@ -74,42 +74,43 @@ def _textos(medicamento, tipo):
     """Título y mensaje de la alerta según su tipo."""
     fecha = medicamento.fecha_vencimiento_formateada
     dias = medicamento.dias_para_vencer
+    nombre = medicamento.nombre_completo
     if tipo == "agotado":
         return (
-            f"{medicamento.nombre}: sin existencias",
+            f"{nombre}: sin existencias",
             "No quedan unidades en tu botiquín. Considera reabastecerlo.",
         )
     if tipo == "vencido":
         return (
-            f"{medicamento.nombre}: vencido",
+            f"{nombre}: vencido",
             f"Venció el {fecha}. No lo consumas y deséchalo de forma segura.",
         )
     if tipo == "stock_bajo":
         return (
-            f"{medicamento.nombre}: stock bajo",
+            f"{nombre}: stock bajo",
             f"Quedan {medicamento.cantidad} unidad"
             f"{'es' if medicamento.cantidad != 1 else ''}. "
             "Considera reabastecerlo pronto.",
         )
     if tipo == "por_vencer_30":
         return (
-            f"{medicamento.nombre}: vence en 30 días",
+            f"{nombre}: vence en 30 días",
             f"Vence el {fecha}, en {dias} días. Revisa si todavía lo necesitas.",
         )
     if tipo == "por_vencer_15":
         return (
-            f"{medicamento.nombre}: vence en 15 días",
+            f"{nombre}: vence en 15 días",
             f"Vence el {fecha}, en {dias} días. Úsalo si está indicado y "
             "evita iniciar tratamientos nuevos con este lote.",
         )
     if tipo == "por_vencer_5":
         return (
-            f"{medicamento.nombre}: vence en 5 días",
+            f"{nombre}: vence en 5 días",
             f"Vence el {fecha}, en {dias} días. Últimos días: úsalo si corresponde "
             "y retíralo del botiquín al vencerse.",
         )
     return (
-        f"{medicamento.nombre}: próximo a vencer",
+        f"{nombre}: próximo a vencer",
         f"Vence el {fecha}, en {dias} días.",
     )
 

@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import urlencode
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_POST
 
@@ -13,7 +14,14 @@ from cuentas.models import MiembroHogar
 from .alertas import sincronizar_alertas
 from .forms import MedicamentoForm, PautaTomaForm
 from cuentas.models import MiembroHogar
-from .models import Alerta, Categoria, Medicamento, PautaToma, TomaRegistrada
+from .models import (
+    Alerta,
+    Categoria,
+    Clasificacion,
+    Medicamento,
+    PautaToma,
+    TomaRegistrada,
+)
 from .notificaciones import (
     notificar_asignacion,
     notificar_medicamento_asignado,
@@ -204,15 +212,36 @@ def lista(request):
         if categoria_actual:
             medicamentos = medicamentos.filter(categoria=categoria_actual)
 
+    clasificaciones = Clasificacion.objects.all()
+    clasificacion_actual = None
+    clasificacion_id = request.GET.get("clasificacion", "").strip()
+    if clasificacion_id.isdigit():
+        clasificacion_actual = clasificaciones.filter(pk=int(clasificacion_id)).first()
+        if clasificacion_actual:
+            medicamentos = medicamentos.filter(clasificacion=clasificacion_actual)
+
     q = request.GET.get("q", "").strip()
     if q:
         medicamentos = medicamentos.filter(
             Q(nombre__icontains=q)
+            | Q(concentracion__icontains=q)
             | Q(lote__icontains=q)
             | Q(registro_sanitario__icontains=q)
         )
 
     medicamentos = medicamentos.order_by("fecha_vencimiento", "nombre")
+
+    # Filtros que se mantienen al cambiar de estado (para los chips).
+    filtros_activos = {}
+    if categoria_actual:
+        filtros_activos["categoria"] = categoria_actual.pk
+    if clasificacion_actual:
+        filtros_activos["clasificacion"] = clasificacion_actual.pk
+    if miembro_actual:
+        filtros_activos["miembro"] = miembro_actual.pk
+    if q:
+        filtros_activos["q"] = q
+    filtros_base = urlencode(filtros_activos)
 
     return render(
         request,
@@ -220,12 +249,17 @@ def lista(request):
         {
             "medicamentos": medicamentos,
             "categorias": categorias,
+            "clasificaciones": clasificaciones,
             "miembros": miembros,
             "miembro_actual": miembro_actual.pk if miembro_actual else "",
             "stats": stats,
             "estado_actual": estado,
             "estado_label": ESTADOS_LABELS[estado],
             "categoria_actual": categoria_actual.pk if categoria_actual else "",
+            "clasificacion_actual": (
+                clasificacion_actual.pk if clasificacion_actual else ""
+            ),
+            "filtros_base": filtros_base,
             "q": q,
         },
     )
@@ -273,7 +307,12 @@ def crear(request):
     return render(
         request,
         "botiquin/formulario.html",
-        {"form": form, "modo": "crear", "medicamento": None},
+        {
+            "form": form,
+            "modo": "crear",
+            "medicamento": None,
+            "clasificaciones": Clasificacion.objects.all(),
+        },
     )
 
 
@@ -319,7 +358,12 @@ def editar(request, pk):
     return render(
         request,
         "botiquin/formulario.html",
-        {"form": form, "modo": "editar", "medicamento": medicamento},
+        {
+            "form": form,
+            "modo": "editar",
+            "medicamento": medicamento,
+            "clasificaciones": Clasificacion.objects.all(),
+        },
     )
 
 
