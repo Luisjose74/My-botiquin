@@ -359,19 +359,33 @@ dominio de la petición.
 
 ## Recordatorios de toma y programación
 
+### Horarios múltiples por pauta
+
+Una pauta puede programar **varias horas al día** (primera toma a las 07:00,
+segunda a las 19:00, esquema de mediodía, tres o más tomas). En el formulario
+de pauta se añaden las horas con el botón «Añadir otro horario» y se quitan
+con la ✕ de cada fila.
+
+| Concepto | Comportamiento |
+| --- | --- |
+| `HorarioToma` | Cada hora programada es un horario propio de la pauta. |
+| Recordatorio | Cada horario genera su propio correo/WhatsApp y su propio enlace de confirmación. |
+| Confirmación | Cada horario se marca por separado en «Tomas del día»: confirmar la toma de las 07:00 no marca la de las 19:00. |
+| Duplicate control | `TomaRegistrada` es única por (horario, fecha): un horario ya notificado no se vuelve a enviar, y los demás horarios siguen su propio curso. |
+
 Para enviar las alertas matutinas de tomas del día (según las pautas activas):
 
 ```powershell
 python manage.py enviar_alertas_tomas
 ```
 
-Para enviar recordatorios de toma para las pautas programadas en la hora actual:
+Para enviar recordatorios de toma para los horarios programados en la hora actual:
 
 ```powershell
 python manage.py enviar_recordatorios_hora
 ```
 
-IMPORTANTE: el comando compara la hora y el minuto exactos de la pauta. Para que las alertas lleguen a la hora configurada (ej. 9:10 p.m.) debes programarlo para ejecutarse **cada minuto**:
+IMPORTANTE: el comando compara la hora y el minuto exactos del horario. Para que las alertas lleguen a la hora configurada (ej. 9:10 p.m.) debes programarlo para ejecutarse **cada minuto**:
 
 Además, en desarrollo el servidor arranca automáticamente un programador en segundo plano (cada 60s) que dispara los recordatorios sin necesidad de terminal. En producción usa el Programador de tareas / cron.
 

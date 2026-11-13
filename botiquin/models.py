@@ -434,7 +434,6 @@ class PautaToma(models.Model):
         blank=True,
         help_text="Números 0-6 (Lun-Dom) separados por coma (ej.: 0,2,4).",
     )
-    hora = models.TimeField("Hora de la toma", null=True, blank=True)
     fecha_inicio = models.DateField("Fecha de inicio", default=timezone.localdate)
     fecha_fin = models.DateField("Fecha de fin", null=True, blank=True)
     activa = models.BooleanField("Pauta activa", default=True)
@@ -458,7 +457,31 @@ class PautaToma(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.medicamento.nombre} → {self.miembro.nombre} ({self.get_frecuencia_display()})"
+        return (
+            f"{self.medicamento.nombre} → {self.miembro.nombre} "
+            f"({self.get_frecuencia_display()})"
+        )
+
+    # ------------------ Horarios de la pauta ------------------
+    @property
+    def horas(self):
+        """Lista de horas (datetime.time) de la pauta."""
+        return [h.hora for h in self.horarios.all() if h.hora is not None]
+
+    @property
+    def resumen_horarios(self):
+        """Texto con los horarios: «07:00, 12:00 y 19:00»."""
+        horas = [h.strftime("%H:%M") for h in self.horas]
+        if not horas:
+            return "Sin hora fija"
+        if len(horas) == 1:
+            return horas[0]
+        return ", ".join(horas[:-1]) + " y " + horas[-1]
+
+    @property
+    def numero_tomas(self):
+        """Cantidad de tomas al día programadas."""
+        return self.horarios.count()
 
     def dias_mes_lista(self):
         resultado = []
@@ -525,14 +548,68 @@ class PautaToma(models.Model):
 
 
 # --------------------------------------------------------------------------
-# Registro de toma: confirmación de que una dosis fue administrada
+# Horario de toma: cada pauta puede tener varias horas al día
 # --------------------------------------------------------------------------
-class TomaRegistrada(models.Model):
-    """Confirmación de que la dosis de una pauta se tomó en una fecha."""
+class HorarioToma(models.Model):
+    """Una hora de toma dentro de una pauta.
+
+    Una pauta puede tener varios horarios (por ejemplo, primera toma a las
+    07:00 y segunda toma a las 19:00, o tres tomas al día). Cada horario
+    genera su propio recordatorio y su propia confirmación de toma: confirmar
+    una toma no afecta a las demás.
+    """
 
     pauta = models.ForeignKey(
         "PautaToma",
         verbose_name="Pauta",
+        on_delete=models.CASCADE,
+        related_name="horarios",
+    )
+    hora = models.TimeField(
+        "Hora de la toma",
+        null=True,
+        blank=True,
+        help_text="Déjalo vacío si la toma no tiene hora fija.",
+    )
+    orden = models.PositiveSmallIntegerField("Orden", default=0)
+
+    class Meta:
+        verbose_name = "Horario de toma"
+        verbose_name_plural = "Horarios de toma"
+        ordering = ["orden", "hora"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pauta", "hora"],
+                condition=models.Q(hora__isnull=False),
+                name="horario_unico_por_pauta",
+            )
+        ]
+
+    def __str__(self):
+        if self.hora is None:
+            return f"{self.pauta} — sin hora fija"
+        return f"{self.pauta} — {self.hora.strftime('%H:%M')}"
+
+
+# --------------------------------------------------------------------------
+# Registro de toma: confirmación de que una dosis fue administrada
+# --------------------------------------------------------------------------
+class TomaRegistrada(models.Model):
+    """Confirmación de que la dosis de un horario se tomó en una fecha.
+
+    Cada horario de la pauta tiene su propio registro: confirmar la toma de
+    las 07:00 no marca la de las 19:00.
+    """
+
+    pauta = models.ForeignKey(
+        "PautaToma",
+        verbose_name="Pauta",
+        on_delete=models.CASCADE,
+        related_name="tomas",
+    )
+    horario = models.ForeignKey(
+        "HorarioToma",
+        verbose_name="Horario",
         on_delete=models.CASCADE,
         related_name="tomas",
     )
@@ -555,7 +632,7 @@ class TomaRegistrada(models.Model):
         ordering = ["-fecha", "-fecha_registro"]
         constraints = [
             models.UniqueConstraint(
-                fields=["pauta", "fecha"], name="toma_unica_por_pauta_fecha"
+                fields=["horario", "fecha"], name="toma_unica_por_horario_fecha"
             )
         ]
         indexes = [
@@ -565,4 +642,11 @@ class TomaRegistrada(models.Model):
     def __str__(self):
         estado = "tomada" if self.tomada else "pendiente"
         notificada = " (notificada)" if self.notificada else ""
-        return f"{self.pauta} — {self.fecha} ({estado}{notificada})"
+        hora = self.horario.hora.strftime("%H:%M") if self.horario.hora else "—"
+        return f"{self.pauta} — {hora} ({estado}{notificada})"
+
+    def save(self, *args, **kwargs):
+        # La pauta siempre se deduce del horario para que no se contradigan.
+        if self.horario_id and self.horario.pauta_id:
+            self.pauta_id = self.horario.pauta_id
+        return super().save(*args, **kwargs)

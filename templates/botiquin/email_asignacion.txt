@@ -2,8 +2,9 @@ Hola {{ usuario.first_name|default:usuario.username }},
 
 Se te asignó un nuevo medicamento en tu botiquín familiar:
 
-Medicamento: {{ medicamento.nombre }}
+Medicamento: {{ medicamento.nombre_completo }}
 Integrante: {{ miembro.nombre }}
+{% if pauta.horas %}Horarios: {{ pauta.resumen_horarios }}{% endif %}
 {% if medicamento.cantidad %}Cantidad disponible: {{ medicamento.cantidad }}{% endif %}
 {% if medicamento.fecha_vencimiento %}Vence: {{ medicamento.fecha_vencimiento }}{% endif %}
 

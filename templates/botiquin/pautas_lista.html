@@ -30,8 +30,18 @@
         <p class="miembro-stat">
           {{ pauta.get_frecuencia_display }}
           {% if pauta.frecuencia == "cada_n_dias" %} (cada {{ pauta.intervalo_dias }} días){% endif %}
-          {% if pauta.hora %} · {{ pauta.hora }}{% endif %}
           · Dosis: {{ pauta.dosis }}
+        </p>
+        <p class="miembro-stat pauta-horarios">
+          <span aria-hidden="true">⏰</span>
+          {% if pauta.horas %}
+            {{ pauta.resumen_horarios }}
+            {% if pauta.numero_tomas > 1 %}
+              <span class="chip">{{ pauta.numero_tomas }} tomas al día</span>
+            {% endif %}
+          {% else %}
+            Sin hora fija
+          {% endif %}
         </p>
         {% if pauta.proximas_tomas %}
           <p class="page-sub" style="margin:0.25rem 0;">

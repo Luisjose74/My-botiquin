@@ -4,7 +4,7 @@ Recordatorio de toma ({{ hora|date:"H:i" }}):
 
 {% for item in items %}
 {% with pauta=item.pauta %}
-- {{ pauta.medicamento.nombre_completo }} ({{ pauta.miembro.nombre }}) — dosis {{ pauta.dosis }}
+- {{ pauta.medicamento.nombre_completo }} ({{ pauta.miembro.nombre }}) — dosis {{ pauta.dosis }}{% if item.horario.hora %} · {{ item.horario.hora|date:"H:i" }}{% endif %}
   Confirmar: {{ item.confirm_url }}
 {% endwith %}
 {% endfor %}

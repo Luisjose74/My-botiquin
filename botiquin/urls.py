@@ -19,6 +19,6 @@ urlpatterns = [
     path("pautas/<int:pk>/editar/", views.pauta_editar, name="pauta_editar"),
     path("pautas/<int:pk>/eliminar/", views.pauta_eliminar, name="pauta_eliminar"),
     path("tomas/", views.tomas_hoy, name="tomas_hoy"),
-    path("tomas/<int:pk>/marcar/", views.marcar_tomada, name="marcar_tomada"),
+    path("tomas/<int:horario_id>/marcar/", views.marcar_tomada, name="marcar_tomada"),
     path("tomas/confirmar/<str:token>/", views.confirmar_toma, name="confirmar_toma"),
 ]

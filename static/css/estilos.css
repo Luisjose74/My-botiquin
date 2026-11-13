@@ -1316,6 +1316,71 @@ a:hover { text-decoration: underline; }
 .form-tips strong { color: var(--ink); }
 
 /* ============================================================
+   Horarios múltiples de toma
+   ============================================================ */
+.horarios-widget {
+  display: grid;
+  gap: 0.5rem;
+}
+.horarios-filas {
+  display: grid;
+  gap: 0.5rem;
+}
+.horarios-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.horarios-fila .campo {
+  flex: 1;
+  min-width: 0;
+}
+.horarios-quitar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--sub);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.horarios-quitar:hover {
+  background: var(--eb);
+  color: var(--et);
+}
+.horarios-agregar {
+  justify-self: start;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.82rem;
+}
+
+/* Historial del día: una tarjeta por horario */
+.toma-hora {
+  margin: 0.55rem 0 0.2rem;
+  color: var(--ink);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.toma-otros {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 0.78rem;
+}
+.toma-tomada {
+  border-color: #bfe9cc;
+  background: #f7fdf9;
+}
+.pauta-horarios {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+/* ============================================================
    Registro detallado — clasificación de uso e indicación
    ============================================================ */
 

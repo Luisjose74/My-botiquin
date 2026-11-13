@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Alerta, Categoria, Clasificacion, Medicamento
+from .models import (
+    Alerta,
+    Categoria,
+    Clasificacion,
+    HorarioToma,
+    Medicamento,
+    PautaToma,
+)
 
 
 @admin.register(Medicamento)
@@ -39,6 +46,41 @@ class ClasificacionAdmin(admin.ModelAdmin):
     list_editable = ("orden",)
     search_fields = ("nombre",)
     ordering = ("orden", "nombre")
+
+
+@admin.register(HorarioToma)
+class HorarioTomaAdmin(admin.ModelAdmin):
+    list_display = ("pauta", "hora", "orden")
+    list_filter = ("hora",)
+    ordering = ("pauta", "orden", "hora")
+
+
+class HorarioTomaInline(admin.TabularInline):
+    """Horarios de la pauta: se editan en línea desde la pauta."""
+
+    model = HorarioToma
+    extra = 1
+    fields = ("hora", "orden")
+    ordering = ("orden", "hora")
+
+
+@admin.register(PautaToma)
+class PautaTomaAdmin(admin.ModelAdmin):
+    list_display = (
+        "medicamento",
+        "miembro",
+        "frecuencia",
+        "dosis",
+        "resumen_horarios_admin",
+        "activa",
+    )
+    list_filter = ("frecuencia", "activa")
+    search_fields = ("medicamento__nombre", "miembro__nombre")
+    inlines = [HorarioTomaInline]
+
+    @admin.display(description="Horarios")
+    def resumen_horarios_admin(self, obj):
+        return obj.resumen_horarios
 
 
 @admin.register(Alerta)

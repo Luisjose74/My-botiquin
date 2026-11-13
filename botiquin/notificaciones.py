@@ -15,13 +15,23 @@ TOKEN_SALT = "toma-confirmacion"
 TOKEN_MAX_AGE = 60 * 60 * 24  # 24 horas
 
 
-def generar_token_confirmacion(pauta_id, fecha):
-    return signing.dumps({"p": int(pauta_id), "f": str(fecha)}, salt=TOKEN_SALT)
+def generar_token_confirmacion(pauta_id, horario_id, fecha):
+    """Token de confirmación de una toma concreta (pauta + horario + fecha)."""
+    return signing.dumps(
+        {"p": int(pauta_id), "h": int(horario_id), "f": str(fecha)},
+        salt=TOKEN_SALT,
+    )
 
 
 def verificar_token_confirmacion(token, max_age=TOKEN_MAX_AGE):
+    """Devuelve (pauta_id, horario_id, fecha) del token.
+
+    `horario_id` puede venir en None en los tokens anteriores a los horarios
+    múltiples: en ese caso se usa el primer horario de la pauta.
+    """
     data = signing.loads(token, salt=TOKEN_SALT, max_age=max_age)
-    return int(data["p"]), data["f"]
+    horario_id = data.get("h")
+    return int(data["p"]), (int(horario_id) if horario_id else None), data["f"]
 
 
 def url_base_sitio():
@@ -138,12 +148,13 @@ def notificar_asignacion(pauta):
     return enviado
 
 
-def enviar_recordatorio_hora(pautas, ahora):
-    """Envía recordatorios para pautas cuya hora coincide con la hora actual.
+def enviar_recordatorio_hora(pares, ahora):
+    """Envía recordatorios para los horarios que coinciden con la hora actual.
 
-    Cada pauta se notifica máximo una vez por fecha (control via
-    TomaRegistrada.notificada), evitando duplicados cuando el scheduler
-    se dispara varias veces dentro del mismo minuto.
+    Recibe una lista de pares (pauta, horario): cada horario genera su propio
+    recordatorio y su propio enlace de confirmación. El control de duplicidad
+    usa la toma de ese horario y esa fecha, de modo que confirmar o notificar
+    una toma no cancela la de los demás horarios.
     """
     from collections import defaultdict
     from django.urls import reverse
@@ -152,31 +163,39 @@ def enviar_recordatorio_hora(pautas, ahora):
     hoy = ahora.date()
 
     grupos = defaultdict(list)
-    for pauta in pautas:
+    for pauta, horario in pares:
         usuario = getattr(pauta.miembro, "usuario", None)
         if usuario is None:
             continue
 
-        # Control de duplicidad: si ya se notificó esta pauta para hoy, saltar.
+        # Control de duplicidad por horario: si ya se notificó este horario
+        # para hoy, se salta (el scheduler puede dispararse varias veces).
         toma, _ = TomaRegistrada.objects.get_or_create(
-            pauta=pauta, fecha=hoy,
-            defaults={"notificada": False, "tomada": False},
+            horario=horario,
+            fecha=hoy,
+            defaults={"pauta": pauta, "notificada": False, "tomada": False},
         )
         if toma.notificada:
             continue
 
-        token = generar_token_confirmacion(pauta.pk, hoy)
+        token = generar_token_confirmacion(pauta.pk, horario.pk, hoy)
         confirm_url = f"{url_base_sitio()}{reverse('botiquin:confirmar_toma', args=[token])}"
-        grupos[usuario].append({"pauta": pauta, "confirm_url": confirm_url, "toma_id": toma.pk})
+        grupos[usuario].append(
+            {
+                "pauta": pauta,
+                "horario": horario,
+                "confirm_url": confirm_url,
+                "toma_id": toma.pk,
+            }
+        )
 
     correos = 0
     whatsapps = 0
     for usuario, items in grupos.items():
-        pautas_lista = [it["pauta"] for it in items]
         contexto = {
             "usuario": usuario,
             "items": items,
-            "pautas": pautas_lista,
+            "pautas": [it["pauta"] for it in items],
             "hora": ahora,
             "site_url": url_base_sitio(),
         }
@@ -195,8 +214,12 @@ def enviar_recordatorio_hora(pautas, ahora):
             texto = "Recordatorio de toma ({}):\n".format(ahora.strftime("%H:%M"))
             for it in items:
                 p = it["pauta"]
-                texto += f"💊 *{p.medicamento.nombre}* ({p.miembro.nombre}) — dosis {p.dosis}\n"
-                texto += f"⏰ {p.hora.strftime('%H:%M') if p.hora else ''}\n"
+                hora = it["horario"].hora
+                texto += (
+                    f"💊 *{p.medicamento.nombre}* ({p.miembro.nombre})"
+                    f" — dosis {p.dosis}\n"
+                )
+                texto += f"⏰ {hora.strftime('%H:%M') if hora else ''}\n"
                 texto += f"✅ Confirmar: {it['confirm_url']}\n"
             if _enviar_whatsapp(usuario, texto):
                 whatsapps += 1
@@ -212,7 +235,7 @@ def enviar_recordatorio_hora(pautas, ahora):
                     correos += 1
                     enviado_correo = True
 
-        # Marcar como notificada para evitar reenvíos en el siguiente ciclo del mismo minuto.
+        # Marcar como notificada para evitar reenvíos en el siguiente ciclo.
         if enviado_correo or whatsapps > 0:
             for it in items:
                 TomaRegistrada.objects.filter(pk=it["toma_id"]).update(notificada=True)

@@ -10,7 +10,9 @@
     <p class="saludo">Programación</p>
     <h1>{% if modo == "editar" %}Editar pauta de toma{% else %}Nueva pauta de toma{% endif %}</h1>
     <p class="page-sub">
-      Define el medicamento, el integrante y la frecuencia de la toma.
+      Define el medicamento, el integrante y la frecuencia de la toma. Puedes
+      programar <strong>varios horarios al día</strong>: cada uno genera su
+      propio recordatorio.
     </p>
   </div>
 </section>
@@ -31,7 +33,7 @@
     {% include "botiquin/_campo.html" with campo=form.intervalo_dias %}
     {% include "botiquin/_campo.html" with campo=form.dias_mes %}
     {% include "botiquin/_campo.html" with campo=form.dias_semana %}
-    {% include "botiquin/_campo.html" with campo=form.hora %}
+    {% include "botiquin/_campo.html" with campo=form.horarios %}
     {% include "botiquin/_campo.html" with campo=form.fecha_inicio %}
     {% include "botiquin/_campo.html" with campo=form.fecha_fin %}
     <div class="grupo">
@@ -43,4 +45,39 @@
     </button>
   </form>
 </section>
+
+<script>
+  (function () {
+    var wrapper = document.getElementById("id_horarios-horarios");
+    if (!wrapper) return;
+
+    var filas = wrapper.querySelector(".horarios-filas");
+    var agregar = wrapper.querySelector(".horarios-agregar");
+
+    function quitar(boton) {
+      var fila = boton.closest(".horarios-fila");
+      if (fila) fila.remove();
+    }
+
+    wrapper.addEventListener("click", function (evento) {
+      if (evento.target.classList.contains("horarios-quitar")) {
+        quitar(evento.target);
+      }
+    });
+
+    agregar.addEventListener("click", function () {
+      var plantilla = filas.querySelector(".horarios-fila");
+      if (!plantilla) return;
+
+      var fila = plantilla.cloneNode(true);
+      var campo = fila.querySelector("input[type=time]");
+      campo.value = "";
+      var etiqueta = fila.querySelector("input[type=time]");
+      etiqueta.setAttribute("aria-label", "Hora de la toma");
+
+      filas.appendChild(fila);
+      campo.focus();
+    });
+  })();
+</script>
 {% endblock %}

@@ -7,8 +7,10 @@
   <span class="peligro-icono" aria-hidden="true">✅</span>
   <h1>¡Toma registrada!</h1>
   <p class="peligro-texto">
-    Se confirmó la toma de <strong>{{ pauta.medicamento.nombre }}</strong>
-    ({{ pauta.miembro.nombre }}) el {{ fecha|date:"d" }} de {{ fecha|date:"F" }}.
+    Se confirmó la toma de <strong>{{ pauta.medicamento.nombre_completo }}</strong>
+    ({{ pauta.miembro.nombre }}){% if horario.hora %} de las
+    <strong>{{ horario.hora|date:"H:i" }}</strong>{% endif %}
+    el {{ fecha|date:"d" }} de {{ fecha|date:"F" }}.
   </p>
   <div class="peligro-acciones">
     <a class="boton boton-inline" href="{% url 'botiquin:tomas_hoy' %}">Ver tomas de hoy</a>

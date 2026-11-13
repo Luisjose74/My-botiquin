@@ -10,7 +10,8 @@
     <p class="saludo">Hoy, {{ hoy|date:"d" }} de {{ hoy|date:"F" }}</p>
     <h1>Tomas del día</h1>
     <p class="page-sub">
-      Confirma cada dosis cuando la hayas tomado.
+      Cada horario programado es una toma independiente: confirma por separado
+      la primera toma, la del mediodía y la de la noche.
     </p>
   </div>
 </section>
@@ -18,7 +19,7 @@
 {% if items %}
   <section class="familia-grid">
     {% for item in items %}
-      <article class="tarjeta miembro-card animar">
+      <article class="tarjeta miembro-card animar toma-{{ item.horario.hora|default:"sin-hora" }}{% if item.tomada %} tomada{% endif %}">
         <div class="miembro-cabecera">
           <span class="med-icono" aria-hidden="true">💊</span>
           <div>
@@ -26,12 +27,33 @@
             <span class="chip">{{ item.pauta.miembro.nombre }}</span>
           </div>
         </div>
+
+        <p class="toma-hora">
+          <span aria-hidden="true">⏰</span>
+          {% if item.horario.hora %}
+            {{ item.horario.hora|date:"H:i" }}
+          {% else %}
+            Sin hora fija
+          {% endif %}
+        </p>
+
         <p class="miembro-stat">
           {{ item.pauta.get_frecuencia_display }}
-          {% if item.pauta.hora %} · {{ item.pauta.hora }}{% endif %}
+          {% if item.pauta.frecuencia == "cada_n_dias" %} (cada {{ item.pauta.intervalo_dias }} días){% endif %}
           · Dosis: {{ item.pauta.dosis }}
         </p>
-        <form method="post" action="{% url 'botiquin:marcar_tomada' item.pauta.pk %}">
+
+        {% if item.pauta.numero_tomas > 1 %}
+          <p class="page-sub toma-otros">
+            {% for otro in item.pauta.horarios.all %}
+              {% if otro.pk != item.horario.pk %}
+                {{ otro.hora|date:"H:i" }}{% if not forloop.last %}, {% endif %}
+              {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
+
+        <form method="post" action="{% url 'botiquin:marcar_tomada' item.horario.pk %}">
           {% csrf_token %}
           <button class="boton {% if item.tomada %}boton-secundario{% else %}boton-inline{% endif %}" type="submit">
             {% if item.tomada %}✓ Tomada (desmarcar){% else %}Marcar como tomada{% endif %}

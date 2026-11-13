@@ -18,6 +18,7 @@ from .models import (
     Alerta,
     Categoria,
     Clasificacion,
+    HorarioToma,
     Medicamento,
     PautaToma,
     TomaRegistrada,
@@ -420,9 +421,9 @@ def pauta_crear(request):
     if request.method == "POST":
         form = PautaTomaForm(request.POST, usuario=request.user)
         if form.is_valid():
-            pauta = form.save(commit=False)
+            pauta = form.save()
             pauta.creado_por = request.user
-            pauta.save()
+            pauta.save(update_fields=["creado_por"])
             try:
                 notificar_asignacion(pauta)
             except Exception:  # noqa: BLE001
@@ -488,7 +489,11 @@ def pauta_eliminar(request, pk):
 
 @login_required
 def tomas_hoy(request):
-    """Listado de tomas del día para el hogar del usuario, con confirmación."""
+    """Listado de tomas del día para el hogar del usuario, con confirmación.
+
+    Cada horario programado aparece como una toma independiente: confirmar la
+    de las 07:00 no marca la de las 19:00.
+    """
     from django.utils import timezone as _tz
 
     hoy = _tz.localdate()
@@ -496,28 +501,41 @@ def tomas_hoy(request):
     if request.user.hogar is None:
         pautas_hoy = []
     else:
-        if request.user.hogar is not None:
-            qs = PautaToma.objects.filter(medicamento__usuario__hogar=request.user.hogar, activa=True)
-        else:
-            qs = PautaToma.objects.filter(medicamento__usuario=request.user, activa=True)
+        qs = PautaToma.objects.filter(
+            medicamento__usuario__hogar=request.user.hogar, activa=True
+        ).prefetch_related("horarios")
         pautas_hoy = [
             p
             for p in qs.select_related("medicamento", "miembro")
             if p._corresponde(hoy)
         ]
 
-    # Mapa pauta_id -> TomaRegistrada (si existe)
+    # Mapa horario_id -> TomaRegistrada (si existe)
+    horarios_ids = [
+        h.pk for p in pautas_hoy for h in p.horarios.all()
+    ]
     tomas = {
-        t.pauta_id: t
+        t.horario_id: t
         for t in TomaRegistrada.objects.filter(
-            pauta__in=[p.pk for p in pautas_hoy], fecha=hoy
+            horario_id__in=horarios_ids, fecha=hoy
         )
     }
 
     items = []
     for pauta in pautas_hoy:
-        toma = tomas.get(pauta.pk)
-        items.append({"pauta": pauta, "toma": toma, "tomada": bool(toma and toma.tomada)})
+        for horario in pauta.horarios.all():
+            toma = tomas.get(horario.pk)
+            items.append(
+                {
+                    "pauta": pauta,
+                    "horario": horario,
+                    "toma": toma,
+                    "tomada": bool(toma and toma.tomada),
+                }
+            )
+
+    # Ordena por hora del día (los horarios sin hora quedan al final).
+    items.sort(key=lambda item: (item["horario"].hora is None, item["horario"].hora))
 
     return render(
         request, "botiquin/tomas_hoy.html", {"items": items, "hoy": hoy}
@@ -526,9 +544,12 @@ def tomas_hoy(request):
 
 @login_required
 @require_POST
-def marcar_tomada(request, pk):
-    """Marca (o desmarca) la toma de una pauta para hoy."""
-    pauta = get_object_or_404(PautaToma, pk=pk)
+def marcar_tomada(request, horario_id):
+    """Marca (o desmarca) la toma de un horario concreto para hoy."""
+    horario = get_object_or_404(
+        HorarioToma.objects.select_related("pauta__medicamento"), pk=horario_id
+    )
+    pauta = horario.pauta
     if not _mismo_hogar(request, pauta.medicamento):
         raise PermissionDenied("No tienes permiso para esta pauta.")
 
@@ -536,14 +557,20 @@ def marcar_tomada(request, pk):
 
     hoy = _tz.localdate()
     toma, _ = TomaRegistrada.objects.get_or_create(
-        pauta=pauta, fecha=hoy, defaults={"registrado_por": request.user}
+        horario=horario,
+        fecha=hoy,
+        defaults={"pauta": pauta, "registrado_por": request.user},
     )
     toma.tomada = not toma.tomada
     toma.registrado_por = request.user
-    toma.save(update_fields=["tomada", "registrado_por"])
+    toma.save(update_fields=["tomada", "registrado_por", "pauta"])
 
+    hora = horario.hora.strftime("%H:%M") if horario.hora else "sin hora fija"
     estado = "tomada" if toma.tomada else "pendiente"
-    messages.success(request, f"{pauta.medicamento.nombre}: marcada como {estado}.")
+    messages.success(
+        request,
+        f"{pauta.medicamento.nombre} ({hora}): marcada como {estado}.",
+    )
     return redirect("botiquin:tomas_hoy")
 
 
@@ -553,13 +580,14 @@ from django.core import signing as _signing
 
 @require_GET
 def confirmar_toma(request, token):
-    """Confirma la toma de una pauta a partir de un token seguro (email/WhatsApp).
+    """Confirma la toma de un horario a partir de un token seguro (email/WhatsApp).
 
-    Accesible sin iniciar sesión: el token contiene la pauta y la fecha,
-    y es firmado criptográficamente para evitar suplantación.
+    Accesible sin iniciar sesión: el token contiene la pauta, el horario y la
+    fecha, y es firmado criptográficamente para evitar suplantación. Cada
+    horario se confirma por separado.
     """
     try:
-        pauta_id, fecha_str = verificar_token_confirmacion(token)
+        pauta_id, horario_id, fecha_str = verificar_token_confirmacion(token)
         fecha = _date.fromisoformat(fecha_str)
     except Exception:  # noqa: BLE001
         return render(
@@ -568,20 +596,26 @@ def confirmar_toma(request, token):
             status=400,
         )
 
-    pauta = get_object_or_404(PautaToma, pk=pauta_id)
+    horario = get_object_or_404(
+        HorarioToma.objects.select_related("pauta__medicamento"), pk=horario_id
+    )
+    pauta = horario.pauta
     toma, _ = TomaRegistrada.objects.get_or_create(
-        pauta=pauta,
+        horario=horario,
         fecha=fecha,
-        defaults={"tomada": False, "notificada": False, "registrado_por": None},
+        defaults={"pauta": pauta, "tomada": False, "notificada": False},
     )
     toma.tomada = True
-    toma.save(update_fields=["tomada"])
+    toma.save(update_fields=["tomada", "pauta"])
 
+    hora = horario.hora.strftime("%H:%M") if horario.hora else ""
     messages.success(
-        request, f"¡Listo! Se registró la toma de {pauta.medicamento.nombre}."
+        request,
+        f"¡Listo! Se registró la toma de {pauta.medicamento.nombre}"
+        + (f" de las {hora}." if hora else "."),
     )
     return render(
         request,
         "botiquin/tomas_confirmacion.html",
-        {"pauta": pauta, "fecha": fecha},
+        {"pauta": pauta, "horario": horario, "fecha": fecha},
     )

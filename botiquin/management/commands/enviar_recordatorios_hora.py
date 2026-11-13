@@ -1,9 +1,10 @@
-"""Envía recordatorios de toma para las pautas programadas en el minuto actual.
+"""Envía recordatorios de toma para los horarios del minuto actual.
 
 Uso: python manage.py enviar_recordatorios_hora
 
-Filtra las pautas activas cuya hora/minuto coincide con el momento actual
-(y que correspondan al día de hoy) y dispara los correos/WhatsApp.
+Filtra los horarios de las pautas activas cuya hora/minuto coincide con el
+momento actual (y que correspondan al día de hoy) y dispara los
+correos/WhatsApp. Cada horario genera su propio recordatorio.
 Pensado para ejecutarse cada minuto mediante tarea programada, o por el
 programador en segundo plano que arranca con el servidor en desarrollo.
 """
@@ -24,7 +25,7 @@ class Command(BaseCommand):
         ahora = __import__("django.utils.timezone", fromlist=["localtime"]).localtime()
         self.stdout.write(
             self.style.SUCCESS(
-                f"Pautas a las {ahora.strftime('%H:%M')}: {cantidad}. "
+                f"Tomas a las {ahora.strftime('%H:%M')}: {cantidad}. "
                 f"Correos: {correos}. WhatsApp: {whatsapps}."
             )
         )

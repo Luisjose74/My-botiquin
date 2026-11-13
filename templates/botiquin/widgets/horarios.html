@@ -1,0 +1,25 @@
+{% comment %}
+Varios campos de hora para programar una o más tomas al día.
+Uso: {% include "botiquin/widgets/horarios.html" %}
+{% endcomment %}
+<div class="horarios-widget" id="{{ widget.attrs.id }}-horarios">
+  <div class="horarios-filas">
+    {% for fila in widget.filas %}
+      <div class="horarios-fila">
+        <input type="time" name="{{ widget.name }}" value="{{ fila }}"
+               class="campo" aria-label="Hora de la toma {{ forloop.counter }}">
+        <button type="button" class="horarios-quitar"
+                aria-label="Quitar la hora {{ forloop.counter }}">✕</button>
+      </div>
+    {% endfor %}
+  </div>
+
+  <button type="button" class="boton-secundario horarios-agregar">
+    ＋ Añadir otro horario
+  </button>
+
+  <small class="ayuda">
+    Cada horario genera su propio recordatorio y se confirma por separado en
+    el historial del día.
+  </small>
+</div>

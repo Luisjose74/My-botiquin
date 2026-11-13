@@ -25,28 +25,35 @@ logger = logging.getLogger(__name__)
 
 
 def pautas_del_dia(hoy):
-    return [
-        p
-        for p in PautaToma.objects.filter(activa=True).select_related(
-            "medicamento", "miembro", "miembro__usuario"
-        )
-        if p._corresponde(hoy)
-    ]
+    """Pares (pauta, horario) que corresponden al día indicado."""
+    pares = []
+    pautas = PautaToma.objects.filter(activa=True).select_related(
+        "medicamento", "miembro", "miembro__usuario"
+    ).prefetch_related("horarios")
+    for pauta in pautas:
+        if not pauta._corresponde(hoy):
+            continue
+        for horario in pauta.horarios.all():
+            pares.append((pauta, horario))
+    return pares
 
 
-def agrupar_por_usuario(pautas, hoy):
+def agrupar_por_usuario(pares, hoy):
+    """Agrupa las tomas del día por usuario, con su enlace de confirmación."""
     from django.urls import reverse
     from botiquin.notificaciones import generar_token_confirmacion, url_base_sitio
 
     base = url_base_sitio()
     grupos = {}
-    for pauta in pautas:
+    for pauta, horario in pares:
         usuario = getattr(pauta.miembro, "usuario", None)
         if usuario is None:
             continue
-        token = generar_token_confirmacion(pauta.pk, hoy)
+        token = generar_token_confirmacion(pauta.pk, horario.pk, hoy)
         confirm_url = f"{base}{reverse('botiquin:confirmar_toma', args=[token])}"
-        grupos.setdefault(usuario, []).append({"pauta": pauta, "confirm_url": confirm_url})
+        grupos.setdefault(usuario, []).append(
+            {"pauta": pauta, "horario": horario, "confirm_url": confirm_url}
+        )
     return grupos
 
 
@@ -105,7 +112,7 @@ def enviar_whatsapp_texto(usuario, texto):
         return False
 
 
-def enviar_whatsapp(usuario, pautas, hoy):
+def enviar_whatsapp(usuario, pares, hoy):
     url = os.environ.get("WHATSAPP_API_URL", "").strip()
     token = os.environ.get("WHATSAPP_API_TOKEN", "").strip()
     if not url or not token:
@@ -116,10 +123,13 @@ def enviar_whatsapp(usuario, pautas, hoy):
     try:
         import requests
 
-        texto = "Tomas del día ({}):\n".format(hoy.strftime("%d/%m/%Y"))
-        for p in pautas:
-            hora = p.hora.strftime("%H:%M") if p.hora else ""
-            texto += f"- {p.medicamento.nombre} ({p.miembro.nombre}) dosis {p.dosis} {hora}\n"
+        texto = "Tomas del d\u00eda ({}):\n".format(hoy.strftime("%d/%m/%Y"))
+        for pauta, horario in pares:
+            hora = horario.hora.strftime("%H:%M") if horario.hora else ""
+            texto += (
+                f"- {pauta.medicamento.nombre} ({pauta.miembro.nombre}) "
+                f"dosis {pauta.dosis} {hora}\n"
+            )
         requests.post(
             url,
             json={"telefono": telefono, "mensaje": texto},
@@ -133,28 +143,31 @@ def enviar_whatsapp(usuario, pautas, hoy):
 
 
 class Command(BaseCommand):
-    help = "Envía las alertas matutinas de tomas del día según las pautas activas."
+    help = "Env\u00eda las alertas matutinas de tomas del d\u00eda seg\u00fan las pautas activas."
 
     def handle(self, *args, **options):
         hoy = timezone.localdate()
-        pautas = pautas_del_dia(hoy)
-        grupos = agrupar_por_usuario(pautas, hoy)
+        pares = pautas_del_dia(hoy)
+        grupos = agrupar_por_usuario(pares, hoy)
 
         correos = 0
         whatsapps = 0
         for usuario, items in grupos.items():
-            pautas = [it["pauta"] for it in items]
             if usuario.canal_alertas == "correo" or usuario.canal_alertas == "notificacion":
                 if enviar_correo(usuario, items, hoy):
                     correos += 1
             if usuario.canal_alertas == "whatsapp":
                 # WhatsApp con formato enriquecido
-                texto = "Tomas del día ({}):\n".format(hoy.strftime("%d/%m/%Y"))
+                texto = "Tomas del d\u00eda ({}):\n".format(hoy.strftime("%d/%m/%Y"))
                 for it in items:
                     p = it["pauta"]
-                    hora = p.hora.strftime("%H:%M") if p.hora else ""
-                    texto += f"💊 *{p.medicamento.nombre}* ({p.miembro.nombre}) — dosis {p.dosis} {hora}\n"
-                    texto += f"✅ Confirmar: {it['confirm_url']}\n"
+                    hora = it["horario"].hora
+                    texto += (
+                        f"\U0001f48a *{p.medicamento.nombre}* ({p.miembro.nombre})"
+                        f" \u2014 dosis {p.dosis}"
+                        f" {hora.strftime('%H:%M') if hora else ''}\n"
+                    )
+                    texto += f"\u2705 Confirmar: {it['confirm_url']}\n"
                 if enviar_whatsapp_texto(usuario, texto):
                     whatsapps += 1
                 else:
@@ -163,7 +176,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Tomas del día: {len(pautas)}. Usuarios notificados: {len(grupos)}. "
+                f"Tomas del d\u00eda: {len(pares)}. Usuarios notificados: {len(grupos)}. "
                 f"Correos: {correos}. WhatsApp: {whatsapps}."
             )
         )

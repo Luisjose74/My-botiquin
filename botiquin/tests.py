@@ -15,6 +15,7 @@ from cuentas.models import Usuario
 from .models import (
     Categoria,
     Clasificacion,
+    HorarioToma,
     Medicamento,
     PautaToma,
     TomaRegistrada,
@@ -221,7 +222,7 @@ class PautaTomaTests(TestCase):
                 "dosis": 1,
                 "frecuencia": "diaria",
                 "intervalo_dias": 1,
-                "hora": "08:00",
+                "horarios": ["08:00"],
                 "fecha_inicio": "2026-01-01",
                 "activa": "on",
             },
@@ -277,13 +278,16 @@ class TomaRegistradaTests(TestCase):
             medicamento=cls.medicamento, miembro=cls.miembro,
             frecuencia="diaria", fecha_inicio=__import__("datetime").date(2020, 1, 1),
         )
+        cls.horario = HorarioToma.objects.create(
+            pauta=cls.pauta, hora=__import__("datetime").time(8, 0), orden=1
+        )
 
     def setUp(self):
         self.client.force_login(self.usuario)
 
     def test_marcar_tomada_crea_registro(self):
         respuesta = self.client.post(
-            reverse("botiquin:marcar_tomada", args=[self.pauta.pk])
+            reverse("botiquin:marcar_tomada", args=[self.horario.pk])
         )
         self.assertRedirects(respuesta, reverse("botiquin:tomas_hoy"))
         self.assertTrue(
@@ -291,9 +295,13 @@ class TomaRegistradaTests(TestCase):
         )
 
     def test_marcar_tomada_desmarca(self):
-        TomaRegistrada.objects.create(pauta=self.pauta, fecha=__import__("datetime").date.today(), tomada=True)
-        self.client.post(reverse("botiquin:marcar_tomada", args=[self.pauta.pk]))
-        toma = TomaRegistrada.objects.get(pauta=self.pauta, fecha=__import__("datetime").date.today())
+        TomaRegistrada.objects.create(
+            horario=self.horario, fecha=__import__("datetime").date.today(), tomada=True
+        )
+        self.client.post(reverse("botiquin:marcar_tomada", args=[self.horario.pk]))
+        toma = TomaRegistrada.objects.get(
+            horario=self.horario, fecha=__import__("datetime").date.today()
+        )
         self.assertFalse(toma.tomada)
 
     def test_tomas_hoy_muestra_pauta(self):
@@ -310,12 +318,14 @@ class TomaRegistradaTests(TestCase):
         hoy = _tz.localdate()
         # Crear TomaRegistrada ya notificada
         TomaRegistrada.objects.create(
-            pauta=self.pauta, fecha=hoy, tomada=False, notificada=True,
+            horario=self.horario, fecha=hoy, tomada=False, notificada=True,
         )
 
         with patch("botiquin.notificaciones._enviar_correo") as mock_correo, \
              patch("botiquin.notificaciones._enviar_whatsapp") as mock_whatsapp:
-            correos, whatsapps = enviar_recordatorio_hora([self.pauta], _tz.localtime())
+            correos, whatsapps = enviar_recordatorio_hora(
+                [(self.pauta, self.horario)], _tz.localtime()
+            )
 
         self.assertEqual(correos, 0)
         self.assertEqual(whatsapps, 0)
@@ -330,12 +340,14 @@ class TomaRegistradaTests(TestCase):
 
         hoy = _tz.localdate()
         TomaRegistrada.objects.create(
-            pauta=self.pauta, fecha=hoy, tomada=False, notificada=False,
+            horario=self.horario, fecha=hoy, tomada=False, notificada=False,
         )
 
         with patch("botiquin.notificaciones._enviar_correo", return_value=True), \
              patch("botiquin.notificaciones._enviar_whatsapp"):
-            correos, _ = enviar_recordatorio_hora([self.pauta], _tz.localtime())
+            correos, _ = enviar_recordatorio_hora(
+                [(self.pauta, self.horario)], _tz.localtime()
+            )
 
         self.assertEqual(correos, 1)
         self.pauta.tomas.get(fecha=hoy).refresh_from_db()
@@ -444,12 +456,15 @@ class ConfirmacionTomaTokenTests(TestCase):
             medicamento=cls.medicamento, miembro=cls.miembro,
             frecuencia="diaria", fecha_inicio=__import__("datetime").date(2020, 1, 1),
         )
+        cls.horario = HorarioToma.objects.create(
+            pauta=cls.pauta, hora=__import__("datetime").time(8, 0), orden=1
+        )
 
     def test_token_confirma_toma(self):
         from datetime import date
         from botiquin.notificaciones import generar_token_confirmacion
         hoy = date.today()
-        token = generar_token_confirmacion(self.pauta.pk, hoy)
+        token = generar_token_confirmacion(self.pauta.pk, self.horario.pk, hoy)
         respuesta = self.client.get(reverse("botiquin:confirmar_toma", args=[token]))
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Toma registrada")

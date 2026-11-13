@@ -1,9 +1,12 @@
 """Formularios del inventario de medicamentos."""
+import datetime
+
 from django import forms
 from django.core.files.uploadedfile import UploadedFile
+from django.core.exceptions import ValidationError
 
-from .models import Medicamento, PautaToma
-from .widgets import FotoCajaInput
+from .models import HorarioToma, Medicamento, PautaToma
+from .widgets import FotoCajaInput, HorariosWidget
 
 
 class MedicamentoForm(forms.ModelForm):
@@ -196,8 +199,55 @@ class MedicamentoForm(forms.ModelForm):
         return foto
 
 
+class MultiTimeField(forms.Field):
+    """Campo que recibe varias horas (HH:MM) en una misma lista.
+
+    Cada valor se convierte en un `datetime.time` independiente: la lista
+    resultante son los horarios de la pauta.
+    """
+
+    default_error_messages = {
+        "invalida": "Introduce una hora válida en formato HH:MM.",
+    }
+
+    def to_python(self, value):
+        if value in self.empty_values:
+            return []
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+
+        horas = []
+        for bruto in value:
+            bruto = (bruto or "").strip()
+            if not bruto:
+                continue
+            try:
+                horas.append(datetime.time.fromisoformat(bruto))
+            except ValueError:
+                raise ValidationError(
+                    self.error_messages["invalida"],
+                    code="invalida",
+                )
+        return horas
+
+
 class PautaTomaForm(forms.ModelForm):
-    """Programación de tomas de un medicamento para un integrante."""
+    """Programación de tomas de un medicamento para un integrante.
+
+    Una pauta puede tener varios horarios diarios (07:00 y 19:00, tres tomas,
+    esquema de mediodía…). Cada horario genera su propio recordatorio y su
+    propia confirmación de toma.
+    """
+
+    horarios = MultiTimeField(
+        label="Horarios de la toma",
+        required=False,
+        widget=HorariosWidget,
+        help_text=(
+            "Cada horario genera su propio recordatorio y se confirma por "
+            "separado en el historial del día."
+        ),
+    )
 
     class Meta:
         model = PautaToma
@@ -209,7 +259,7 @@ class PautaTomaForm(forms.ModelForm):
             "intervalo_dias",
             "dias_mes",
             "dias_semana",
-            "hora",
+            "horarios",
             "fecha_inicio",
             "fecha_fin",
             "activa",
@@ -226,7 +276,6 @@ class PautaTomaForm(forms.ModelForm):
             "dias_semana": forms.TextInput(
                 attrs={"class": "campo", "placeholder": "Ej.: 0,2,4 (Lun,Mié,Vie)"}
             ),
-            "hora": forms.TimeInput(attrs={"class": "campo", "type": "time"}),
             "fecha_inicio": forms.DateInput(
                 attrs={"class": "campo", "type": "date"}, format="%Y-%m-%d"
             ),
@@ -243,7 +292,6 @@ class PautaTomaForm(forms.ModelForm):
             "intervalo_dias": "Cada N días",
             "dias_mes": "Días del mes",
             "dias_semana": "Días de la semana",
-            "hora": "Hora",
             "fecha_inicio": "Fecha de inicio",
             "fecha_fin": "Fecha de fin (opcional)",
             "activa": "Pauta activa",
@@ -265,7 +313,10 @@ class PautaTomaForm(forms.ModelForm):
         self.fields["medicamento"].empty_label = "Selecciona un medicamento"
         self.fields["miembro"].empty_label = "Selecciona un integrante"
         self.fields["fecha_fin"].required = False
-        self.fields["hora"].required = False
+
+        # Al editar, se muestran los horarios ya programados.
+        if self.instance.pk:
+            self.initial["horarios"] = self.instance.horas
 
     def clean(self):
         cleaned = super().clean()
@@ -276,4 +327,37 @@ class PautaTomaForm(forms.ModelForm):
             self.add_error("dias_mes", "Indica los días del mes.")
         if frecuencia == "dias_semana" and not cleaned.get("dias_semana"):
             self.add_error("dias_semana", "Indica los días de la semana.")
+
+        horas = cleaned.get("horarios") or []
+        if len(horas) != len(set(horas)):
+            self.add_error(
+                "horarios", "Hay horas repetidas: cada horario debe ser distinto."
+            )
         return cleaned
+
+    def save(self, commit=True):
+        pauta = super().save(commit=commit)
+        if commit:
+            self._guardar_horarios(pauta)
+        return pauta
+
+    def _guardar_horarios(self, pauta):
+        """Sincroniza los horarios de la pauta con los del formulario."""
+        horas = self.cleaned_data.get("horarios") or []
+        existentes = {h.hora: h for h in pauta.horarios.all()}
+
+        for orden, hora in enumerate(horas, start=1):
+            horario = existentes.pop(hora, None)
+            if horario is None:
+                HorarioToma.objects.create(pauta=pauta, hora=hora, orden=orden)
+            elif horario.orden != orden:
+                horario.orden = orden
+                horario.save(update_fields=["orden"])
+
+        # Los horarios quitados en el formulario se eliminan (con sus tomas).
+        for horario in existentes.values():
+            horario.delete()
+
+        # Toda pauta conserva al menos un horario, aunque no tenga hora fija.
+        if not pauta.horarios.exists():
+            HorarioToma.objects.create(pauta=pauta, hora=None, orden=1)
