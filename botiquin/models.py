@@ -527,6 +527,52 @@ class PautaToma(models.Model):
                 break
         return resultado
 
+    @property
+    def proxima_toma_texto(self):
+        """Texto corto y legible de la próxima toma para las tarjetas.
+
+        Evita saturar las tarjetas con tiras largas de fechas consecutivas:
+        devuelve una descripción breve como «Próxima toma: Hoy a las 20:00»,
+        «Próxima toma: Mañana a las 08:00» o «Próxima toma: 24/11/2026 a las
+        08:00». Si la pauta ya terminó o no tiene fechas futuras, devuelve "".
+        """
+        ahora = timezone.localtime()
+        hoy = ahora.date()
+
+        fechas = self.proximas_tomas(desde=hoy, cantidad=7)
+        if not fechas:
+            return ""
+
+        horarios = sorted(h.hora for h in self.horarios.all() if h.hora)
+        primera_fecha = fechas[0]
+
+        # ¿La próxima toma es hoy?
+        if primera_fecha == hoy:
+            if not horarios:
+                return "Próxima toma: Hoy (sin hora fija)"
+            pendientes_hoy = [h for h in horarios if h > ahora.time()]
+            if pendientes_hoy:
+                return "Próxima toma: Hoy a las {}".format(
+                    pendientes_hoy[0].strftime("%H:%M")
+                )
+            # Las tomas de hoy ya pasaron: saltar al siguiente día programado.
+            fechas = fechas[1:]
+
+        if not fechas:
+            return ""
+
+        dia = fechas[0]
+        if dia == hoy + timedelta(days=1):
+            etiqueta = "Mañana"
+        else:
+            etiqueta = dia.strftime("%d/%m/%Y")
+
+        if horarios:
+            return "Próxima toma: {} a las {}".format(
+                etiqueta, horarios[0].strftime("%H:%M")
+            )
+        return "Próxima toma: {} (sin hora fija)".format(etiqueta)
+
     def _corresponde(self, fecha):
         if fecha < self.fecha_inicio:
             return False

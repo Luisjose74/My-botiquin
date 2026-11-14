@@ -250,6 +250,73 @@ class PautaTomaTests(TestCase):
         proximas = pauta.proximas_tomas(date(2026, 1, 1), 4)
         self.assertEqual(proximas, [date(2026, 1, 1), date(2026, 1, 4), date(2026, 1, 7), date(2026, 1, 10)])
 
+    def _pauta_diaria_con_horarios(self, horas):
+        from datetime import date, time as dtime
+        pauta = PautaToma.objects.create(
+            medicamento=self.medicamento, miembro=self.miembro,
+            frecuencia="diaria", intervalo_dias=1, fecha_inicio=date(2026, 1, 1),
+        )
+        for orden, h in enumerate(horas, start=1):
+            HorarioToma.objects.create(pauta=pauta, hora=dtime(*h), orden=orden)
+        return pauta
+
+    def test_proxima_toma_texto_diaria_hoy(self):
+        from datetime import datetime
+        pauta = self._pauta_diaria_con_horarios([(8, 0), (20, 0)])
+        ahora = datetime(2026, 1, 5, 10, 30)
+        with patch("django.utils.timezone.localtime", return_value=ahora), \
+             patch("django.utils.timezone.localdate", return_value=ahora.date()):
+            self.assertEqual(
+                pauta.proxima_toma_texto, "Próxima toma: Hoy a las 20:00"
+            )
+
+    def test_proxima_toma_texto_manana(self):
+        from datetime import datetime
+        pauta = self._pauta_diaria_con_horarios([(8, 0), (20, 0)])
+        ahora = datetime(2026, 1, 5, 21, 0)
+        with patch("django.utils.timezone.localtime", return_value=ahora), \
+             patch("django.utils.timezone.localdate", return_value=ahora.date()):
+            self.assertEqual(
+                pauta.proxima_toma_texto, "Próxima toma: Mañana a las 08:00"
+            )
+
+    def test_proxima_toma_texto_sin_hora(self):
+        from datetime import datetime
+        pauta = self._pauta_diaria_con_horarios([])
+        ahora = datetime(2026, 1, 5, 10, 30)
+        with patch("django.utils.timezone.localtime", return_value=ahora), \
+             patch("django.utils.timezone.localdate", return_value=ahora.date()):
+            self.assertEqual(
+                pauta.proxima_toma_texto, "Próxima toma: Hoy (sin hora fija)"
+            )
+
+    def test_proxima_toma_texto_fecha_lejana(self):
+        from datetime import date, datetime, time as dtime
+        pauta = PautaToma.objects.create(
+            medicamento=self.medicamento, miembro=self.miembro,
+            frecuencia="semanal", fecha_inicio=date(2026, 1, 12),
+        )
+        HorarioToma.objects.create(pauta=pauta, hora=dtime(9, 30), orden=1)
+        ahora = datetime(2026, 1, 5, 10, 30)
+        with patch("django.utils.timezone.localtime", return_value=ahora), \
+             patch("django.utils.timezone.localdate", return_value=ahora.date()):
+            self.assertEqual(
+                pauta.proxima_toma_texto, "Próxima toma: 12/01/2026 a las 09:30"
+            )
+
+    def test_proxima_toma_texto_terminada(self):
+        from datetime import date, datetime, time as dtime
+        pauta = PautaToma.objects.create(
+            medicamento=self.medicamento, miembro=self.miembro,
+            frecuencia="diaria", intervalo_dias=1,
+            fecha_inicio=date(2025, 12, 1), fecha_fin=date(2025, 12, 10),
+        )
+        HorarioToma.objects.create(pauta=pauta, hora=dtime(8, 0), orden=1)
+        ahora = datetime(2026, 1, 5, 10, 30)
+        with patch("django.utils.timezone.localtime", return_value=ahora), \
+             patch("django.utils.timezone.localdate", return_value=ahora.date()):
+            self.assertEqual(pauta.proxima_toma_texto, "")
+
     def test_no_puede_editar_pauta_ajena(self):
         otro = Usuario.objects.create_user(username="pauta_otro", password="ClaveSegura123!")
         otro_med = Medicamento.objects.create(

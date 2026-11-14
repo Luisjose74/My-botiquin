@@ -43,10 +43,8 @@
             Sin hora fija
           {% endif %}
         </p>
-        {% if pauta.proximas_tomas %}
-          <p class="page-sub" style="margin:0.25rem 0;">
-            Próximas: {% for f in pauta.proximas_tomas %}{{ f|date:"d/m" }}{% if not forloop.last %}, {% endif %}{% endfor %}
-          </p>
+        {% if pauta.proxima_toma_texto %}
+          <p class="pauta-proxima">{{ pauta.proxima_toma_texto }}</p>
         {% endif %}
         <div class="med-acciones">
           <a class="accion" href="{% url 'botiquin:pauta_editar' pauta.pk %}">Editar</a>
