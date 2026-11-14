@@ -12,9 +12,6 @@ Los datos de la institución se pueden sobrescribir con variables de entorno
     INSTITUCION_AUTORA=Nombre Apellido
 """
 import os
-from email.utils import parseaddr
-
-from django.conf import settings
 
 
 def _env(nombre, defecto=""):
@@ -23,17 +20,18 @@ def _env(nombre, defecto=""):
     return valor or defecto
 
 
-def _correo_contacto():
-    """Correo de contacto del proyecto.
+#: Correo institucional de contacto del proyecto.
+#: Se puede sobrescribir con la variable de entorno `CONTACTO_CORREO`.
+CORREO_CONTACTO = "tubotiquindigital11@gmail.com"
 
-    Prioridad: `CONTACTO_CORREO` en el entorno y, si no está, la dirección
-    remitente configurada en `DEFAULT_FROM_EMAIL` (la que usa la app).
+
+def _correo_contacto():
+    """Correo de contacto que se muestra en el sitio.
+
+    Prioridad: `CONTACTO_CORREO` en el entorno y, si no está, el correo
+    institucional del proyecto.
     """
-    explicito = _env("CONTACTO_CORREO")
-    if explicito:
-        return explicito
-    remitente = getattr(settings, "DEFAULT_FROM_EMAIL", "")
-    return parseaddr(remitente)[1]
+    return _env("CONTACTO_CORREO", CORREO_CONTACTO)
 
 
 #: Datos generals del sitio (nombre, lema, descripción para buscadores).
